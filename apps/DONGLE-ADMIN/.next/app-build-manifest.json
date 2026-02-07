@@ -1,0 +1,65 @@
+{
+  "pages": {
+    "/global-error": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/global-error.js"
+    ],
+    "/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
+    ],
+    "/(대시보드)/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(대시보드)/layout.js"
+    ],
+    "/(대시보드)/(총동연)/admin/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(대시보드)/(총동연)/admin/layout.js"
+    ],
+    "/(대시보드)/(총동연)/admin/(메뉴)/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(대시보드)/(총동연)/admin/(메뉴)/layout.js"
+    ],
+    "/(대시보드)/(총동연)/admin/(메뉴)/(동아리등록)/club-register/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(대시보드)/(총동연)/admin/(메뉴)/(동아리등록)/club-register/page.js"
+    ],
+    "/(대시보드)/(총동연)/admin/(메뉴)/(활동보고서관리)/report/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(대시보드)/(총동연)/admin/(메뉴)/(활동보고서관리)/report/page.js"
+    ],
+    "/(대시보드)/(총동연)/admin/(메뉴)/(동아리정보관리)/club/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(대시보드)/(총동연)/admin/(메뉴)/(동아리정보관리)/club/page.js"
+    ],
+    "/(대시보드)/(총동연)/admin/(메뉴)/(사용자관리)/user/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(대시보드)/(총동연)/admin/(메뉴)/(사용자관리)/user/page.js"
+    ],
+    "/(대시보드)/(총동연)/admin/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(대시보드)/(총동연)/admin/page.js"
+    ],
+    "/(로그인관련)/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(로그인관련)/layout.js"
+    ],
+    "/(로그인관련)/login/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(로그인관련)/login/page.js"
+    ]
+  }
+}

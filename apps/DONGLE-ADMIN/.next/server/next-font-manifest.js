@@ -1,0 +1,1 @@
+self.__NEXT_FONT_MANIFEST="{\"pages\":{},\"app\":{\"/Users/bigsheep/Desktop/projects/DONGLE-FRONT/apps/DONGLE-ADMIN/src/app/layout\":[\"static/media/ff840cfebfb63b0c-s.p.woff2\"]},\"appUsingSizeAdjust\":true,\"pagesUsingSizeAdjust\":false}"

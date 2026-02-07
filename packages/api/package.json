@@ -1,0 +1,21 @@
+{
+  "name": "@dongle/api",
+  "version": "0.0.0",
+  "private": true,
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "type": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dongle/types": "workspace:*",
+    "jose": "^6.1.0",
+    "js-cookie": "^3.0.5"
+  },
+  "peerDependencies": {
+    "next": "15.5.9"
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "/(로그인관련)/login/page": "app/(로그인관련)/login/page.js",
+  "/(대시보드)/(총동연)/admin/(메뉴)/(동아리등록)/club-register/page": "app/(대시보드)/(총동연)/admin/(메뉴)/(동아리등록)/club-register/page.js"
+}

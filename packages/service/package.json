@@ -1,0 +1,17 @@
+{
+  "name": "@dongle/service",
+  "version": "0.0.0",
+  "private": true,
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "type": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dongle/api": "workspace:*",
+    "@dongle/types": "workspace:*"
+  }
+}
