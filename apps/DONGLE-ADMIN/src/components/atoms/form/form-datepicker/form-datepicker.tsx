@@ -13,6 +13,7 @@ import { Label } from "@dongle/ui/label";
 export function FormDatePicker({
     label,
     id,
+    name,
     required,
     icon,
     description,
@@ -24,6 +25,7 @@ export function FormDatePicker({
 }: {
     label?: string;
     id: string;
+    name?: string;
     required?: boolean;
     icon?: React.ReactNode;
     description?: string;
@@ -44,6 +46,7 @@ export function FormDatePicker({
 
     return (
         <div className="flex flex-col gap-2">
+            <input type="hidden" name={name ?? id} value={date ? format(date, "yyyy-MM-dd") : ""} />
             {label && (
                 <Label htmlFor={id} className="font-semibold text-zinc-700 text-base">
                     {icon && <span className="mr-2 inline-flex">{icon}</span>}

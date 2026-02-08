@@ -28,7 +28,6 @@ export const getClubService = async (id: number): Promise<ClubResponse> => {
             tags: ["club", `club-${id}`],
         },
     });
-    console.log(response);
     return response as ClubResponse;
 };
 

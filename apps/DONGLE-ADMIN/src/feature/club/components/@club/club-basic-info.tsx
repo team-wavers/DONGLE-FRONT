@@ -103,6 +103,7 @@ export function ClubBasicInfo({ club, fieldErrors }: ClubBasicInfoProps) {
                     name="icon"
                     label="동아리 아이콘"
                     description="동아리를 대표하는 아이콘 이미지를 업로드하세요"
+                    existingUrls={club?.icon_url ? [club.icon_url] : []}
                     accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     maxSize={5}
                     maxFiles={1}

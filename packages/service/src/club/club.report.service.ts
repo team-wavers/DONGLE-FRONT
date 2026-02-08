@@ -21,14 +21,6 @@ export const getClubReportListService = async (club_id: number): Promise<ClubRep
     });
     return response as ClubReportListResponse;
 };
-export const getClubReportService = async (club_id: number, report_id: number): Promise<ClubReportResponse> => {
-    const response = await instance.get(`/clubs/${club_id}/reports/${report_id}`, {
-        next: {
-            tags: ["report", `report-${club_id}`],
-        },
-    });
-    return response as ClubReportResponse;
-};
 
 // 캐시된 목록에서 특정 보고서 찾기 (더 효율적)
 export const getClubReportFromListService = async (club_id: number, report_id: number): Promise<ClubReportResponse> => {
@@ -92,10 +84,7 @@ export const updateClubReportService = async (
 };
 
 /** 활동 보고서 삭제 */
-export const deleteClubReportService = async (
-    club_id: number,
-    report_id: number
-): Promise<Response<null>> => {
+export const deleteClubReportService = async (club_id: number, report_id: number): Promise<Response<null>> => {
     const response = await instance.delete(`/clubs/${club_id}/reports/${report_id}`, {
         next: {
             tags: ["report", `report-${club_id}`],

@@ -1,3 +1,4 @@
+import type { FetchOptions } from "./fetch-types";
 import { makeRequest } from "./make-request";
 import { handleErrorResponse } from "./handle-error-response";
 import { refreshToken } from "./refresh-token";
@@ -25,7 +26,7 @@ class FetchInstance {
         url: string;
         method: string;
         data?: unknown;
-        options?: RequestInit;
+        options?: FetchOptions;
     }): Promise<Response> {
         return makeRequest({
             url,
@@ -56,7 +57,7 @@ class FetchInstance {
      * @param options - 요청 옵션
      * @returns 응답 데이터
      */
-    public async get(url: string, options?: RequestInit): Promise<unknown> {
+    public async get(url: string, options?: FetchOptions): Promise<unknown> {
         const response = await this.makeRequest({ url, method: "GET", options });
 
         if (!response.ok) {
@@ -73,7 +74,7 @@ class FetchInstance {
      * @param options - 요청 옵션
      * @returns 응답 데이터
      */
-    public async post(url: string, data: unknown, options?: RequestInit): Promise<unknown> {
+    public async post(url: string, data: unknown, options?: FetchOptions): Promise<unknown> {
         const response = await this.makeRequest({
             url,
             method: "POST",
@@ -95,7 +96,7 @@ class FetchInstance {
      * @param options - 요청 옵션
      * @returns 응답 데이터
      */
-    public async put(url: string, data: unknown, options?: RequestInit): Promise<unknown> {
+    public async put(url: string, data: unknown, options?: FetchOptions): Promise<unknown> {
         const response = await this.makeRequest({
             url,
             method: "PUT",
@@ -117,7 +118,7 @@ class FetchInstance {
      * @param options - 요청 옵션
      * @returns 응답 데이터
      */
-    public async patch(url: string, data: unknown, options?: RequestInit): Promise<unknown> {
+    public async patch(url: string, data: unknown, options?: FetchOptions): Promise<unknown> {
         const response = await this.makeRequest({
             url,
             method: "PATCH",
@@ -138,7 +139,7 @@ class FetchInstance {
      * @param options - 요청 옵션
      * @returns 응답 데이터
      */
-    public async delete(url: string, options?: RequestInit): Promise<unknown> {
+    public async delete(url: string, options?: FetchOptions): Promise<unknown> {
         const response = await this.makeRequest({ url, method: "DELETE", options });
 
         if (!response.ok) {

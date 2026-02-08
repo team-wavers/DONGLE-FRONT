@@ -16,7 +16,7 @@ const styles = {
         },
     },
     category: {
-        list: "mt-2 text-sm font-semibold text-zinc-300",
+        list: "mt-2 text-sm font-bold text-zinc-400",
         default: "w-fit text-sm font-bold",
     },
 } as const;

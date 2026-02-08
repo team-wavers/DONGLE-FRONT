@@ -23,6 +23,7 @@ export interface ClubFormProps {
 }
 
 export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
+    console.log("club", club);
     const router = useRouter();
     const [state, formAction, isPending] = useActionState(clubFormAction, {
         success: false,
@@ -68,7 +69,6 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
 
             <ClubMemberManagement
                 club={club}
-                isRequired={false}
                 fieldErrors={{
                     presidentName: state.fieldErrors?.presidentName,
                     presidentContact: state.fieldErrors?.presidentContact,

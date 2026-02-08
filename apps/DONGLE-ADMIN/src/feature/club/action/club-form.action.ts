@@ -64,6 +64,7 @@ function validateClubForm(formData: ClubFormData): {
     isValid: boolean;
 } {
     const fieldErrors: ClubActionState["fieldErrors"] = {};
+    const isRecruiting = formData.recruitmentStatus === RECRUITMENT_STATUS.RECRUITING;
 
     if (!formData.category) {
         fieldErrors.category = "분과를 선택해주세요";
@@ -99,15 +100,22 @@ function validateClubForm(formData: ClubFormData): {
         fieldErrors.presidentContact = "올바른 휴대폰 번호 형식이 아닙니다 (예: 010-1234-5678)";
     }
 
-    // 모집기간은 선택사항이지만, 입력된 경우 유효성 검증
+    // 모집중일 때는 모집기간 필수, 모집마감일 때는 선택 입력
+    if (isRecruiting) {
+        if (!formData.recruitmentStartDate) {
+            fieldErrors.recruitmentStartDate = "모집 시작일을 입력해주세요";
+        }
+        if (!formData.recruitmentEndDate) {
+            fieldErrors.recruitmentEndDate = "모집 마감일을 입력해주세요";
+        }
+    }
+
+    // 모집기간이 둘 다 있는 경우 날짜 순서 검증
     if (formData.recruitmentStartDate && formData.recruitmentEndDate) {
-        // 둘 다 입력된 경우 날짜 유효성 검증 (시작일이 마감일보다 늦으면 안됨)
-        if (formData.recruitmentStartDate && formData.recruitmentEndDate) {
-            const startDate = new Date(formData.recruitmentStartDate);
-            const endDate = new Date(formData.recruitmentEndDate);
-            if (startDate > endDate) {
-                fieldErrors.recruitmentEndDate = "모집 마감일은 모집 시작일보다 늦어야 합니다";
-            }
+        const startDate = new Date(formData.recruitmentStartDate);
+        const endDate = new Date(formData.recruitmentEndDate);
+        if (startDate > endDate) {
+            fieldErrors.recruitmentEndDate = "모집 마감일은 모집 시작일보다 늦어야 합니다";
         }
     }
 
@@ -119,6 +127,16 @@ function validateClubForm(formData: ClubFormData): {
 
 // 공통 폼 데이터 추출 함수
 function extractClubFormData(formData: FormData): ClubFormData {
+    const rawTags = formData
+        .getAll("tags")
+        .map((tag) => String(tag))
+        .filter((tag) => tag.trim().length > 0);
+
+    const parsedTags = rawTags
+        .flatMap((tag) => tag.split(","))
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
+
     return {
         clubName: formData.get("clubName") as string,
         category: formData.get("category") as string,
@@ -126,7 +144,7 @@ function extractClubFormData(formData: FormData): ClubFormData {
         location: formData.get("location") as string,
         presidentName: formData.get("presidentName") as string,
         presidentContact: formData.get("presidentContact") as string,
-        tags: formData.getAll("tags") as string[],
+        tags: parsedTags,
         main_activities: formData.get("main_activities") as string,
         description: formData.get("description") as string,
         recruitmentStartDate: formData.get("recruitmentStartDate") as string,
@@ -222,6 +240,7 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
         const iconFile = formData.get("icon") as File | null;
         if (iconFile && iconFile.size > 0) {
             const iconUploadResult = await uploadClubIconService(Number(clubId), iconFile);
+            console.log("iconUploadResult", iconUploadResult);
             if (!iconUploadResult.isSuccess) {
                 return {
                     success: false,

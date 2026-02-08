@@ -1,10 +1,11 @@
+import type { FetchOptions } from "./fetch-types";
 import { getAccessTokenFromServerCookie } from "./utils/cookie/server-cookie.util";
 
 interface MakeRequestParams {
     url: string;
     method: string;
     data?: unknown;
-    options?: RequestInit;
+    options?: FetchOptions;
     baseUrl: string;
     refreshToken: () => Promise<boolean>;
 }
@@ -46,7 +47,7 @@ export async function makeRequest({
     };
 
     // 클라이언트에서는 credentials 사용, 서버에서는 사용하지 않음
-    const fetchOptions: RequestInit = {
+    const fetchOptions: FetchOptions = {
         method,
         ...(body !== undefined && { body }),
         headers,
