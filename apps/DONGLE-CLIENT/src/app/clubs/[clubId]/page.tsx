@@ -91,9 +91,9 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
                             <div className="flex gap-4">
                                 <dt className={styles.dt}>태그</dt>
                                 <dd className="text-zinc-800 flex flex-wrap gap-2">
-                                    {club.tags.map((tag) => (
+                                    {club.tags.map((tag, index) => (
                                         <Badge
-                                            key={tag}
+                                            key={`${tag}-${index}`}
                                             variant="outline"
                                             className="text-zinc-700 px-3 py-1 bg-white font-semibold">
                                             {tag}

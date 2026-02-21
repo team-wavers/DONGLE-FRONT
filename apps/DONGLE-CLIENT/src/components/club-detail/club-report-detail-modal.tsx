@@ -38,7 +38,7 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[min(1000px,calc(100%-2rem))] max-h-[90vh] p-0 gap-0 overflow-hidden">
+            <DialogContent className="w-[min(1200px,calc(100%-2rem))] max-h-[90vh] p-0 gap-0 overflow-hidden">
                 {report && (
                     <section className="p-4 md:p-5 min-h-0 max-h-[90vh] overflow-y-auto space-y-4">
                         <DialogTitle className="sr-only">{report.title}</DialogTitle>
@@ -46,64 +46,60 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
                             작성일 {formatDateByLocale(report.createdAt)}
                         </DialogDescription>
 
-                        <div className="flex flex-col gap-4 pt-4">
-                            <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-zinc-100">
-                                {hasImages ? (
-                                    <>
-                                        <img
-                                            src={selectedImages[selectedImageIndex]}
-                                            alt={`${report.title} 이미지 ${selectedImageIndex + 1}`}
-                                            className="h-full w-full object-cover"
-                                        />
-                                        {selectedImages.length > 1 && (
-                                            <>
-                                                <button
-                                                    type="button"
-                                                    aria-label="이전 이미지"
-                                                    onClick={goPrevImage}
-                                                    className={`${styles.imageNavButton} left-2`}>
-                                                    <ChevronLeft size={18} />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    aria-label="다음 이미지"
-                                                    onClick={goNextImage}
-                                                    className={`${styles.imageNavButton} right-2`}>
-                                                    <ChevronRight size={18} />
-                                                </button>
-                                            </>
-                                        )}
-                                    </>
-                                ) : (
-                                    <div className="h-full w-full flex items-center justify-center text-zinc-400 text-sm">
-                                        등록된 이미지가 없습니다.
+                        {hasImages && (
+                            <div className="flex flex-col gap-4 pt-4">
+                                <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-zinc-100">
+                                    <img
+                                        src={selectedImages[selectedImageIndex]}
+                                        alt={`${report.title} 이미지 ${selectedImageIndex + 1}`}
+                                        className="h-full w-full object-cover"
+                                    />
+                                    {selectedImages.length > 1 && (
+                                        <>
+                                            <button
+                                                type="button"
+                                                aria-label="이전 이미지"
+                                                onClick={goPrevImage}
+                                                className={`${styles.imageNavButton} left-2`}>
+                                                <ChevronLeft size={18} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                aria-label="다음 이미지"
+                                                onClick={goNextImage}
+                                                className={`${styles.imageNavButton} right-2`}>
+                                                <ChevronRight size={18} />
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+
+                                {selectedImages.length > 1 && (
+                                    <div className="flex gap-2 overflow-x-auto pb-1">
+                                        {selectedImages.map((imageUrl, index) => (
+                                            <button
+                                                key={`${report.id}-${index}`}
+                                                type="button"
+                                                data-active={selectedImageIndex === index}
+                                                className="h-14 w-20 shrink-0 overflow-hidden rounded-md border border-zinc-200 bg-zinc-100 data-[active=true]:ring-2 data-[active=true]:ring-primary"
+                                                onClick={() => setSelectedImageIndex(index)}>
+                                                <img
+                                                    src={imageUrl}
+                                                    alt={`${report.title} 썸네일 ${index + 1}`}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            </button>
+                                        ))}
                                     </div>
                                 )}
                             </div>
-
-                            {selectedImages.length > 1 && (
-                                <div className="flex gap-2 overflow-x-auto pb-1">
-                                    {selectedImages.map((imageUrl, index) => (
-                                        <button
-                                            key={`${report.id}-${index}`}
-                                            type="button"
-                                            data-active={selectedImageIndex === index}
-                                            className="h-14 w-20 shrink-0 overflow-hidden rounded-md border border-zinc-200 bg-zinc-100 data-[active=true]:ring-2 data-[active=true]:ring-primary"
-                                            onClick={() => setSelectedImageIndex(index)}>
-                                            <img
-                                                src={imageUrl}
-                                                alt={`${report.title} 썸네일 ${index + 1}`}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                        )}
 
                         <h2 className="text-xl font-bold text-zinc-900 pr-8">{report.title}</h2>
                         <p className="text-sm text-zinc-500">작성일 {formatDateByLocale(report.createdAt)}</p>
-                        <p className="text-zinc-700 leading-7 whitespace-pre-wrap">{report.content}</p>
+                        <p className="min-h-[180px] text-zinc-700 leading-7 whitespace-pre-wrap">
+                            {report.content}
+                        </p>
 
                         <div className="pt-2">
                             <DialogClose asChild>
