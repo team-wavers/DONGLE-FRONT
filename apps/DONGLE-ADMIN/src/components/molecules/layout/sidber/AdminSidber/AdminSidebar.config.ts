@@ -1,4 +1,4 @@
-import { Building2, Home, UserPlus, Users } from "lucide-react";
+import { Building2, Home, Image, UserPlus, Users } from "lucide-react";
 import { FileText } from "lucide-react";
 
 export const MENU_CONFIG = {
@@ -21,6 +21,11 @@ export const MENU_CONFIG = {
     name: "활동 보고서",
     href: "/admin/report",
     icon: FileText,
+  },
+  banner: {
+    name: "배너 관리",
+    href: "/admin/banner",
+    icon: Image,
   },
   user: {
     name: "사용자 관리",

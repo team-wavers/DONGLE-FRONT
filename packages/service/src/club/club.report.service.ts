@@ -65,7 +65,6 @@ export const createClubReportService = async (
             tags: ["report", `report-${club_id}`],
         },
     });
-    console.log(response);
     return response as ClubReportCreateResponse;
 };
 
@@ -79,7 +78,6 @@ export const updateClubReportService = async (
             tags: ["report", `report-${club_id}`],
         },
     });
-    console.log(response);
     return response as ClubReportUpdateResponse;
 };
 

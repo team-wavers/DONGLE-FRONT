@@ -39,6 +39,7 @@ interface ClubActionState {
         description?: string;
         main_activities?: string;
         category?: string;
+        icon?: string;
     };
 }
 
@@ -58,12 +59,31 @@ interface ClubFormData {
     presidentContact: string;
 }
 
+function getTrimmedString(formData: FormData, key: string): string {
+    return String(formData.get(key) || "").trim();
+}
+
+function parseStringArrayField(formData: FormData, key: string): string[] {
+    const raw = getTrimmedString(formData, key) || "[]";
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return [];
+    }
+}
+
 // 공통 검증 함수
-function validateClubForm(formData: ClubFormData): {
+function validateClubForm(
+    formData: ClubFormData,
+    options?: {
+        requirePresident?: boolean;
+    }
+): {
     fieldErrors: ClubActionState["fieldErrors"];
     isValid: boolean;
 } {
     const fieldErrors: ClubActionState["fieldErrors"] = {};
+    const requirePresident = options?.requirePresident ?? true;
     const isRecruiting = formData.recruitmentStatus === RECRUITMENT_STATUS.RECRUITING;
 
     if (!formData.category) {
@@ -90,14 +110,16 @@ function validateClubForm(formData: ClubFormData): {
         fieldErrors.main_activities = "주요 활동을 입력해주세요";
     }
 
-    if (!formData.presidentName) {
-        fieldErrors.presidentName = "회장 이름을 입력해주세요";
-    }
+    if (requirePresident) {
+        if (!formData.presidentName) {
+            fieldErrors.presidentName = "회장 이름을 입력해주세요";
+        }
 
-    if (!formData.presidentContact) {
-        fieldErrors.presidentContact = "회장 연락처를 입력해주세요";
-    } else if (!isValidPhoneNumber(formData.presidentContact)) {
-        fieldErrors.presidentContact = "올바른 휴대폰 번호 형식이 아닙니다 (예: 010-1234-5678)";
+        if (!formData.presidentContact) {
+            fieldErrors.presidentContact = "회장 연락처를 입력해주세요";
+        } else if (!isValidPhoneNumber(formData.presidentContact)) {
+            fieldErrors.presidentContact = "올바른 휴대폰 번호 형식이 아닙니다 (예: 010-1234-5678)";
+        }
     }
 
     // 모집중일 때는 모집기간 필수, 모집마감일 때는 선택 입력
@@ -156,7 +178,6 @@ function extractClubFormData(formData: FormData): ClubFormData {
 
 export async function clubFormAction(prevState: ClubActionState, formData: FormData): Promise<ClubActionState> {
     const clubId = formData.get("clubId") as string;
-    const presidentId = formData.get("presidentId") as string;
 
     if (!clubId) {
         return {
@@ -166,7 +187,7 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
     }
 
     const extractedData = extractClubFormData(formData);
-    const { fieldErrors, isValid } = validateClubForm(extractedData);
+    const { fieldErrors, isValid } = validateClubForm(extractedData, { requirePresident: false });
 
     if (!isValid) {
         return { fieldErrors };
@@ -182,6 +203,7 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
         recruit_end?: string;
         category?: string;
         location?: string;
+        icon_url?: string | null;
         is_recruiting?: boolean;
         sns?: {
             youtube?: string;
@@ -238,13 +260,20 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
     try {
         // 아이콘 파일 업로드 (있는 경우)
         const iconFile = formData.get("icon") as File | null;
+        const existingIconUrls = parseStringArrayField(formData, "icon_existing_urls");
+
+        if ((!iconFile || iconFile.size === 0) && existingIconUrls.length === 0) {
+            clubPayload.icon_url = null;
+        }
+
         if (iconFile && iconFile.size > 0) {
             const iconUploadResult = await uploadClubIconService(Number(clubId), iconFile);
-            console.log("iconUploadResult", iconUploadResult);
             if (!iconUploadResult.isSuccess) {
                 return {
                     success: false,
-                    error: "아이콘 업로드에 실패했습니다. 다시 시도해주세요.",
+                    fieldErrors: {
+                        icon: "아이콘 업로드에 실패했습니다. 다시 시도해주세요.",
+                    },
                 };
             }
         }
@@ -262,17 +291,51 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
         revalidateTag("club");
         revalidateTag(`club-${clubId}`);
 
-        if (!presidentId) {
-            return {
-                success: false,
-                error: "회장 정보를 찾을 수 없습니다.",
-            };
-        }
+        return { success: true };
+    } catch {
+        return {
+            success: false,
+            error: "동아리 수정에 실패했습니다. 다시 시도해주세요.",
+        };
+    }
+}
 
+export async function updateClubPresidentAction(
+    prevState: ClubActionState,
+    formData: FormData
+): Promise<ClubActionState> {
+    const clubId = getTrimmedString(formData, "clubId");
+    const presidentId = getTrimmedString(formData, "presidentId");
+    const presidentName = getTrimmedString(formData, "presidentName");
+    const presidentContact = getTrimmedString(formData, "presidentContact");
+
+    if (!clubId || !presidentId) {
+        return {
+            success: false,
+            error: "회장 정보를 찾을 수 없습니다.",
+        };
+    }
+
+    const fieldErrors: ClubActionState["fieldErrors"] = {};
+    if (!presidentName) {
+        fieldErrors.presidentName = "회장 이름을 입력해주세요";
+    }
+    if (!presidentContact) {
+        fieldErrors.presidentContact = "회장 연락처를 입력해주세요";
+    } else if (!isValidPhoneNumber(presidentContact)) {
+        fieldErrors.presidentContact = "올바른 휴대폰 번호 형식이 아닙니다 (예: 010-1234-5678)";
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+        return { fieldErrors };
+    }
+
+    try {
         const { isSuccess: userIsSuccess } = await patchUserService(Number(presidentId), {
-            name: extractedData.presidentName,
-            phone: extractedData.presidentContact,
+            name: presidentName,
+            phone: presidentContact,
         });
+
         if (!userIsSuccess) {
             return {
                 success: false,
@@ -282,13 +345,14 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
 
         revalidateTag("user");
         revalidateTag(`user-${presidentId}`);
+        revalidateTag("club");
+        revalidateTag(`club-${clubId}`);
 
         return { success: true };
-    } catch (error) {
-        console.log(error);
+    } catch {
         return {
             success: false,
-            error: "동아리 수정에 실패했습니다. 다시 시도해주세요.",
+            error: "회장 정보 수정에 실패했습니다. 다시 시도해주세요.",
         };
     }
 }
@@ -349,7 +413,6 @@ export async function clubRegisterFormAction(prevState: ClubActionState, formDat
             location: extractedData.location,
         });
 
-        console.log("동아리 등록", club);
         if (!club.isSuccess) {
             return {
                 success: false,
@@ -363,7 +426,6 @@ export async function clubRegisterFormAction(prevState: ClubActionState, formDat
         // const updatedClub = await updateClubService(club.result?.id, {
         //   president_id: Number(user.result.id),
         // });
-        // console.log("동아리-회장 연동", updatedClub);
         // if (!updatedClub.isSuccess) {
         //   return {
         //     success: false,
@@ -377,8 +439,7 @@ export async function clubRegisterFormAction(prevState: ClubActionState, formDat
             tempPassword,
             clubName: extractedData.clubName,
         };
-    } catch (error) {
-        console.log(error);
+    } catch {
         return {
             success: false,
             error: "동아리 등록에 실패했습니다. 다시 시도해주세요.",

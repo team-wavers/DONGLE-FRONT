@@ -5,7 +5,6 @@ import { LoginRequest } from "@dongle/types/auth/auth";
 const instance = FetchInstance.getInstance();
 
 export const loginService = async ({ login_id, password }: LoginRequest): Promise<LoginResponse> => {
-    console.log(login_id, password);
     const response = await instance.post("/auth/login", {
         login_id,
         password,
@@ -26,6 +25,5 @@ export const refreshTokenService = async ({
     const response = await instance.post("/auth/refresh", {
         refreshToken,
     });
-    console.log("refreshTokenService - response:", response);
     return response as RefreshTokenResponse;
 };

@@ -15,8 +15,10 @@ export default async function AdminReportPage({ params }: { params: Promise<{ cl
 
     if (result.length === 0) {
         return (
-            <div className="flex justify-center items-center py-8">
-                <div className="text-zinc-500">등록된 활동 보고서가 없습니다.</div>
+            <div className="flex flex-col gap-4 w-full">
+                <div className="flex justify-center items-center py-8">
+                    <div className="text-zinc-500">등록된 활동 보고서가 없습니다.</div>
+                </div>
             </div>
         );
     }

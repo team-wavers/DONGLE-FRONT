@@ -55,13 +55,7 @@ export async function makeRequest({
         ...(isClient && { credentials: "include" as RequestCredentials }),
     };
 
-    console.log("fetchOptions", fetchOptions);
-    console.log("baseUrl", baseUrl);
-    console.log("url", url);
-
     const response = await fetch(`${baseUrl}${url}`, fetchOptions);
-
-    console.log("response", response);
     // 401 에러 시 토큰 갱신 시도 (클라이언트에서만)
     if (response.status === 401) {
         const refreshSuccess = await refreshToken();

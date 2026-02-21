@@ -68,7 +68,6 @@ export async function loginFormAction(prevState: LoginActionState, formData: For
             role: accessTokenPayload?.role as "admin" | "club" | undefined,
         };
     } catch (error) {
-        console.log(error);
         if (error instanceof Error) {
             return {
                 success: false,
