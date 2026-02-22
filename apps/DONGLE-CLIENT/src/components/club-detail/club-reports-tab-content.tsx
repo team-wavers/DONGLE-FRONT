@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { formatDateByLocale } from "@dongle/ui";
 import type { ClubReport } from "@dongle/types/club/club.report";
 import ClubReportDetailModal from "./club-report-detail-modal";
@@ -43,12 +44,14 @@ export default function ClubReportsTabContent({ reports }: ClubReportsTabContent
                         type="button"
                         className="w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                         onClick={() => openReportModal(report)}>
-                        <div className="aspect-[16/10] bg-zinc-100">
+                        <div className="relative aspect-[16/10] bg-zinc-100">
                             {report.image_urls[0] ? (
-                                <img
+                                <Image
                                     src={report.image_urls[0]}
                                     alt={`${report.title} 썸네일`}
-                                    className="h-full w-full object-cover"
+                                    fill
+                                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                                    className="object-cover"
                                 />
                             ) : (
                                 <div className="h-full w-full flex items-center justify-center text-zinc-400 text-sm">

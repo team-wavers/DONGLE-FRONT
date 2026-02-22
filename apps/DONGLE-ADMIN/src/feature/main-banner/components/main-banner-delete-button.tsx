@@ -19,11 +19,9 @@ export default function MainBannerDeleteButton({ bannerId }: MainBannerDeleteBut
             triggerVariant="destructive"
             triggerClassName="w-full"
             confirmVariant="destructive"
-            confirmClassName="w-full"
             onConfirm={async () => {
                 await deleteMainBannerAction(bannerId, new FormData());
             }}
         />
     );
 }
-

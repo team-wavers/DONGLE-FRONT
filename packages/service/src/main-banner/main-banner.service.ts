@@ -1,4 +1,5 @@
 import FetchInstance from "@dongle/api/instance";
+export { getDisplayBannerImageUrls } from "./get-display-banner-image-urls";
 import {
     CreateMainBannerRequest,
     MainBannerCreateResponse,

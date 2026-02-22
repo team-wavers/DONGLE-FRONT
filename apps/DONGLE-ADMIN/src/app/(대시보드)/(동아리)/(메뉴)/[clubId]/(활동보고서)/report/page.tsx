@@ -13,9 +13,9 @@ export default async function Page({ params }: { params: Promise<{ clubId: strin
 
     return (
         <div className="flex flex-col w-full items-center">
-            <div className="flex justify-start w-full">
+            <div className="flex justify-end w-full mb-4">
                 <Link href="./create">
-                    <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg">
+                    <Button className="font-semibold shadow-lg">
                         <Pencil className="w-4 h-4 mr-2" />
                         작성하기
                     </Button>

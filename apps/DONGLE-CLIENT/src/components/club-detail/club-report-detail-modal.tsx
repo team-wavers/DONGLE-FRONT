@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, formatDateByLocale } from "@dongle/ui";
 import type { ClubReport } from "@dongle/types/club/club.report";
@@ -49,10 +50,12 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
                         {hasImages && (
                             <div className="flex flex-col gap-4 pt-4">
                                 <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-zinc-100">
-                                    <img
+                                    <Image
                                         src={selectedImages[selectedImageIndex]}
                                         alt={`${report.title} 이미지 ${selectedImageIndex + 1}`}
-                                        className="h-full w-full object-cover"
+                                        fill
+                                        sizes="(min-width: 1024px) 900px, 100vw"
+                                        className="object-cover"
                                     />
                                     {selectedImages.length > 1 && (
                                         <>
@@ -81,12 +84,14 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
                                                 key={`${report.id}-${index}`}
                                                 type="button"
                                                 data-active={selectedImageIndex === index}
-                                                className="h-14 w-20 shrink-0 overflow-hidden rounded-md border border-zinc-200 bg-zinc-100 data-[active=true]:ring-2 data-[active=true]:ring-primary"
+                                                className="relative h-14 w-20 shrink-0 overflow-hidden rounded-md border border-zinc-200 bg-zinc-100 data-[active=true]:ring-2 data-[active=true]:ring-primary"
                                                 onClick={() => setSelectedImageIndex(index)}>
-                                                <img
+                                                <Image
                                                     src={imageUrl}
                                                     alt={`${report.title} 썸네일 ${index + 1}`}
-                                                    className="h-full w-full object-cover"
+                                                    fill
+                                                    sizes="80px"
+                                                    className="object-cover"
                                                 />
                                             </button>
                                         ))}

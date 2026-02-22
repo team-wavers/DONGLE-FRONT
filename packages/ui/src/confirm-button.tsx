@@ -24,7 +24,6 @@ interface ConfirmButtonProps {
     triggerVariant?: "default" | "outline" | "ghost" | "secondary" | "destructive" | "link";
     confirmVariant?: "default" | "outline" | "ghost" | "secondary" | "destructive" | "link";
     triggerClassName?: string;
-    confirmClassName?: string;
     disabled?: boolean;
 }
 
@@ -39,7 +38,6 @@ export function ConfirmButton({
     triggerVariant = "outline",
     confirmVariant = "destructive",
     triggerClassName,
-    confirmClassName,
     disabled = false,
 }: ConfirmButtonProps) {
     const [open, setOpen] = useState(false);
@@ -65,14 +63,10 @@ export function ConfirmButton({
                     {description ? <DialogDescription>{description}</DialogDescription> : null}
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
+                    <Button size="lg" variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
                         {cancelText}
                     </Button>
-                    <Button
-                        variant={confirmVariant}
-                        className={confirmClassName}
-                        onClick={handleConfirm}
-                        disabled={isPending}>
+                    <Button size="lg" variant={confirmVariant} onClick={handleConfirm} disabled={isPending}>
                         {isPending ? (
                             <>
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

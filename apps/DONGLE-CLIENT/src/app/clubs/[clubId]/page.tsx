@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge, RecruitmentStatusBadge, formatDateRange } from "@dongle/ui";
 import { getClubReportListService, getClubService } from "@dongle/service";
@@ -50,9 +51,11 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
                     <div className="py-4 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                         <div className="flex items-center gap-4 min-w-0">
                             {club.icon_url ? (
-                                <img
+                                <Image
                                     src={club.icon_url}
                                     alt={`${club.name} 아이콘`}
+                                    width={64}
+                                    height={64}
                                     className="h-16 w-16 rounded-full object-cover border border-zinc-200"
                                 />
                             ) : null}

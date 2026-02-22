@@ -3,6 +3,7 @@ import { User } from "@dongle/types/user/user.d";
 import { Card, CardContent } from "@dongle/ui/card";
 import { User as UserIcon } from "lucide-react";
 import UserCard from "@/feature/user/components/user-card";
+import UserCreateButton from "@/feature/user/components/user-create-button";
 import AdminPageHeader from "@/components/molecules/layout/admin-page-header/admin-page-header";
 
 export default async function UserManagementPage() {
@@ -14,11 +15,12 @@ export default async function UserManagementPage() {
     return (
         <div className="flex flex-col w-full h-full">
             <AdminPageHeader title="사용자 관리" description="사용자 정보를 관리할 수 있습니다." />
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center justify-between gap-4 mb-4">
                 <div className="text-sm text-gray-600">
                     총 <span className="font-semibold text-blue-600">{users.length}</span>
                     명의 사용자
                 </div>
+                <UserCreateButton />
             </div>
 
             <div className="grid gap-4">
