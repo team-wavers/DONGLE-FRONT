@@ -95,12 +95,12 @@ export async function userEditFormAction(
             };
         }
 
-        const { isSuccess } = await patchUserService(Number(userId), updateData);
+        const { isSuccess, error: serviceError } = await patchUserService(Number(userId), updateData);
 
         if (!isSuccess) {
             return {
                 success: false,
-                error: "사용자 정보 수정에 실패했습니다. 다시 시도해주세요.",
+                error: serviceError?.message ?? "사용자 정보 수정에 실패했습니다. 다시 시도해주세요.",
             };
         }
 
@@ -113,9 +113,11 @@ export async function userEditFormAction(
         };
     } catch (error) {
         console.error("사용자 정보 수정 중 오류 발생:", error);
+        const message =
+            error instanceof Error ? error.message : "사용자 정보 수정에 실패했습니다. 다시 시도해주세요.";
         return {
             success: false,
-            error: "사용자 정보 수정에 실패했습니다. 다시 시도해주세요.",
+            error: message,
         };
     }
 }
