@@ -97,7 +97,7 @@ export default function ActivityReportForm({
                 multiple
                 maxFiles={5}
                 description="활동 사진을 업로드하세요"
-                existingUrls={existingUrls}
+                defaultValue={existingUrls}
                 onUrlRemove={handleUrlRemove}
             />
 

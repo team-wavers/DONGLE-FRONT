@@ -15,22 +15,25 @@ export default async function AdminReportPage({ params }: { params: Promise<{ cl
 
     if (result.length === 0) {
         return (
-            <div className="flex justify-center items-center py-8">
-                <div className="text-zinc-500">등록된 활동 보고서가 없습니다.</div>
+            <div className="flex flex-col gap-4 w-full">
+                <div className="flex justify-start mb-4">
+                    <Link href={`/admin/report`}>
+                        <Button variant="outline">← 목록으로</Button>
+                    </Link>
+                </div>
+                <div className="flex justify-center items-center py-8">
+                    <div className="text-zinc-500">등록된 활동 보고서가 없습니다.</div>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="relative flex flex-col gap-4 w-full justify-center items-center max-w-4xl">
-            <div className="w-full">
-                <div className="md:sticky top-20 left-0 translate-x-0 translate-y-0 lg:translate-y-12">
-                    <Link href={`/admin/report`}>
-                        <Button variant="outline" size="sm">
-                            ← 목록으로
-                        </Button>
-                    </Link>
-                </div>
+        <div className="flex flex-col gap-4 w-full max-w-4xl">
+            <div className="flex justify-start mb-4">
+                <Link href={`/admin/report`}>
+                    <Button variant="outline">← 목록으로</Button>
+                </Link>
             </div>
             <div className="flex flex-col gap-4 w-full justify-center items-center">
                 {result.map((report: ClubReport) => (

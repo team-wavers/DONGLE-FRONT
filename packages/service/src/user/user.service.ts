@@ -30,25 +30,14 @@ export const createUserService = async (user: CreateUserRequest): Promise<Create
     return response as CreateUserResponse;
 };
 
-export const getUserListService = async (options?: { excludeLoginIds?: string[] }): Promise<GetUserListResponse> => {
+export const getUserListService = async (): Promise<GetUserListResponse> => {
     const response = await instance.get("/users", {
         next: {
             tags: ["user"],
         },
     });
 
-    const result = response as GetUserListResponse;
-    if (!result.isSuccess) {
-        return result;
-    }
-
-    // 필터링 적용
-    const filteredUsers = filterUsers(result.result, options?.excludeLoginIds);
-
-    return {
-        ...result,
-        result: filteredUsers,
-    };
+    return response as GetUserListResponse;
 };
 
 export const patchUserService = async (id: number, user: UpdateUserRequest): Promise<UpdateUserResponse> => {

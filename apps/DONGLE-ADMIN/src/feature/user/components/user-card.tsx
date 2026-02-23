@@ -7,14 +7,7 @@ import { User } from "@dongle/types/user/user.d";
 import { Card, CardContent, CardHeader, CardTitle } from "@dongle/ui/card";
 import { Badge } from "@dongle/ui/badge";
 import { Button } from "@dongle/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@dongle/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
 import { User as UserIcon, Phone, Calendar, Edit, Trash2 } from "lucide-react";
 import UserEditForm from "@/feature/user/components/user-edit-form";
 import { deleteUserAction } from "@/feature/user/action/user-form.action";

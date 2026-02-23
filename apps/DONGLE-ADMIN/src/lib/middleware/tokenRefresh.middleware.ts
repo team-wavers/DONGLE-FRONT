@@ -37,7 +37,6 @@ export async function handleTokenRefresh(request: NextRequest, refreshToken: str
 
             return response;
         } else {
-            console.log("handleTokenRefresh - refreshTokenResponse:", refreshTokenResponse);
             // 토큰 리프레시 실패 - 토큰 삭제 후 로그인 페이지로 리다이렉트
             return handleTokenRefreshFailure(request);
         }

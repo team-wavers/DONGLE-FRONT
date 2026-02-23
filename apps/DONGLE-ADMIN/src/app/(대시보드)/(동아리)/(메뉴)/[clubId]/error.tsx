@@ -15,7 +15,7 @@ export default function Error({ error, reset }: ErrorProps) {
   }, [error]);
 
   return (
-    <div className="flex items-center justify-center p-4 md:p-16">
+    <div className="flex items-center justify-center min-h-screen w-full p-4 md:p-16">
       <div className="w-full max-w-sm text-center space-y-6">
         {/* 아이콘 */}
         <div className="mx-auto w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center">

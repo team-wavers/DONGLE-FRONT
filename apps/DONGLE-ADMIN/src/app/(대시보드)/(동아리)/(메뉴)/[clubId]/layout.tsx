@@ -23,7 +23,7 @@ export default async function ClubLayout({
     return (
         <>
             <ClubSideber clubId={clubId} clubName={result?.name} />
-            <SidebarInset className="flex flex-col justify-center items-center min-h-screen w-full gap-8">
+            <SidebarInset className="flex flex-col justify-start items-center min-h-screen w-full gap-8">
                 <SidebarCloseOnNavigate />
                 <div className="flex justify-center items-start max-w-3xl w-full md:py-24 py-16 px-8">{children}</div>
             </SidebarInset>

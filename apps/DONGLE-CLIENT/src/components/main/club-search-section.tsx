@@ -19,7 +19,7 @@ export default function ClubSearchSection({
     onStatusChange,
 }: ClubSearchSectionProps) {
     return (
-        <div className="flex flex-col gap-4">
+        <div id="club-search-section" className="flex flex-col gap-4 scroll-mt-24">
             <div className="group relative">
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white to-zinc-50 shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition-all duration-200 group-focus-within:shadow-[0_12px_34px_rgba(59,130,246,0.10)]" />
                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 size-6 text-zinc-400 transition-colors group-focus-within:text-zinc-500" />

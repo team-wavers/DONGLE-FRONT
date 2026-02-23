@@ -21,7 +21,7 @@ export default async function AdminReportDetailPage({
 
     return (
         <div className="flex flex-col gap-4 w-full">
-            <div className="max-w-2xl mx-auto w-full py-12">
+            <div className="max-w-2xl mx-auto w-full">
                 <ReportView report={result} backHref={`/admin/report/${clubId}`} backButtonText="돌아가기" />
             </div>
         </div>

@@ -23,6 +23,7 @@ export interface UpdateClubRequest {
     category?: string;
     description?: string;
     main_activities?: string;
+    icon_url?: string | null;
     is_recruiting?: boolean;
     recruit_start?: string; // ISO 8601 날짜 문자열
     recruit_end?: string; // ISO 8601 날짜 문자열

@@ -32,19 +32,18 @@ export default function ReportView({ report, backHref, backButtonText = "돌아�
 
     return (
         <div className="flex flex-col gap-4 w-full items-start">
+            {/* 뒤로가기 버튼 - 상단 고정 */}
+            {backHref && (
+                <div className="flex justify-start w-full">
+                    <Link href={backHref}>
+                        <Button variant="outline">
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            {backButtonText}
+                        </Button>
+                    </Link>
+                </div>
+            )}
             <div className="max-w-4xl w-full">
-                {/* 뒤로가기 버튼 */}
-                {backHref && (
-                    <div className="mb-6">
-                        <Link href={backHref}>
-                            <Button variant="outline" size="sm">
-                                <ArrowLeft className="w-4 h-4 mr-2" />
-                                {backButtonText}
-                            </Button>
-                        </Link>
-                    </div>
-                )}
-
                 {/* 이미지들 */}
                 {validImageUrls.length > 0 && (
                     <div className="relative w-full md:mb-12 mb-8">

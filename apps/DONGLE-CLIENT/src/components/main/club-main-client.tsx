@@ -1,15 +1,17 @@
 "use client";
 
 import ClubListSection from "@/components/main/club-list-section";
+import ClubMainHeroBannerCarousel from "@/components/main/club-main-hero-banner-carousel";
 import ClubSearchSection from "@/components/main/club-search-section";
 import { useClubFilters } from "@/hooks/use-club-filters";
 import type { Club } from "@dongle/types";
 
 interface ClubMainClientProps {
     clubs: Club[];
+    bannerImageUrls: string[];
 }
 
-export default function ClubMainClient({ clubs }: ClubMainClientProps) {
+export default function ClubMainClient({ clubs, bannerImageUrls }: ClubMainClientProps) {
     const {
         searchQuery,
         setSearchQuery,
@@ -21,6 +23,7 @@ export default function ClubMainClient({ clubs }: ClubMainClientProps) {
 
     return (
         <section className="py-8 md:py-12 space-y-8">
+            <ClubMainHeroBannerCarousel imageUrls={bannerImageUrls} />
             <ClubSearchSection
                 searchQuery={searchQuery}
                 onSearchQueryChange={setSearchQuery}
