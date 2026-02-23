@@ -22,7 +22,7 @@ export default async function Page({ params }: { params: Promise<{ clubId: strin
                 </Link>
             </div>
             {result && result.length > 0 ? (
-                <div className="flex flex-col gap-4 w-full justify-center items-center md:max-w-md pt-4">
+                <div className="flex flex-col gap-4 w-full justify-start items-center md:max-w-md pt-4">
                     {result.map((report: ClubReport) => (
                         <ReportCard
                             key={report.id}

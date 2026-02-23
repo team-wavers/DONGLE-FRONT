@@ -7,9 +7,7 @@ import UserCreateButton from "@/feature/user/components/user-create-button";
 import AdminPageHeader from "@/components/molecules/layout/admin-page-header/admin-page-header";
 
 export default async function UserManagementPage() {
-    const userListResponse = await getUserListService({
-        excludeLoginIds: ["admin"],
-    });
+    const userListResponse = await getUserListService();
     const users = userListResponse.result || [];
 
     return (

@@ -1,7 +1,7 @@
 import { MENU_CONFIG } from "./AdminSidebar.config";
 import { SidebarMenuButton, SidebarMenuItem } from "@dongle/ui/sidebar";
 import SidberItem from "../sidberItem";
-import LogoutButton from "../../header/logout-button";
+import LogoutButton from "@/feature/auth/components/logout-button";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
 import SidebarLayout from "../sidebar-layout";
 

@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 import { getUserClubIdFromToken, getUserRoleFromToken, isTokenExpired } from "@dongle/api/utils/jwt.util";
 import { handleTokenRefresh } from "./lib/middleware/tokenRefresh.middleware";
 
-const PUBLIC_ROUTES = ["/login", "/club-register", "/change-password"];
+const PUBLIC_ROUTES = ["/login", "/club-register"];
 const ADMIN_ROUTES = ["/admin"];
 
 export async function middleware(request: NextRequest) {
