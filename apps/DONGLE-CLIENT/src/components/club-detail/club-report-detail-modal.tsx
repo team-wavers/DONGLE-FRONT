@@ -1,13 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, formatDateByLocale } from "@dongle/ui";
-import type { ClubReport } from "@dongle/types/club/club.report";
+
+type ClubReportDetailViewModel = {
+    id: number;
+    title: string;
+    content: string;
+    createdAt: string;
+    image_urls: string[];
+};
 
 interface ClubReportDetailModalProps {
-    report: ClubReport | null;
+    report: ClubReportDetailViewModel | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
@@ -19,10 +26,6 @@ const styles = {
 
 export default function ClubReportDetailModal({ report, open, onOpenChange }: ClubReportDetailModalProps) {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-
-    useEffect(() => {
-        setSelectedImageIndex(0);
-    }, [report?.id, open]);
 
     const selectedImages = report?.image_urls ?? [];
     const hasImages = selectedImages.length > 0;

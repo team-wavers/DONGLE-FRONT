@@ -2,10 +2,16 @@
 
 import { ClubInfoCard } from "@dongle/ui";
 import Link from "next/link";
-import type { Club } from "@dongle/types";
+
+type ClubListItemViewModel = {
+    id: number;
+    name: string;
+    category: string;
+    is_recruiting: boolean;
+};
 
 interface ClubListSectionProps {
-    clubs: Club[];
+    clubs: ClubListItemViewModel[];
     summaryText: string;
 }
 

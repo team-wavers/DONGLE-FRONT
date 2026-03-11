@@ -1,5 +1,6 @@
 import FetchInstance from "@dongle/api/instance";
 export { getDisplayBannerImageUrls } from "./get-display-banner-image-urls";
+import { MainBanner } from "@dongle/types/main-banner/main-banner";
 import {
     CreateMainBannerRequest,
     MainBannerCreateResponse,
@@ -48,7 +49,7 @@ export const getMainBannerFromListService = async (id: number): Promise<MainBann
         };
     }
 
-    const banner = bannerList.find((item) => item.id === id);
+    const banner = bannerList.find((item: MainBanner) => item.id === id);
 
     if (!banner) {
         return {

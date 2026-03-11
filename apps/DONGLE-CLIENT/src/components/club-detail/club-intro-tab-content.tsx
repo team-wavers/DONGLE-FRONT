@@ -1,9 +1,12 @@
 "use client";
 
-import type { Club } from "@dongle/types/club/club";
+type ClubIntroViewModel = {
+    description: string;
+    main_activities: string;
+};
 
 interface ClubIntroTabContentProps {
-    club: Club;
+    club: ClubIntroViewModel;
 }
 
 const styles = {

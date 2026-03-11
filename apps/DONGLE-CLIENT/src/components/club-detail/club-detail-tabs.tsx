@@ -1,14 +1,25 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dongle/ui";
-import type { Club } from "@dongle/types/club/club";
-import type { ClubReport } from "@dongle/types/club/club.report";
 import ClubIntroTabContent from "./club-intro-tab-content";
 import ClubReportsTabContent from "./club-reports-tab-content";
 
+type ClubDetailIntroViewModel = {
+    description: string;
+    main_activities: string;
+};
+
+type ClubDetailReportViewModel = {
+    id: number;
+    title: string;
+    createdAt: string;
+    content: string;
+    image_urls: string[];
+};
+
 interface ClubDetailTabsProps {
-    club: Club;
-    reports: ClubReport[];
+    club: ClubDetailIntroViewModel;
+    reports: ClubDetailReportViewModel[];
 }
 
 const styles = {
