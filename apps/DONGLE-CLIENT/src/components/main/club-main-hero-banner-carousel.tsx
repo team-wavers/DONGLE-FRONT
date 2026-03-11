@@ -73,16 +73,6 @@ export default function ClubMainHeroBannerCarousel({ imageUrls }: ClubMainHeroBa
                                     loading={index === 0 ? "eager" : "lazy"}
                                 />
                                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-900/45 via-zinc-900/10 to-transparent" />
-                                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 md:p-6">
-                                    <div>
-                                        <p className="text-sm font-medium text-white/90 md:text-base">
-                                            동글 추천 동아리
-                                        </p>
-                                        <h2 className="mt-1 text-lg font-bold tracking-tight text-white md:text-2xl">
-                                            지금 모집중인 동아리를 찾아보세요
-                                        </h2>
-                                    </div>
-                                </div>
                             </div>
                         </CarouselItem>
                     ))}

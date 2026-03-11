@@ -1,12 +1,12 @@
+import { Suspense } from "react";
 import ReportCard from "@/feature/report/components/report-card/report-card";
-import { getClubReportListService } from "@dongle/service/club/club.report.service";
+import { getClubReportListService } from "@/lib/server/cached-services";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
 import { ClubReport } from "@dongle/types/club/club.report.d";
+import { Skeleton } from "@dongle/ui/skeleton";
 
-export default async function AdminReportPage({ params }: { params: Promise<{ clubId: string }> }) {
-    const { clubId } = await params;
-
+async function AdminReportList({ clubId }: { clubId: string }) {
     const { result, isSuccess } = await getClubReportListService(Number(clubId));
 
     if (!isSuccess || !result) {
@@ -16,11 +16,6 @@ export default async function AdminReportPage({ params }: { params: Promise<{ cl
     if (result.length === 0) {
         return (
             <div className="flex flex-col gap-4 w-full">
-                <div className="flex justify-start mb-4">
-                    <Link href={`/admin/report`}>
-                        <Button variant="outline">← 목록으로</Button>
-                    </Link>
-                </div>
                 <div className="flex justify-center items-center py-8">
                     <div className="text-zinc-500">등록된 활동 보고서가 없습니다.</div>
                 </div>
@@ -29,22 +24,42 @@ export default async function AdminReportPage({ params }: { params: Promise<{ cl
     }
 
     return (
+        <div className="flex flex-col gap-4 w-full justify-center items-center">
+            {result.map((report: ClubReport) => (
+                <ReportCard
+                    key={report.id}
+                    href={`/admin/report/${clubId}/${report.id}`}
+                    title={report.title}
+                    createdDate={report.createdAt}
+                />
+            ))}
+        </div>
+    );
+}
+
+function AdminReportListFallback() {
+    return (
+        <div className="flex flex-col gap-4 w-full">
+            <Skeleton className="h-28 w-full rounded-xl" />
+            <Skeleton className="h-28 w-full rounded-xl" />
+            <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
+    );
+}
+
+export default async function AdminReportPage({ params }: { params: Promise<{ clubId: string }> }) {
+    const { clubId } = await params;
+
+    return (
         <div className="flex flex-col gap-4 w-full max-w-4xl">
             <div className="flex justify-start mb-4">
                 <Link href={`/admin/report`}>
                     <Button variant="outline">← 목록으로</Button>
                 </Link>
             </div>
-            <div className="flex flex-col gap-4 w-full justify-center items-center">
-                {result.map((report: ClubReport) => (
-                    <ReportCard
-                        key={report.id}
-                        href={`/admin/report/${clubId}/${report.id}`}
-                        title={report.title}
-                        createdDate={report.createdAt}
-                    />
-                ))}
-            </div>
+            <Suspense fallback={<AdminReportListFallback />}>
+                <AdminReportList clubId={clubId} />
+            </Suspense>
         </div>
     );
 }
