@@ -7,7 +7,8 @@ interface MakeRequestParams {
     data?: unknown;
     options?: FetchOptions;
     baseUrl: string;
-    refreshToken: () => Promise<boolean>;
+    refreshToken: () => Promise<{ success: boolean; accessToken?: string }>;
+    accessTokenOverride?: string;
 }
 
 export async function makeRequest({
@@ -17,11 +18,12 @@ export async function makeRequest({
     options,
     baseUrl,
     refreshToken,
+    accessTokenOverride,
 }: MakeRequestParams): Promise<Response> {
     const isClient = typeof window !== "undefined";
 
     // 서버 컴포넌트/서버 액션일 때만 accessToken 가져오기
-    const accessToken = !isClient && (await getAccessTokenFromServerCookie());
+    const accessToken = accessTokenOverride ?? (!isClient ? await getAccessTokenFromServerCookie() : undefined);
 
     // FormData인 경우 JSON.stringify 하지 않음
     const isFormData = data instanceof FormData;
@@ -58,10 +60,18 @@ export async function makeRequest({
     const response = await fetch(`${baseUrl}${url}`, fetchOptions);
     // 401 에러 시 토큰 갱신 시도 (클라이언트에서만)
     if (response.status === 401) {
-        const refreshSuccess = await refreshToken();
-        if (refreshSuccess) {
+        const refreshResult = await refreshToken();
+        if (refreshResult.success) {
             // 토큰 갱신 성공 시 원래 요청 재시도
-            return makeRequest({ url, method, data, options, baseUrl, refreshToken });
+            return makeRequest({
+                url,
+                method,
+                data,
+                options,
+                baseUrl,
+                refreshToken,
+                accessTokenOverride: refreshResult.accessToken,
+            });
         }
     }
 

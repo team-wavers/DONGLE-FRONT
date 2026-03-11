@@ -1,22 +1,27 @@
 import Cookies from "js-cookie";
 import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "./utils/cookie/cookie.contant";
+import { getCookieOptions, getCookieSecureOption } from "./utils/cookie/cookie.options";
 import { getRefreshTokenFromClientCookie } from "./utils/cookie/client-cookie.util";
 import { getRefreshTokenFromServerCookie } from "./utils/cookie/server-cookie.util";
-import { getCookieSecureOption } from "./utils/cookie/cookie.options";
+import { setAccessTokenToServerCookie, setRefreshTokenToServerCookie } from "./utils/cookie/server-cookie.util";
 import { getTokenExpiresIn, decodeJwtToken } from "./utils/jwt.util";
 
 interface RefreshTokenParams {
     baseUrl: string;
 }
 
-export async function refreshToken({ baseUrl }: RefreshTokenParams): Promise<boolean> {
+export interface RefreshTokenResult {
+    success: boolean;
+    accessToken?: string;
+}
+
+export async function refreshToken({ baseUrl }: RefreshTokenParams): Promise<RefreshTokenResult> {
     try {
+        const isClient = typeof window !== "undefined";
         const token =
-            typeof window !== "undefined"
-                ? getRefreshTokenFromClientCookie()
-                : await getRefreshTokenFromServerCookie();
+            isClient ? getRefreshTokenFromClientCookie() : await getRefreshTokenFromServerCookie();
         if (!token) {
-            return false;
+            return { success: false };
         }
 
         const response = await fetch(`${baseUrl}/auth/refresh`, {
@@ -29,7 +34,7 @@ export async function refreshToken({ baseUrl }: RefreshTokenParams): Promise<boo
         });
 
         if (!response.ok) {
-            return false;
+            return { success: false };
         }
 
         const data = await response.json();
@@ -43,30 +48,45 @@ export async function refreshToken({ baseUrl }: RefreshTokenParams): Promise<boo
             const accessTokenExpiresIn = getTokenExpiresIn(accessTokenPayload, 900); // 기본값 15분
             const refreshTokenExpiresIn = getTokenExpiresIn(refreshTokenPayload, 7 * 24 * 3600); // 기본값 7일
 
-            // js-cookie는 expires를 일 단위로 받지만, maxAge를 초 단위로도 받을 수 있음
-            // 더 정확한 만료 시간을 위해 maxAge 사용 (초 단위)
-            Cookies.set(ACCESS_TOKEN_COOKIE_NAME, data.result.accessToken, {
-                path: "/",
-                maxAge: accessTokenExpiresIn, // 초 단위
-                secure: getCookieSecureOption(),
-                sameSite: "lax",
-            });
-
-            if (data.result.refreshToken) {
-                Cookies.set(REFRESH_TOKEN_COOKIE_NAME, data.result.refreshToken, {
+            if (isClient) {
+                Cookies.set(ACCESS_TOKEN_COOKIE_NAME, data.result.accessToken, {
                     path: "/",
-                    maxAge: refreshTokenExpiresIn, // 초 단위
+                    maxAge: accessTokenExpiresIn, // 초 단위
                     secure: getCookieSecureOption(),
                     sameSite: "lax",
                 });
+
+                if (data.result.refreshToken) {
+                    Cookies.set(REFRESH_TOKEN_COOKIE_NAME, data.result.refreshToken, {
+                        path: "/",
+                        maxAge: refreshTokenExpiresIn, // 초 단위
+                        secure: getCookieSecureOption(),
+                        sameSite: "lax",
+                    });
+                }
+            } else {
+                await setAccessTokenToServerCookie(
+                    data.result.accessToken,
+                    getCookieOptions({ maxAge: accessTokenExpiresIn, httpOnly: true })
+                );
+
+                if (data.result.refreshToken) {
+                    await setRefreshTokenToServerCookie(
+                        data.result.refreshToken,
+                        getCookieOptions({ maxAge: refreshTokenExpiresIn, httpOnly: true })
+                    );
+                }
             }
 
-            return true;
+            return {
+                success: true,
+                accessToken: data.result.accessToken,
+            };
         }
 
-        return false;
+        return { success: false };
     } catch (error) {
         console.error("토큰 갱신 실패:", error);
-        return false;
+        return { success: false };
     }
 }

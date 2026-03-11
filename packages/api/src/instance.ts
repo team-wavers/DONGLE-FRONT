@@ -47,7 +47,7 @@ class FetchInstance {
         return handleErrorResponse({ response, requestPayload, url, method });
     }
 
-    private async refreshToken(): Promise<boolean> {
+    private async refreshToken(): Promise<{ success: boolean; accessToken?: string }> {
         return refreshToken({ baseUrl: this.baseUrl });
     }
 
