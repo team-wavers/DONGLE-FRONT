@@ -3,22 +3,13 @@
 import { Tabs, TabsList, TabsTrigger } from "@dongle/ui/tabs";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export default function ClubTab() {
   const pathname = usePathname();
-  const [activeTab, setActiveTab] = useState("club");
   const params = useParams();
 
   const clubId = params["clubId"] as string;
-
-  useEffect(() => {
-    if (pathname.includes("/club-form")) {
-      setActiveTab("club-form");
-    } else if (pathname.includes("/report")) {
-      setActiveTab("report");
-    }
-  }, [pathname]);
+  const activeTab = pathname.includes("/report") ? "report" : "club-form";
 
   return (
     <Tabs value={activeTab} className="w-full">

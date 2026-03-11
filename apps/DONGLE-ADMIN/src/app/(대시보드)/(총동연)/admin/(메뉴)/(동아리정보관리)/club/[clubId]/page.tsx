@@ -1,11 +1,12 @@
-import { getClubService } from "@dongle/service/club/club.service";
+import { Suspense } from "react";
+import { getClubService } from "@/lib/server/cached-services";
 import { Button } from "@dongle/ui/button";
+import { Skeleton } from "@dongle/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
 import ClubForm from "@/feature/club/components/club-form/club-form";
 import Link from "next/link";
 
-export default async function ClubDetailPage({ params }: { params: Promise<{ clubId: string }> }) {
-    const { clubId } = await params;
+async function ClubDetailContent({ clubId }: { clubId: string }) {
     const { result, isSuccess } = await getClubService(Number(clubId));
 
     if (!isSuccess || !result) {
@@ -26,6 +27,25 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ clu
 
     return (
         <div className="flex flex-col w-full gap-4">
+            <ClubForm club={result} clubId={clubId} presidentId={presidentId} />
+        </div>
+    );
+}
+
+function ClubDetailFallback() {
+    return (
+        <div className="flex flex-col w-full gap-4">
+            <Skeleton className="h-96 w-full rounded-2xl" />
+            <Skeleton className="h-72 w-full rounded-2xl" />
+        </div>
+    );
+}
+
+export default async function ClubDetailPage({ params }: { params: Promise<{ clubId: string }> }) {
+    const { clubId } = await params;
+
+    return (
+        <div className="flex flex-col w-full gap-4">
             <div className="flex items-center gap-4 mb-6">
                 <Link href="/admin/club">
                     <Button variant="outline" size="sm">
@@ -34,7 +54,9 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ clu
                     </Button>
                 </Link>
             </div>
-            <ClubForm club={result} clubId={clubId} presidentId={presidentId} />
+            <Suspense fallback={<ClubDetailFallback />}>
+                <ClubDetailContent clubId={clubId} />
+            </Suspense>
         </div>
     );
 }

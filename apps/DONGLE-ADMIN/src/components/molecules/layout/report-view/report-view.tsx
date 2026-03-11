@@ -4,13 +4,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
 import { ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { ClubReport } from "@dongle/types/club/club.report.d";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogOverlay, DialogPortal, DialogTitle } from "@dongle/ui/dialog";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@dongle/ui/carousel";
 
+type ReportViewModel = {
+    title: string;
+    content: string;
+    createdAt: string;
+    image_urls: string[];
+};
+
 interface ReportViewProps {
-    report: ClubReport;
+    report: ReportViewModel;
     backHref?: string;
     backButtonText?: string;
 }
@@ -22,12 +28,18 @@ export default function ReportView({ report, backHref, backButtonText = "돌아�
 
     const handlePrevImage = () => {
         if (selectedImageIndex === null) return;
-        setSelectedImageIndex(selectedImageIndex === 0 ? validImageUrls.length - 1 : selectedImageIndex - 1);
+        setSelectedImageIndex((prev) => {
+            if (prev === null) return null;
+            return prev === 0 ? validImageUrls.length - 1 : prev - 1;
+        });
     };
 
     const handleNextImage = () => {
         if (selectedImageIndex === null) return;
-        setSelectedImageIndex(selectedImageIndex === validImageUrls.length - 1 ? 0 : selectedImageIndex + 1);
+        setSelectedImageIndex((prev) => {
+            if (prev === null) return null;
+            return prev === validImageUrls.length - 1 ? 0 : prev + 1;
+        });
     };
 
     return (

@@ -7,7 +7,7 @@ import { createClubMenuConfig } from "./ClubSidebar.config";
 
 interface ClubSidebarProps {
     clubId: string;
-    clubName?: string;
+    clubName?: React.ReactNode;
 }
 
 export default async function ClubSideber({ clubId, clubName }: ClubSidebarProps) {

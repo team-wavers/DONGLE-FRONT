@@ -223,7 +223,6 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         const [files, setFiles] = useState<File[]>([]);
         const [previews, setPreviews] = useState<string[]>([]);
         const defaultUrlKey = (defaultValue || []).join("||");
-        const [existingUrlList, setExistingUrlList] = useState<string[]>(defaultValue || []);
         const [removedUrls, setRemovedUrls] = useState<string[]>([]);
         const [validationMessages, setValidationMessages] = useState<string[]>([]);
 
@@ -231,12 +230,16 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         const fieldId = id || `file-${generatedId}`;
         const shouldShowPreview = fileType === "image" && showPreview;
         const acceptValue = fileType === "image" ? IMAGE_ACCEPT : "*/*";
-        const effectiveExistingUrls = selectionMode === "replace" && files.length > 0 ? [] : existingUrlList;
+        const baseExistingUrls = React.useMemo(() => defaultValue || [], [defaultUrlKey, defaultValue]);
+        const filteredExistingUrls = React.useMemo(
+            () => baseExistingUrls.filter((url) => !removedUrls.includes(url)),
+            [baseExistingUrls, removedUrls]
+        );
+        const effectiveExistingUrls = selectionMode === "replace" && files.length > 0 ? [] : filteredExistingUrls;
         const removedFieldName = makeRemovedFieldName(name, removedUrlsFieldName);
         const existingFieldName = makeExistingFieldName(name);
 
         useEffect(() => {
-            setExistingUrlList(defaultValue || []);
             setRemovedUrls([]);
         }, [defaultUrlKey]);
 
@@ -325,8 +328,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         };
 
         const removeExistingUrl = (url: string) => {
-            setExistingUrlList((prev) => prev.filter((item) => item !== url));
-            setRemovedUrls((prev) => [...prev, url]);
+            setRemovedUrls((prev) => (prev.includes(url) ? prev : [...prev, url]));
             onUrlRemove?.(url);
         };
 

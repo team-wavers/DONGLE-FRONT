@@ -2,6 +2,7 @@
 
 import { updateClubReportService, uploadClubReportImageService } from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
+import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 
 // 서버 액션 타입 정의
 export interface UpdateActivityReportActionState {
@@ -77,6 +78,8 @@ export async function updateActivityReportAction(
     }
 
     try {
+        await requireServerActionAccessToken();
+
         const imageUrls: string[] = [];
 
         // 기존 이미지 URL 추가 (삭제되지 않은 것만)

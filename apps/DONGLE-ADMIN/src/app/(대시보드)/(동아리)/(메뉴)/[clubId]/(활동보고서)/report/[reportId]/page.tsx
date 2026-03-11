@@ -1,13 +1,13 @@
-import { getClubReportFromListService } from "@dongle/service/club/club.report.service";
+import { Suspense } from "react";
+import { getClubReportFromListService } from "@/lib/server/cached-services";
 import ReportView from "@/components/molecules/layout/report-view/report-view";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
 import { Pencil } from "lucide-react";
 import DeleteReportButton from "@/feature/report/components/delete-report-button";
+import { Skeleton } from "@dongle/ui/skeleton";
 
-export default async function Page({ params }: { params: Promise<{ clubId: string; reportId: string }> }) {
-    const { clubId, reportId } = await params;
-
+async function ClubReportDetailContent({ clubId, reportId }: { clubId: string; reportId: string }) {
     // 캐시된 목록에서 특정 보고서 찾기
     const { result } = await getClubReportFromListService(Number(clubId), Number(reportId));
 
@@ -17,7 +17,16 @@ export default async function Page({ params }: { params: Promise<{ clubId: strin
 
     return (
         <div className="flex flex-col gap-4 w-full">
-            <ReportView report={result} backHref={`/${clubId}/report`} backButtonText="목록으로 돌아가기" />
+            <ReportView
+                report={{
+                    title: result.title,
+                    content: result.content,
+                    createdAt: result.createdAt,
+                    image_urls: result.image_urls,
+                }}
+                backHref={`/${clubId}/report`}
+                backButtonText="목록으로 돌아가기"
+            />
             <div className="mt-4 flex justify-end gap-3 border-t border-gray-200 pt-4">
                 <DeleteReportButton clubId={clubId} reportId={reportId} />
                 <Link href={`/${clubId}/report/${reportId}/edit`}>
@@ -28,5 +37,28 @@ export default async function Page({ params }: { params: Promise<{ clubId: strin
                 </Link>
             </div>
         </div>
+    );
+}
+
+function ClubReportDetailFallback() {
+    return (
+        <div className="flex flex-col gap-4 w-full">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-72 w-full rounded-2xl" />
+            <div className="mt-4 flex justify-end gap-3 border-t border-gray-200 pt-4">
+                <Skeleton className="h-10 w-28" />
+                <Skeleton className="h-10 w-28" />
+            </div>
+        </div>
+    );
+}
+
+export default async function Page({ params }: { params: Promise<{ clubId: string; reportId: string }> }) {
+    const { clubId, reportId } = await params;
+
+    return (
+        <Suspense fallback={<ClubReportDetailFallback />}>
+            <ClubReportDetailContent clubId={clubId} reportId={reportId} />
+        </Suspense>
     );
 }

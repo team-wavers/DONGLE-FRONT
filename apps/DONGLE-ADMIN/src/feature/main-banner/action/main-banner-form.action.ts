@@ -7,6 +7,7 @@ import {
 } from "@dongle/service/main-banner/main-banner.service";
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 
 export interface MainBannerActionState {
     success?: boolean;
@@ -125,6 +126,8 @@ export async function createMainBannerAction(
     }
 
     try {
+        await requireServerActionAccessToken();
+
         const { imageUrl, error } = await resolveImageUrlForSubmit(formData);
         if (!imageUrl) {
             return {
@@ -194,6 +197,8 @@ export async function updateMainBannerAction(
     }
 
     try {
+        await requireServerActionAccessToken();
+
         const { imageUrl, error } = await resolveImageUrlForSubmit(formData);
         if (!imageUrl) {
             return {
@@ -234,6 +239,8 @@ export async function updateMainBannerAction(
 }
 
 export async function deleteMainBannerAction(id: number, _formData: FormData): Promise<void> {
+    await requireServerActionAccessToken();
+
     const response = await deleteMainBannerService(id);
 
     if (!response.isSuccess) {
