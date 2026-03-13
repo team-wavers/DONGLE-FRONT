@@ -127,7 +127,6 @@ const clubReportHandlers = [
     // 보고서 삭제
     http.delete(`/clubs/:clubId/reports/:reportId`, ({ params }) => {
         const { clubId, reportId } = params;
-        console.log(`동아리 ${clubId}의 보고서 ${reportId} 삭제 요청`);
 
         return HttpResponse.json({
             isSuccess: true,

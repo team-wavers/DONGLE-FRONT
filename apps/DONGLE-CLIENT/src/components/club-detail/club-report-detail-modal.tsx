@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, formatDateByLocale } from "@dongle/ui";
+import { RichTextViewer } from "@dongle/rich-text";
 
 type ClubReportDetailViewModel = {
     id: number;
@@ -105,9 +106,9 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
 
                         <h2 className="text-xl font-bold text-zinc-900 pr-8">{report.title}</h2>
                         <p className="text-sm text-zinc-500">작성일 {formatDateByLocale(report.createdAt)}</p>
-                        <p className="min-h-[180px] text-zinc-700 leading-7 whitespace-pre-wrap">
-                            {report.content}
-                        </p>
+                        <div className="min-h-[180px]">
+                            <RichTextViewer html={report.content} />
+                        </div>
 
                         <div className="pt-2">
                             <DialogClose asChild>

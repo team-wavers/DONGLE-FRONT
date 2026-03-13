@@ -7,6 +7,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogOverlay, DialogPortal, DialogTitle } from "@dongle/ui/dialog";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@dongle/ui/carousel";
+import { RichTextViewer } from "@dongle/rich-text";
 
 type ReportViewModel = {
     title: string;
@@ -104,8 +105,8 @@ export default function ReportView({ report, backHref, backButtonText = "돌아�
                 </div>
 
                 {/* 내용 */}
-                <div className="prose max-w-none min-h-36 py-4">
-                    <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">{report.content}</p>
+                <div className="min-h-36 py-4">
+                    <RichTextViewer html={report.content} />
                 </div>
             </div>
 

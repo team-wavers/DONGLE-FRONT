@@ -33,6 +33,7 @@ export interface FileUploadProps {
     name?: string; // 폼 제출을 위한 name 속성
     selectionMode?: "append" | "replace";
     removedUrlsFieldName?: string;
+    presentation?: "default" | "single-thumbnail";
 }
 
 function makeRemovedFieldName(name?: string, removedUrlsFieldName?: string) {
@@ -194,6 +195,31 @@ function NewPreviewSection({ previews, onRemove }: { previews: string[]; onRemov
     );
 }
 
+function SingleThumbnailPreview({ previewUrl, onRemove }: { previewUrl: string; onRemove: () => void }) {
+    return (
+        <div className="space-y-2">
+            <p className="text-sm font-medium text-zinc-700">썸네일 미리보기</p>
+            <div className="relative h-40 w-40 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50">
+                <Image
+                    src={previewUrl}
+                    alt="썸네일 미리보기"
+                    width={320}
+                    height={320}
+                    className="h-full w-full object-cover"
+                />
+                <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={onRemove}
+                    className="absolute right-3 top-3 h-8 w-8 rounded-full p-0">
+                    <X className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+    );
+}
+
 const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
     (
         {
@@ -215,6 +241,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
             name,
             selectionMode = "append",
             removedUrlsFieldName,
+            presentation = "default",
             ...props
         },
         ref
@@ -229,6 +256,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         const generatedId = useId();
         const fieldId = id || `file-${generatedId}`;
         const shouldShowPreview = fileType === "image" && showPreview;
+        const isSingleThumbnail = presentation === "single-thumbnail";
         const acceptValue = fileType === "image" ? IMAGE_ACCEPT : "*/*";
         const baseExistingUrls = React.useMemo(() => defaultValue || [], [defaultUrlKey, defaultValue]);
         const filteredExistingUrls = React.useMemo(
@@ -238,6 +266,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         const effectiveExistingUrls = selectionMode === "replace" && files.length > 0 ? [] : filteredExistingUrls;
         const removedFieldName = makeRemovedFieldName(name, removedUrlsFieldName);
         const existingFieldName = makeExistingFieldName(name);
+        const singleThumbnailPreviewUrl = previews[0] || effectiveExistingUrls[0];
 
         useEffect(() => {
             setRemovedUrls([]);
@@ -383,7 +412,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
                         <input type="hidden" name={removedFieldName} value={JSON.stringify(removedUrls)} />
                     )}
 
-                    {effectiveExistingUrls.length > 0 && (
+                    {!isSingleThumbnail && effectiveExistingUrls.length > 0 && (
                         <div className="space-y-2">
                             <p className="text-sm font-medium text-zinc-700">기존 파일</p>
                             {effectiveExistingUrls.map((url, index) => (
@@ -397,7 +426,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
                         </div>
                     )}
 
-                    {files.length > 0 && (
+                    {!isSingleThumbnail && files.length > 0 && (
                         <div className="space-y-2">
                             <p className="text-sm font-medium text-zinc-700">새로 추가된 파일</p>
                             {files.map((file, index) => (
@@ -411,12 +440,28 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
                         </div>
                     )}
 
-                    {shouldShowPreview && effectiveExistingUrls.length > 0 && (
+                    {!isSingleThumbnail && shouldShowPreview && effectiveExistingUrls.length > 0 && (
                         <ExistingPreviewSection urls={effectiveExistingUrls} onRemove={removeExistingUrl} />
                     )}
 
-                    {shouldShowPreview && previews.length > 0 && (
+                    {!isSingleThumbnail && shouldShowPreview && previews.length > 0 && (
                         <NewPreviewSection previews={previews} onRemove={removeFile} />
+                    )}
+
+                    {isSingleThumbnail && shouldShowPreview && singleThumbnailPreviewUrl && (
+                        <SingleThumbnailPreview
+                            previewUrl={singleThumbnailPreviewUrl}
+                            onRemove={() => {
+                                if (previews.length > 0) {
+                                    removeFile(0);
+                                    return;
+                                }
+
+                                if (effectiveExistingUrls[0]) {
+                                    removeExistingUrl(effectiveExistingUrls[0]);
+                                }
+                            }}
+                        />
                     )}
                 </div>
 

@@ -14,7 +14,7 @@ async function ClubSidebarAsync({ clubId }: { clubId: string }) {
 
 function ClubSidebarFallback() {
     return (
-        <div className="hidden md:flex fixed inset-y-0 left-0 z-10 h-svh w-64 border-r bg-white">
+        <div className="hidden md:flex fixed inset-y-0 left-0 z-10 h-svh w-3xs border-r bg-white">
             <div className="flex w-full flex-col">
                 <div className="border-b border-border p-4 py-8 h-32 flex flex-col justify-center">
                     <Skeleton className="h-8 w-32" />
@@ -56,7 +56,7 @@ export default async function ClubLayout({
             </Suspense>
             <SidebarInset className="flex flex-col justify-start items-center min-h-screen w-full gap-8">
                 <SidebarCloseOnNavigate />
-                <div className="flex justify-center items-start max-w-3xl w-full md:py-24 py-16 px-8">{children}</div>
+                <div className="flex justify-center items-start max-w-5xl w-full md:py-24 py-16 px-8">{children}</div>
             </SidebarInset>
         </>
     );

@@ -23,5 +23,8 @@
     "devDependencies": {
         "env-cmd": "^11.0.0",
         "turbo": "^2.0.0"
+    },
+    "dependencies": {
+        "isomorphic-dompurify": "^3.3.0"
     }
 }

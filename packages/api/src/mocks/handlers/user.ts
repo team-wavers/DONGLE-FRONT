@@ -140,7 +140,6 @@ const userHandlers = [
     // 사용자 삭제
     http.delete(`/users/:id`, ({ params }) => {
         const { id } = params;
-        console.log(`사용자 ${id} 삭제 요청`);
         return HttpResponse.json(
             {
                 isSuccess: true,
