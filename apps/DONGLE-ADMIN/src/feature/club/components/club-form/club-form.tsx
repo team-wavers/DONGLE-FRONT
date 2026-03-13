@@ -60,7 +60,7 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
     }, [presidentState]);
 
     return (
-        <div className="flex max-w-3xl flex-col gap-6 min-w-2xs w-full">
+        <div className="flex w-full max-w-full min-w-2xs flex-col gap-6">
             <form action={formAction} className="flex flex-col gap-4">
                 <input type="hidden" name="clubId" value={clubId} />
 
@@ -113,11 +113,7 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
                     }}
                 />
 
-                <ClubFormActions
-                    isPending={isPresidentPending}
-                    buttonText="회장 정보 수정"
-                    loadingText="수정 중..."
-                />
+                <ClubFormActions isPending={isPresidentPending} buttonText="회장 정보 수정" loadingText="수정 중..." />
             </form>
         </div>
     );
