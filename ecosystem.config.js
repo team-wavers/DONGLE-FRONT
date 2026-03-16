@@ -12,10 +12,10 @@
 const env = process.env.PM2_APP_ENV || "dev";
 
 // standalone 을 SCP한 루트 (node_modules, apps/ 가 있는 디렉터리)
-const clientDevRoot = process.env.DEPLOY_CLIENT_DIR || "/home/ec2-user/dongle.client.dev";
-const adminDevRoot = process.env.DEPLOY_ADMIN_DIR || "/home/ec2-user/dongle.admin.dev";
-const clientProdRoot = process.env.DEPLOY_CLIENT_DIR_PROD || "/home/ec2-user/dongle.client.prod";
-const adminProdRoot = process.env.DEPLOY_ADMIN_DIR_PROD || "/home/ec2-user/dongle.admin.prod";
+const clientDevRoot = process.env.DEPLOY_CLIENT_DIR || "/home/ec2-user/dongle.front.dev/dongle.client.dev";
+const adminDevRoot = process.env.DEPLOY_ADMIN_DIR || "/home/ec2-user/dongle.front.dev/dongle.admin.dev";
+const clientProdRoot = process.env.DEPLOY_CLIENT_DIR_PROD || "/home/ec2-user/dongle.front.prod/dongle.client.prod";
+const adminProdRoot = process.env.DEPLOY_ADMIN_DIR_PROD || "/home/ec2-user/dongle.front.prod/dongle.admin.prod";
 
 const commonAppConfig = {
     instances: 1,
