@@ -6,7 +6,19 @@ import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
 import { useEffect, useRef, useState } from "react";
-import { Bold, Image as ImageIcon, Italic, Link as LinkIcon, List, ListOrdered, Redo2, Undo2 } from "lucide-react";
+import {
+    Bold,
+    Heading1,
+    Heading2,
+    Heading3,
+    Image as ImageIcon,
+    Italic,
+    Link as LinkIcon,
+    List,
+    ListOrdered,
+    Redo2,
+    Undo2,
+} from "lucide-react";
 import { Button } from "@dongle/ui/button";
 import { Label } from "@dongle/ui/label";
 import { Input } from "@dongle/ui/input";
@@ -35,6 +47,21 @@ interface ToolbarButton {
     disabled?: boolean;
 }
 
+const editorContentClassName =
+    "w-full text-zinc-800 leading-7 " +
+    "[&_a]:border-b [&_a]:border-transparent [&_a]:text-primary [&_a]:transition-colors [&_a:hover]:border-primary " +
+    "[&_blockquote]:my-5 [&_blockquote]:border-l-2 [&_blockquote]:border-zinc-300 [&_blockquote]:pl-4 [&_blockquote]:text-zinc-600 " +
+    "[&_br]:leading-7 " +
+    "[&_h1]:mt-8 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight " +
+    "[&_h2]:mt-7 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:leading-tight " +
+    "[&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-snug " +
+    "[&_img]:my-6 [&_img]:block [&_img]:max-h-[560px] [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain " +
+    "[&_li]:ml-1 [&_li]:leading-7 " +
+    "[&_ol]:my-4 [&_ol]:ml-5 [&_ol]:list-decimal [&_ol]:pl-5 " +
+    "[&_p]:min-h-[1.75rem] [&_p]:whitespace-normal [&_p+p]:mt-4 [&_p:empty]:block [&_p:empty]:h-7 " +
+    "[&_strong]:font-semibold " +
+    "[&_ul]:my-4 [&_ul]:ml-5 [&_ul]:list-disc [&_ul]:pl-5";
+
 export function RichTextEditor({
     id,
     name,
@@ -56,7 +83,7 @@ export function RichTextEditor({
         extensions: [
             StarterKit.configure({
                 heading: {
-                    levels: [2, 3],
+                    levels: [1, 2, 3],
                 },
             }),
             Placeholder.configure({
@@ -73,7 +100,14 @@ export function RichTextEditor({
         ],
         editorProps: {
             attributes: {
-                class: "min-h-[280px] w-full px-4 py-3 text-base leading-7 text-zinc-800 focus:outline-none [&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-zinc-300 [&_a]:border-b [&_a]:border-transparent [&_a]:text-primary [&_a]:transition-colors [&_a:hover]:border-primary [&_h2]:mt-6 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:mt-5 [&_h3]:text-xl [&_h3]:font-semibold [&_img]:my-6 [&_img]:block [&_img]:max-h-[560px] [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain [&_li]:ml-5 [&_li]:list-disc [&_ol]:ml-5 [&_ol]:list-decimal [&_p.is-editor-empty:first-child::before]:pointer-events-none [&_p.is-editor-empty:first-child::before]:float-left [&_p.is-editor-empty:first-child::before]:h-0 [&_p.is-editor-empty:first-child::before]:text-zinc-400 [&_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]",
+                class: cn(
+                    "min-h-[280px] px-4 py-3 text-base focus:outline-none",
+                    editorContentClassName,
+                    "[&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-zinc-300",
+                    "[&_p.is-editor-empty:first-child::before]:pointer-events-none [&_p.is-editor-empty:first-child::before]:float-left",
+                    "[&_p.is-editor-empty:first-child::before]:h-0 [&_p.is-editor-empty:first-child::before]:text-zinc-400",
+                    "[&_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]"
+                ),
             },
         },
         content: defaultValue,
@@ -193,6 +227,27 @@ export function RichTextEditor({
                   onClick: () => editor.chain().focus().toggleItalic().run(),
                   isActive: editor.isActive("italic"),
                   disabled: !editor.can().chain().focus().toggleItalic().run(),
+              },
+              {
+                  key: "heading1",
+                  icon: <Heading1 className="h-4 w-4" />,
+                  label: "제목 1",
+                  onClick: () => editor.chain().focus().toggleHeading({ level: 1 }).run(),
+                  isActive: editor.isActive("heading", { level: 1 }),
+              },
+              {
+                  key: "heading2",
+                  icon: <Heading2 className="h-4 w-4" />,
+                  label: "제목 2",
+                  onClick: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+                  isActive: editor.isActive("heading", { level: 2 }),
+              },
+              {
+                  key: "heading3",
+                  icon: <Heading3 className="h-4 w-4" />,
+                  label: "제목 3",
+                  onClick: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
+                  isActive: editor.isActive("heading", { level: 3 }),
               },
               {
                   key: "bulletList",

@@ -43,7 +43,7 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[min(1200px,calc(100%-2rem))] max-h-[90vh] p-0 gap-0 overflow-hidden">
+            <DialogContent className="w-full max-w-[90vw] sm:max-w-2xl max-h-[90vh] p-0 gap-0 overflow-hidden">
                 {report && (
                     <section className="p-4 md:p-5 min-h-0 max-h-[90vh] overflow-y-auto space-y-4">
                         <DialogTitle className="sr-only">{report.title}</DialogTitle>
@@ -104,9 +104,9 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
                             </div>
                         )}
 
-                        <h2 className="text-xl font-bold text-zinc-900 pr-8">{report.title}</h2>
+                        <h2 className="pr-8 text-xl font-bold text-zinc-900">{report.title}</h2>
                         <p className="text-sm text-zinc-500">작성일 {formatDateByLocale(report.createdAt)}</p>
-                        <div className="min-h-[180px]">
+                        <div className="min-h-[180px] py-4">
                             <RichTextViewer html={report.content} />
                         </div>
 
