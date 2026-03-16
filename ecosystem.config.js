@@ -17,44 +17,76 @@ const adminDevRoot = process.env.DEPLOY_ADMIN_DIR || "/home/ec2-user/dongle.admi
 const clientProdRoot = process.env.DEPLOY_CLIENT_DIR_PROD || "/home/ec2-user/dongle.client.prod";
 const adminProdRoot = process.env.DEPLOY_ADMIN_DIR_PROD || "/home/ec2-user/dongle.admin.prod";
 
+const commonAppConfig = {
+    instances: 1,
+    exec_mode: "fork",
+    autorestart: true,
+    max_restarts: 10,
+    min_uptime: "10s",
+    restart_delay: 5000,
+    kill_timeout: 5000,
+    listen_timeout: 10000,
+    time: true,
+};
+
 const configs = {
     dev: {
         apps: [
             {
+                ...commonAppConfig,
                 name: "dongle.client.dev",
                 cwd: clientDevRoot,
                 script: `${clientDevRoot}/apps/DONGLE-CLIENT/server.js`,
-                instances: 1,
-                exec_mode: "fork",
-                env: { NODE_ENV: "development", HOSTNAME: "0.0.0.0", PORT: 3001 },
+                max_memory_restart: "700M",
+                env: {
+                    NODE_ENV: "development",
+                    HOSTNAME: "0.0.0.0",
+                    PORT: 3001,
+                    NODE_OPTIONS: "--max-old-space-size=768",
+                },
             },
             {
+                ...commonAppConfig,
                 name: "dongle.admin.dev",
                 cwd: adminDevRoot,
                 script: `${adminDevRoot}/apps/DONGLE-ADMIN/server.js`,
-                instances: 1,
-                exec_mode: "fork",
-                env: { NODE_ENV: "development", HOSTNAME: "0.0.0.0", PORT: 4001 },
+                max_memory_restart: "500M",
+                env: {
+                    NODE_ENV: "development",
+                    HOSTNAME: "0.0.0.0",
+                    PORT: 4001,
+                    NODE_OPTIONS: "--max-old-space-size=512",
+                },
             },
         ],
     },
     prod: {
         apps: [
             {
+                ...commonAppConfig,
                 name: "dongle.client.prod",
                 cwd: clientProdRoot,
                 script: `${clientProdRoot}/apps/DONGLE-CLIENT/server.js`,
-                instances: 1,
-                exec_mode: "fork",
-                env: { NODE_ENV: "production", HOSTNAME: "0.0.0.0", PORT: 3000 },
+                max_memory_restart: "700M",
+                env: {
+                    NODE_ENV: "production",
+                    HOSTNAME: "0.0.0.0",
+                    PORT: 3000,
+                    NODE_OPTIONS: "--max-old-space-size=768",
+                },
             },
             {
+                ...commonAppConfig,
                 name: "dongle.admin.prod",
                 cwd: adminProdRoot,
                 script: `${adminProdRoot}/apps/DONGLE-ADMIN/server.js`,
-                instances: 1,
-                exec_mode: "fork",
-                env: { NODE_ENV: "production", HOSTNAME: "0.0.0.0", PORT: 4000 },
+                max_memory_restart: "500M",
+                env: {
+                    NODE_ENV: "production",
+                    HOSTNAME: "0.0.0.0",
+                    PORT: 4000,
+                    NODE_OPTIONS: "--max-old-space-size=512",
+                },
             },
         ],
     },
