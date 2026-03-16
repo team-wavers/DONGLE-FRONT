@@ -7,7 +7,7 @@ class FetchInstance {
     private static instance: FetchInstance;
     private baseUrl: string;
     private constructor() {
-        this.baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        this.baseUrl = process.env.API_URL || "";
     }
 
     public static getInstance(): FetchInstance {
