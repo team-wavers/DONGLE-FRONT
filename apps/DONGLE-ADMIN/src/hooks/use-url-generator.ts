@@ -54,8 +54,13 @@ export function useUrlGenerator() {
                 const newState = { success: true, registerUrl: transformedUrl };
                 setState(newState);
 
-                await navigator.clipboard.writeText(transformedUrl);
-                toast.success("URL이 클립보드에 복사되었습니다");
+                try {
+                    await navigator.clipboard.writeText(transformedUrl);
+                    toast.success("URL이 클립보드에 복사되었습니다");
+                } catch (clipboardError) {
+                    console.error("URL 복사 오류:", clipboardError);
+                    toast.error("URL은 생성되었지만 클립보드 복사에 실패했습니다.");
+                }
             } catch (error) {
                 console.error("URL 생성 오류:", error);
                 const errorMessage = "URL 생성 중 오류가 발생했습니다.";
@@ -67,8 +72,13 @@ export function useUrlGenerator() {
 
     const copyUrl = useCallback(async () => {
         if (state.registerUrl) {
-            await navigator.clipboard.writeText(state.registerUrl);
-            toast.success("URL이 복사되었습니다!");
+            try {
+                await navigator.clipboard.writeText(state.registerUrl);
+                toast.success("URL이 복사되었습니다!");
+            } catch (error) {
+                console.error("URL 복사 오류:", error);
+                toast.error("클립보드 복사에 실패했습니다.");
+            }
         }
     }, [state.registerUrl]);
 

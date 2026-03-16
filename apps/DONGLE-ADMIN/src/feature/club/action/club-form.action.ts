@@ -64,8 +64,8 @@ function getActionErrorMessage(error: unknown, fallback: string): string {
     return error instanceof Error && error.message ? error.message : fallback;
 }
 
-function normalizeRecruitmentStatus(status: string): string {
-    const trimmed = status.trim();
+function normalizeRecruitmentStatus(status?: string | null): string {
+    const trimmed = String(status ?? "").trim();
 
     if (trimmed === RECRUITMENT_STATUS.RECRUITING || trimmed === "모집중") {
         return RECRUITMENT_STATUS.RECRUITING;
@@ -497,7 +497,8 @@ export async function deleteClubAction(clubId: number): Promise<{
         if (!result.isSuccess) {
             return {
                 success: false,
-                error: result.error?.detail || result.error?.message || "동아리 삭제에 실패했습니다. 다시 시도해주세요.",
+                error:
+                    result.error?.detail || result.error?.message || "동아리 삭제에 실패했습니다. 다시 시도해주세요.",
             };
         }
 
