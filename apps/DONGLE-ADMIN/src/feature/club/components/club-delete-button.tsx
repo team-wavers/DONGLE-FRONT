@@ -41,7 +41,7 @@ export default function ClubDeleteButton({ clubId, clubName }: ClubDeleteButtonP
         <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
             <Button type="button" variant="destructive" onClick={() => setIsDeleteModalOpen(true)} disabled={isPending}>
                 <Trash2 className="w-4 h-4 mr-2" />
-                삭제
+                동아리 삭제
             </Button>
             <DialogContent>
                 <DialogHeader>
