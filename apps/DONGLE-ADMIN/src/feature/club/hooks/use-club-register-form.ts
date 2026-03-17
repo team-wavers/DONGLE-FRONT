@@ -93,8 +93,6 @@ export function useClubRegisterForm(registrationKey: string) {
 
       // Server Action 호출
       const result = await clubRegisterFormAction({}, formData);
-
-      console.log("server action result", result);
       if (result.success && result.tempId && result.tempPassword) {
         // 성공 페이지로 데이터와 함께 이동
         const successData = {
@@ -103,7 +101,6 @@ export function useClubRegisterForm(registrationKey: string) {
           clubName: result.clubName,
         };
         const encoded = encodeURIComponent(JSON.stringify(successData));
-        console.log("encoded", encoded);
         router.push(`/club-register/register-success?data=${encoded}`);
       } else if (result.success) {
         toast.success("동아리 등록이 성공적으로 완료되었습니다!");

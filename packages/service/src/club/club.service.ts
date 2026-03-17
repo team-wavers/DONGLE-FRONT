@@ -28,7 +28,6 @@ export const getClubService = async (id: number): Promise<ClubResponse> => {
             tags: ["club", `club-${id}`],
         },
     });
-    console.log(response);
     return response as ClubResponse;
 };
 
@@ -47,7 +46,6 @@ export const updateClubService = async (id: number, club: UpdateClubRequest): Pr
             tags: ["club", `club-${id}`],
         },
     });
-    console.log("동아리 정보 수정", response);
     return response as ClubUpdateResponse;
 };
 

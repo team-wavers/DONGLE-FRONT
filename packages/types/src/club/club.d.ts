@@ -10,6 +10,7 @@ export interface ClubSns {
 export interface Club {
   id: number;
   name: string;
+  icon_url: string | null;
   is_recruiting: boolean;
   category: string;
   sns: ClubSns;

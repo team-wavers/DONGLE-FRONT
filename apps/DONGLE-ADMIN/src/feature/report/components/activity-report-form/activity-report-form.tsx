@@ -2,13 +2,13 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { FormField } from "@/components/atoms/form/form-field/form-field";
-import { FormTextarea } from "@/components/atoms/form/form-textarea/form-textarea";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
 import { toast } from "sonner";
 import { activityReportAction, ActivityReportActionState } from "@/feature/report/action/activity-report-form.action";
 import { UpdateActivityReportActionState } from "@/feature/report/action/update-activity-report-form.action";
 import { FileUpload } from "@/components/atoms/form/file-upload/file-upload";
 import { useRouter } from "next/navigation";
+import { RichTextEditor } from "@/components/atoms/form/rich-text-editor/rich-text-editor";
 
 export interface ActivityReportFormProps {
     customAction?: (
@@ -45,6 +45,12 @@ export default function ActivityReportForm({
         setRemovedUrls((prev) => [...prev, url]);
     };
 
+    const handleReplaceExistingUrls = () => {
+        if (existingUrls.length === 0) return;
+        setRemovedUrls((prev) => [...new Set([...prev, ...existingUrls])]);
+        setExistingUrls([]);
+    };
+
     // 성공/실패 시 토스트 표시
     useEffect(() => {
         if (state.success) {
@@ -79,10 +85,10 @@ export default function ActivityReportForm({
             />
 
             {/* 내용 */}
-            <FormTextarea
+            <RichTextEditor
                 label="활동 내용"
                 name="content"
-                rows={8}
+                clubId={clubId}
                 placeholder="이번 달 동아리 활동 내용을 상세히 작성해주세요."
                 required
                 error={state.fieldErrors?.content}
@@ -92,13 +98,15 @@ export default function ActivityReportForm({
 
             {/* 이미지 업로드 */}
             <FileUpload
-                label="활동 사진"
+                label="썸네일"
                 name="images"
-                multiple
-                maxFiles={5}
-                description="활동 사진을 업로드하세요"
-                existingUrls={existingUrls}
+                maxFiles={1}
+                selectionMode="replace"
+                presentation="single-thumbnail"
+                description="보고서 대표 썸네일 이미지를 업로드하세요"
+                defaultValue={existingUrls}
                 onUrlRemove={handleUrlRemove}
+                onReplaceExistingUrls={handleReplaceExistingUrls}
             />
 
             {/* 제출 버튼 */}

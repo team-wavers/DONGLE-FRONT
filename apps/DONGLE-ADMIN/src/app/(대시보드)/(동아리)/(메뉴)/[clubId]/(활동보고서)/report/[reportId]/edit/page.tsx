@@ -1,11 +1,11 @@
-import { getClubReportFromListService } from "@dongle/service/club/club.report.service";
+import { Suspense } from "react";
+import { getClubReportFromListService } from "@/lib/server/cached-services";
 import ActivityReportForm from "@/feature/report/components/activity-report-form/activity-report-form";
 import { updateActivityReportAction } from "@/feature/report/action/update-activity-report-form.action";
 import GoBackButton from "@/components/atoms/button/go-back-button/go-back-button";
+import { Skeleton } from "@dongle/ui/skeleton";
 
-export default async function EditReportPage({ params }: { params: Promise<{ clubId: string; reportId: string }> }) {
-    const { clubId, reportId } = await params;
-
+async function EditReportContent({ clubId, reportId }: { clubId: string; reportId: string }) {
     // 캐시된 목록에서 특정 보고서 찾기
     const { result, isSuccess } = await getClubReportFromListService(Number(clubId), Number(reportId));
 
@@ -38,5 +38,27 @@ export default async function EditReportPage({ params }: { params: Promise<{ clu
                 />
             </div>
         </div>
+    );
+}
+
+function EditReportFallback() {
+    return (
+        <div className="flex flex-col gap-4 w-full">
+            <Skeleton className="h-10 w-24" />
+            <div className="max-w-4xl w-full space-y-6">
+                <Skeleton className="h-10 w-40" />
+                <Skeleton className="h-[34rem] w-full rounded-2xl" />
+            </div>
+        </div>
+    );
+}
+
+export default async function EditReportPage({ params }: { params: Promise<{ clubId: string; reportId: string }> }) {
+    const { clubId, reportId } = await params;
+
+    return (
+        <Suspense fallback={<EditReportFallback />}>
+            <EditReportContent clubId={clubId} reportId={reportId} />
+        </Suspense>
     );
 }

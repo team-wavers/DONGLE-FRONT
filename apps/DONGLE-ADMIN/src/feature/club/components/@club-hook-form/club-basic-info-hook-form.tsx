@@ -22,6 +22,7 @@ import {
 } from "@dongle/ui/card";
 import { Tag } from "lucide-react";
 import { ClubRegisterFormData } from "@/feature/club/hooks/use-club-register-form";
+import { RECRUITMENT_STATUS, RECRUITMENT_STATUS_LABEL } from "@/feature/club/constants/club.constants";
 
 interface ClubBasicInfoHookFormProps {
   register: UseFormRegister<ClubRegisterFormData>;
@@ -70,8 +71,8 @@ export function ClubBasicInfoHookForm({
               <SelectValue placeholder="모집 상태를 선택하세요" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="모집중">모집중</SelectItem>
-              <SelectItem value="모집마감">모집마감</SelectItem>
+              <SelectItem value={RECRUITMENT_STATUS.RECRUITING}>{RECRUITMENT_STATUS_LABEL.RECRUITING}</SelectItem>
+              <SelectItem value={RECRUITMENT_STATUS.CLOSED}>{RECRUITMENT_STATUS_LABEL.CLOSED}</SelectItem>
             </SelectContent>
           </Select>
           {errors.recruitmentStatus && (

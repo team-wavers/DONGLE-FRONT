@@ -57,17 +57,6 @@ export async function presidentInfoFormAction(
       "올바른 연락처 형식을 입력해주세요 (010-0000-0000)";
   }
 
-  // 아이디 검증 (아이디가 입력된 경우에만)
-  if (username) {
-    if (username.length < 6) {
-      fieldErrors.username = "아이디는 최소 6자 이상이어야 합니다";
-    } else if (username.length > 20) {
-      fieldErrors.username = "아이디는 최대 20자 이하여야 합니다";
-    } else if (!/^[a-zA-Z0-9]+$/.test(username)) {
-      fieldErrors.username = "아이디는 영문 또는 숫자로만 구성되어야 합니다";
-    }
-  }
-
   // 비밀번호 변경 관련 검증 (비밀번호가 입력된 경우에만)
   if (currentPassword || newPassword || confirmPassword) {
     if (!currentPassword) {
@@ -76,10 +65,6 @@ export async function presidentInfoFormAction(
 
     if (!newPassword) {
       fieldErrors.newPassword = "새 비밀번호를 입력해주세요";
-    } else if (newPassword.length < 8) {
-      fieldErrors.newPassword = "비밀번호는 최소 8자 이상이어야 합니다";
-    } else if (newPassword.length > 20) {
-      fieldErrors.newPassword = "비밀번호는 최대 20자 이하여야 합니다";
     }
 
     if (!confirmPassword) {

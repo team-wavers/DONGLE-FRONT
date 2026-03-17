@@ -1,13 +1,13 @@
 import { SidebarMenuButton, SidebarMenuItem } from "@dongle/ui/sidebar";
 import SidberItem from "../sidberItem";
-import LogoutButton from "../../header/logout-button";
+import LogoutButton from "@/feature/auth/components/logout-button";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
 import SidebarLayout from "../sidebar-layout";
 import { createClubMenuConfig } from "./ClubSidebar.config";
 
 interface ClubSidebarProps {
     clubId: string;
-    clubName?: string;
+    clubName?: React.ReactNode;
 }
 
 export default async function ClubSideber({ clubId, clubName }: ClubSidebarProps) {

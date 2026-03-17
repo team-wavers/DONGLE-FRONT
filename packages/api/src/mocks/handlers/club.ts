@@ -9,6 +9,7 @@ const clubHandlers = [
                 {
                     id: 1,
                     name: "D-Maker",
+                    icon_url: null,
                     is_recruiting: true,
                     category: "학술분과",
                     sns: {
@@ -33,6 +34,7 @@ const clubHandlers = [
                 {
                     id: 2,
                     name: "Dongguk Creative",
+                    icon_url: null,
                     is_recruiting: false,
                     category: "문예분과",
                     sns: {
@@ -57,6 +59,7 @@ const clubHandlers = [
                 {
                     id: 3,
                     name: "맛따라 멋따라",
+                    icon_url: null,
                     is_recruiting: true,
                     category: "체육분과",
                     sns: {
@@ -90,6 +93,7 @@ const clubHandlers = [
             result: {
                 id: Number(id),
                 name: "D-Maker",
+                icon_url: null,
                 is_recruiting: true,
                 category: "학술분과",
                 sns: {
@@ -141,6 +145,7 @@ const clubHandlers = [
         const newClub = {
             id: Math.floor(Math.random() * 1000) + 100,
             name: body.name,
+            icon_url: null,
             is_recruiting: body.is_recruiting,
             category: body.category,
             sns: body.sns,
@@ -196,6 +201,7 @@ const clubHandlers = [
         const updatedClub = {
             id: Number(id),
             name: body.name || "D-Maker",
+            icon_url: null,
             is_recruiting: body.is_recruiting ?? true,
             category: body.category || "학술분과",
             sns: body.sns || {
@@ -227,7 +233,6 @@ const clubHandlers = [
     // 동아리 삭제
     http.delete(`/clubs/:id`, ({ params }) => {
         const { id } = params;
-        console.log(`동아리 ${id} 삭제 요청`);
         return HttpResponse.json({
             isSuccess: true,
             result: null,

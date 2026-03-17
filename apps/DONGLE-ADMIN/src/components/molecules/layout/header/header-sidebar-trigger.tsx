@@ -19,9 +19,5 @@ export default function HeaderSidebarTrigger({ className }: { className?: string
         return null;
     }
 
-    return (
-        <div className={cn("absolute left-3 top-1/2 -translate-y-1/2 z-20", className)}>
-            <SidebarTrigger aria-label="메뉴 열기" />
-        </div>
-    );
+    return <SidebarTrigger aria-label="메뉴 열기" className={cn(className)} />;
 }

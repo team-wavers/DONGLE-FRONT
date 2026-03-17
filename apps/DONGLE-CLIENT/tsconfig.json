@@ -1,15 +1,26 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "plugins": [
+            {
+                "name": "next",
+            },
+        ],
+        "paths": {
+            "@/*": ["./src/*"],
+            "@dongle/api": ["../../packages/api/src/index.ts"],
+            "@dongle/api/*": ["../../packages/api/src/*"],
+            "@dongle/service": ["../../packages/service/src/index.ts"],
+            "@dongle/service/*": ["../../packages/service/src/*"],
+            "@dongle/rich-text": ["../../packages/rich-text/src/index.ts"],
+            "@dongle/rich-text/*": ["../../packages/rich-text/src/*"],
+            "@dongle/types": ["../../packages/types/src/index.ts"],
+            "@dongle/types/*": ["../../packages/types/src/*"],
+            "@dongle/ui": ["../../packages/ui/src/index.ts"],
+            "@dongle/ui/*": ["../../packages/ui/src/*"],
+        },
+    },
+    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.d.ts", ".next/types/**/*.ts"],
+    "exclude": ["node_modules"],
 }

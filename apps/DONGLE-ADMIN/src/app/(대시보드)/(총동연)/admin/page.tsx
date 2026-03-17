@@ -16,9 +16,9 @@ export default function AdminPage() {
                             <Button
                                 variant="outline"
                                 className="w-full h-24 flex flex-col gap-2 items-center justify-center hover:bg-zinc-50 transition-colors">
-                                <span className="text-lg font-semibold">동아리 정보 관리</span>
+                                <span className="text-lg font-semibold">동아리 관리</span>
                                 <span className="text-sm text-muted-foreground text-center">
-                                    동아리 정보 조회 및 수정
+                                    동아리 정보와 활동보고서 관리
                                 </span>
                             </Button>
                         </Link>
@@ -32,17 +32,6 @@ export default function AdminPage() {
                             </Button>
                         </Link>
 
-                        <Link href="/admin/report">
-                            <Button
-                                variant="outline"
-                                className="w-full h-24 flex flex-col gap-2 items-center justify-center hover:bg-zinc-50 transition-colors">
-                                <span className="text-lg font-semibold">활동보고서 관리</span>
-                                <span className="text-sm text-muted-foreground text-center">
-                                    모든 동아리 활동보고서 조회
-                                </span>
-                            </Button>
-                        </Link>
-
                         <Link href="/admin/user">
                             <Button
                                 variant="outline"
@@ -50,6 +39,17 @@ export default function AdminPage() {
                                 <span className="text-lg font-semibold">사용자 관리</span>
                                 <span className="text-sm text-muted-foreground text-center">
                                     모든 사용자 조회 및 관리
+                                </span>
+                            </Button>
+                        </Link>
+
+                        <Link href="/admin/banner">
+                            <Button
+                                variant="outline"
+                                className="w-full h-24 flex flex-col gap-2 items-center justify-center hover:bg-zinc-50 transition-colors">
+                                <span className="text-lg font-semibold">배너 관리</span>
+                                <span className="text-sm text-muted-foreground text-center">
+                                    메인 배너 등록 및 관리
                                 </span>
                             </Button>
                         </Link>

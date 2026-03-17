@@ -1,13 +1,27 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: "standalone",
+  outputFileTracingRoot: path.join(__dirname, "../.."), // 모노레포 루트 → standalone에 워크스페이스 패키지 포함
   transpilePackages: [
     "@dongle/ui",
     "@dongle/api",
     "@dongle/service",
     "@dongle/types",
   ],
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "date-fns",
+      "@radix-ui/react-select",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-tooltip",
+      "@radix-ui/react-dropdown-menu",
+    ],
+  },
   // 이미지 도메인 설정
   images: {
     remotePatterns: [

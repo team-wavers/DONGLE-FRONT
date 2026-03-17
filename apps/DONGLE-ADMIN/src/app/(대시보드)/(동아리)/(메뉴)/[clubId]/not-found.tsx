@@ -23,7 +23,7 @@ export default function NotFound() {
     };
 
     return (
-        <div className="flex flex-col items-center min-h-[70vh] justify-center px-4">
+        <div className="flex flex-col items-center justify-center min-h-screen w-full px-4">
             <div className="w-full max-w-sm text-center space-y-6">
                 <div className="mx-auto w-14 h-14 bg-muted rounded-full flex items-center justify-center">
                     <Users className="w-7 h-7 text-muted-foreground" />

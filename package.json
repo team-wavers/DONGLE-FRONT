@@ -6,13 +6,30 @@
         "dev": "turbo dev",
         "dev:admin": "pnpm --filter dongle-admin dev",
         "dev:client": "pnpm --filter dongle-client dev",
+        "test:e2e": "playwright test",
+        "test:e2e:admin": "playwright test --project=admin",
+        "test:e2e:client": "playwright test --project=client",
+        "test:e2e:ui": "playwright test --ui",
         "build": "turbo build",
+        "build:dev": "turbo build:dev",
+        "deploy:standalone:dev": "pnpm --filter dongle-client deploy:standalone:dev && pnpm --filter dongle-admin deploy:standalone:dev",
+        "deploy:standalone:prod": "pnpm --filter dongle-client deploy:standalone:prod && pnpm --filter dongle-admin deploy:standalone:prod",
+        "scp:client": "env-cmd -f .env.deploy -- sh -c 'rsync -az --delete -e \"ssh ${DEPLOY_PEM:+-i $DEPLOY_PEM}\" apps/DONGLE-CLIENT/.next/standalone/ $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_CLIENT_DIR/'",
+        "scp:admin": "env-cmd -f .env.deploy -- sh -c 'rsync -az --delete -e \"ssh ${DEPLOY_PEM:+-i $DEPLOY_PEM}\" apps/DONGLE-ADMIN/.next/standalone/ $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_ADMIN_DIR/'",
+        "scp": "pnpm run scp:client && pnpm run scp:admin",
+        "deploy:scp:dev": "pnpm run deploy:standalone:dev && pnpm run scp:client && pnpm run scp:admin",
+        "deploy:scp:prod": "pnpm run deploy:standalone:prod && pnpm run scp:client && pnpm run scp:admin",
         "lint": "turbo lint",
         "type": "turbo type",
         "storybook": "pnpm --filter @dongle/ui storybook",
         "storybook:build": "pnpm --filter @dongle/ui storybook:build"
     },
     "devDependencies": {
+        "@playwright/test": "^1.58.2",
+        "env-cmd": "^11.0.0",
         "turbo": "^2.0.0"
+    },
+    "dependencies": {
+        "isomorphic-dompurify": "^3.3.0"
     }
 }
