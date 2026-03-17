@@ -2,13 +2,19 @@
 
 import { useMemo, useState } from "react";
 import type { RecruitmentStatus } from "@dongle/ui";
-import type { Club } from "@dongle/types";
+
+type ClubFilterItem = {
+    id: number;
+    name: string;
+    category: string;
+    is_recruiting: boolean;
+};
 
 export type ClubFilterStatus = "all" | RecruitmentStatus;
 
 const toRecruitmentStatus = (isRecruiting: boolean): RecruitmentStatus => (isRecruiting ? "recruiting" : "closed");
 
-export function useClubFilters(clubs: Club[]) {
+export function useClubFilters(clubs: ClubFilterItem[]) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeStatus, setActiveStatus] = useState<ClubFilterStatus>("all");
 

@@ -4,10 +4,16 @@ import ClubListSection from "@/components/main/club-list-section";
 import ClubMainHeroBannerCarousel from "@/components/main/club-main-hero-banner-carousel";
 import ClubSearchSection from "@/components/main/club-search-section";
 import { useClubFilters } from "@/hooks/use-club-filters";
-import type { Club } from "@dongle/types";
+
+type ClubListItemViewModel = {
+    id: number;
+    name: string;
+    category: string;
+    is_recruiting: boolean;
+};
 
 interface ClubMainClientProps {
-    clubs: Club[];
+    clubs: ClubListItemViewModel[];
     bannerImageUrls: string[];
 }
 

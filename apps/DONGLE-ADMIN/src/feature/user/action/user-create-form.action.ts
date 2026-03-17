@@ -2,6 +2,7 @@
 
 import { createUserService } from "@dongle/service/user/user.service";
 import { revalidateTag } from "next/cache";
+import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import {
     validateUserName,
     validateLoginId,
@@ -44,6 +45,8 @@ export async function userCreateFormAction(
     }
 
     try {
+        await requireServerActionAccessToken();
+
         const { isSuccess, error } = await createUserService({
             name,
             login_id,

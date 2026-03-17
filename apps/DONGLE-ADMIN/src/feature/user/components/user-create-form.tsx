@@ -57,7 +57,7 @@ export default function UserCreateForm({ isOpen, onClose, onSuccess }: UserCreat
                         id="login_id"
                         required
                         error={state.fieldErrors?.login_id}
-                        placeholder="영문으로 입력"
+                        placeholder="로그인 ID를 입력하세요"
                     />
 
                     <FormField
@@ -66,7 +66,7 @@ export default function UserCreateForm({ isOpen, onClose, onSuccess }: UserCreat
                         name="password"
                         id="password"
                         required
-                        placeholder="영문으로 입력(4자 이상)"
+                        placeholder="비밀번호를 입력하세요"
                         error={state.fieldErrors?.password}
                     />
 

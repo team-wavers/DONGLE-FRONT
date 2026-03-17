@@ -7,7 +7,7 @@ class FetchInstance {
     private static instance: FetchInstance;
     private baseUrl: string;
     private constructor() {
-        this.baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        this.baseUrl = process.env.API_URL || "";
     }
 
     public static getInstance(): FetchInstance {
@@ -47,7 +47,7 @@ class FetchInstance {
         return handleErrorResponse({ response, requestPayload, url, method });
     }
 
-    private async refreshToken(): Promise<boolean> {
+    private async refreshToken(): Promise<{ success: boolean; accessToken?: string }> {
         return refreshToken({ baseUrl: this.baseUrl });
     }
 

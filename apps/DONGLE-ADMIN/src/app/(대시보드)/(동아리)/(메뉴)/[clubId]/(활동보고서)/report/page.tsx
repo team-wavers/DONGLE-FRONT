@@ -1,28 +1,20 @@
+import { Suspense } from "react";
 import ReportCard from "@/feature/report/components/report-card/report-card";
-import { getClubReportListService } from "@dongle/service/club/club.report.service";
+import { getClubReportListService } from "@/lib/server/cached-services";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
 import { Pencil } from "lucide-react";
 import { ClubReport } from "@dongle/types/club/club.report.d";
+import { Skeleton } from "@dongle/ui/skeleton";
 
-export default async function Page({ params }: { params: Promise<{ clubId: string }> }) {
-    const { clubId } = await params;
-
+async function ClubReportListContent({ clubId }: { clubId: string }) {
     // 서버에서 데이터 가져오기
     const { result } = await getClubReportListService(Number(clubId));
 
     return (
-        <div className="flex flex-col w-full items-center">
-            <div className="flex justify-end w-full mb-4">
-                <Link href="./create">
-                    <Button className="font-semibold shadow-lg">
-                        <Pencil className="w-4 h-4 mr-2" />
-                        작성하기
-                    </Button>
-                </Link>
-            </div>
+        <>
             {result && result.length > 0 ? (
-                <div className="flex flex-col gap-4 w-full justify-start items-center md:max-w-md pt-4">
+                <div className="flex flex-col gap-4 w-full justify-start items-center md:max-w-xl pt-4">
                     {result.map((report: ClubReport) => (
                         <ReportCard
                             key={report.id}
@@ -38,6 +30,36 @@ export default async function Page({ params }: { params: Promise<{ clubId: strin
                     <div className="text-gray-500">활동보고서가 없습니다.</div>
                 </div>
             )}
+        </>
+    );
+}
+
+function ClubReportListFallback() {
+    return (
+        <div className="flex flex-col gap-4 w-full md:max-w-md pt-4">
+            <Skeleton className="h-28 w-full rounded-xl" />
+            <Skeleton className="h-28 w-full rounded-xl" />
+            <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
+    );
+}
+
+export default async function Page({ params }: { params: Promise<{ clubId: string }> }) {
+    const { clubId } = await params;
+
+    return (
+        <div className="flex flex-col w-full items-center">
+            <div className="flex justify-end w-full mb-4">
+                <Link href="./create">
+                    <Button className="font-semibold shadow-lg">
+                        <Pencil className="w-4 h-4 mr-2" />
+                        작성하기
+                    </Button>
+                </Link>
+            </div>
+            <Suspense fallback={<ClubReportListFallback />}>
+                <ClubReportListContent clubId={clubId} />
+            </Suspense>
         </div>
     );
 }

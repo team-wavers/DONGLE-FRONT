@@ -2,6 +2,7 @@
 
 import { deleteUserService } from "@dongle/service/user/user.service";
 import { revalidateTag } from "next/cache";
+import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 
 // 사용자 삭제 서버 액션
 export async function deleteUserAction(userId: number): Promise<{
@@ -9,6 +10,8 @@ export async function deleteUserAction(userId: number): Promise<{
     error?: string;
 }> {
     try {
+        await requireServerActionAccessToken();
+
         const result = await deleteUserService(userId);
 
         if (!result.isSuccess) {

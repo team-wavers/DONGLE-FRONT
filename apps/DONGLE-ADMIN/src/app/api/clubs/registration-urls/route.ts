@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 2. 백엔드로 요청 전달 (Authorization 헤더 포함)
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const apiUrl = process.env.API_URL;
         if (!apiUrl) {
             return NextResponse.json(
                 {

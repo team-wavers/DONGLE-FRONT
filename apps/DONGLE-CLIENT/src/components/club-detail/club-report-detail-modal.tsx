@@ -1,13 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, formatDateByLocale } from "@dongle/ui";
-import type { ClubReport } from "@dongle/types/club/club.report";
+import { RichTextViewer } from "@dongle/rich-text";
+
+type ClubReportDetailViewModel = {
+    id: number;
+    title: string;
+    content: string;
+    createdAt: string;
+    image_urls: string[];
+};
 
 interface ClubReportDetailModalProps {
-    report: ClubReport | null;
+    report: ClubReportDetailViewModel | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
@@ -19,10 +27,6 @@ const styles = {
 
 export default function ClubReportDetailModal({ report, open, onOpenChange }: ClubReportDetailModalProps) {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-
-    useEffect(() => {
-        setSelectedImageIndex(0);
-    }, [report?.id, open]);
 
     const selectedImages = report?.image_urls ?? [];
     const hasImages = selectedImages.length > 0;
@@ -39,7 +43,7 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[min(1200px,calc(100%-2rem))] max-h-[90vh] p-0 gap-0 overflow-hidden">
+            <DialogContent className="w-full max-w-[90vw] sm:max-w-2xl max-h-[90vh] p-0 gap-0 overflow-hidden">
                 {report && (
                     <section className="p-4 md:p-5 min-h-0 max-h-[90vh] overflow-y-auto space-y-4">
                         <DialogTitle className="sr-only">{report.title}</DialogTitle>
@@ -100,11 +104,11 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
                             </div>
                         )}
 
-                        <h2 className="text-xl font-bold text-zinc-900 pr-8">{report.title}</h2>
+                        <h2 className="pr-8 text-xl font-bold text-zinc-900">{report.title}</h2>
                         <p className="text-sm text-zinc-500">작성일 {formatDateByLocale(report.createdAt)}</p>
-                        <p className="min-h-[180px] text-zinc-700 leading-7 whitespace-pre-wrap">
-                            {report.content}
-                        </p>
+                        <div className="min-h-[180px] py-4">
+                            <RichTextViewer html={report.content} />
+                        </div>
 
                         <div className="pt-2">
                             <DialogClose asChild>

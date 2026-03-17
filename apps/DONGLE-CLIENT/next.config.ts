@@ -10,6 +10,18 @@ const nextConfig: NextConfig = {
     "@dongle/service",
     "@dongle/types",
   ],
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "date-fns",
+      "@radix-ui/react-select",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-tooltip",
+      "@radix-ui/react-dropdown-menu",
+    ],
+  },
   images: {
     remotePatterns: [
       {

@@ -2,6 +2,7 @@
 
 import { deleteClubReportService } from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
+import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 
 /** 활동 보고서 삭제 서버 액션 */
 export async function deleteReportAction(
@@ -9,6 +10,8 @@ export async function deleteReportAction(
     reportId: number
 ): Promise<{ success: boolean; error?: string }> {
     try {
+        await requireServerActionAccessToken();
+
         const result = await deleteClubReportService(clubId, reportId);
 
         if (!result.isSuccess) {

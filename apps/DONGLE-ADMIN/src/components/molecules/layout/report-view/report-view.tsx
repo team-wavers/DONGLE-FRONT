@@ -4,13 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
 import { ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { ClubReport } from "@dongle/types/club/club.report.d";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogOverlay, DialogPortal, DialogTitle } from "@dongle/ui/dialog";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@dongle/ui/carousel";
+import { RichTextViewer } from "@dongle/rich-text";
+
+type ReportViewModel = {
+    title: string;
+    content: string;
+    createdAt: string;
+    image_urls: string[];
+};
 
 interface ReportViewProps {
-    report: ClubReport;
+    report: ReportViewModel;
     backHref?: string;
     backButtonText?: string;
 }
@@ -22,12 +29,18 @@ export default function ReportView({ report, backHref, backButtonText = "돌아�
 
     const handlePrevImage = () => {
         if (selectedImageIndex === null) return;
-        setSelectedImageIndex(selectedImageIndex === 0 ? validImageUrls.length - 1 : selectedImageIndex - 1);
+        setSelectedImageIndex((prev) => {
+            if (prev === null) return null;
+            return prev === 0 ? validImageUrls.length - 1 : prev - 1;
+        });
     };
 
     const handleNextImage = () => {
         if (selectedImageIndex === null) return;
-        setSelectedImageIndex(selectedImageIndex === validImageUrls.length - 1 ? 0 : selectedImageIndex + 1);
+        setSelectedImageIndex((prev) => {
+            if (prev === null) return null;
+            return prev === validImageUrls.length - 1 ? 0 : prev + 1;
+        });
     };
 
     return (
@@ -92,8 +105,8 @@ export default function ReportView({ report, backHref, backButtonText = "돌아�
                 </div>
 
                 {/* 내용 */}
-                <div className="prose max-w-none min-h-36 py-4">
-                    <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">{report.content}</p>
+                <div className="min-h-36 py-4">
+                    <RichTextViewer html={report.content} />
                 </div>
             </div>
 

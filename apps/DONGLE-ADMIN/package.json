@@ -4,6 +4,7 @@
     "private": true,
     "scripts": {
         "dev": " rm -rf .next && next dev --port 4001",
+        "start:e2e": "next start --port 4001",
         "start:dev": "next start --port 4001",
         "build": "rm -rf .next && next build",
         "build:dev": "rm -rf .next && env-cmd -f .env.development next build",
@@ -24,6 +25,7 @@
     },
     "dependencies": {
         "@dongle/api": "workspace:*",
+        "@dongle/rich-text": "workspace:*",
         "@dongle/service": "workspace:*",
         "@dongle/types": "workspace:*",
         "@dongle/ui": "workspace:*",
@@ -37,6 +39,11 @@
         "@radix-ui/react-slot": "^1.2.3",
         "@radix-ui/react-tabs": "^1.1.12",
         "@radix-ui/react-tooltip": "^1.2.7",
+        "@tiptap/extension-image": "^3.20.1",
+        "@tiptap/extension-link": "^3.20.1",
+        "@tiptap/extension-placeholder": "^3.20.1",
+        "@tiptap/react": "^3.20.1",
+        "@tiptap/starter-kit": "^3.20.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "date-fns": "^4.1.0",

@@ -11,9 +11,9 @@ export interface CreateClubRequest {
     location: string;
     description: string;
     main_activities: string;
-    is_recruiting: boolean;
-    recruit_start: string; // ISO 8601 날짜 문자열
-    recruit_end: string; // ISO 8601 날짜 문자열
+    is_recruiting?: boolean;
+    recruit_start?: string | null; // ISO 8601 날짜 문자열
+    recruit_end?: string | null; // ISO 8601 날짜 문자열
     sns: ClubSns;
     president_id: number;
 }
@@ -25,8 +25,8 @@ export interface UpdateClubRequest {
     main_activities?: string;
     icon_url?: string | null;
     is_recruiting?: boolean;
-    recruit_start?: string; // ISO 8601 날짜 문자열
-    recruit_end?: string; // ISO 8601 날짜 문자열
+    recruit_start?: string | null; // ISO 8601 날짜 문자열
+    recruit_end?: string | null; // ISO 8601 날짜 문자열
     sns?: ClubSns;
     president_id?: number;
     location?: string;

@@ -9,6 +9,8 @@ export async function logoutAction() {
     try {
         const res = await logoutService();
         success = res.isSuccess;
+    } catch {
+        success = false;
     } finally {
         const cookieStore = await cookies();
         cookieStore.delete("accessToken");

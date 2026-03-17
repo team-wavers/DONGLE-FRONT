@@ -233,7 +233,6 @@ const clubHandlers = [
     // 동아리 삭제
     http.delete(`/clubs/:id`, ({ params }) => {
         const { id } = params;
-        console.log(`동아리 ${id} 삭제 요청`);
         return HttpResponse.json({
             isSuccess: true,
             result: null,

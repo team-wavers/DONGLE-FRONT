@@ -3,11 +3,18 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { formatDateByLocale } from "@dongle/ui";
-import type { ClubReport } from "@dongle/types/club/club.report";
 import ClubReportDetailModal from "./club-report-detail-modal";
 
+type ClubReportCardViewModel = {
+    id: number;
+    title: string;
+    createdAt: string;
+    content: string;
+    image_urls: string[];
+};
+
 interface ClubReportsTabContentProps {
-    reports: ClubReport[];
+    reports: ClubReportCardViewModel[];
 }
 
 export default function ClubReportsTabContent({ reports }: ClubReportsTabContentProps) {
@@ -18,7 +25,7 @@ export default function ClubReportsTabContent({ reports }: ClubReportsTabContent
         [reports, selectedReportId]
     );
 
-    const openReportModal = (report: ClubReport) => {
+    const openReportModal = (report: ClubReportCardViewModel) => {
         setSelectedReportId(report.id);
     };
 
@@ -68,6 +75,7 @@ export default function ClubReportsTabContent({ reports }: ClubReportsTabContent
             </div>
 
             <ClubReportDetailModal
+                key={`${selectedReportId ?? "empty"}-${selectedReport !== null ? "open" : "closed"}`}
                 report={selectedReport}
                 open={selectedReport !== null}
                 onOpenChange={closeReportModal}

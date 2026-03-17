@@ -3,6 +3,7 @@
 import { patchUserService } from "@dongle/service/user/user.service";
 import { UpdateUserRequest } from "@dongle/types/user/user.d";
 import { revalidateTag } from "next/cache";
+import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import {
     validateUserName,
     validateLoginId,
@@ -59,6 +60,8 @@ export async function userEditFormAction(
     }
 
     try {
+        await requireServerActionAccessToken();
+
         // 변경된 필드만 포함하는 업데이트 데이터 구성
         const updateData: UpdateUserRequest = {};
 

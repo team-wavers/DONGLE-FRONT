@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
-import { Toaster } from "sonner";
+import { Toaster } from "@dongle/ui";
 import Footer from "@/components/molecules/layout/footer/footer";
 import { GlobalErrorHandler } from "@/components/providers/global-error-handler";
 
