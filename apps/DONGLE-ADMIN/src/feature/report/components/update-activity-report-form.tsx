@@ -31,6 +31,12 @@ export default function UpdateActivityReportForm({ report, reportId }: UpdateAct
         setRemovedUrls((prev) => [...prev, url]);
     };
 
+    const handleReplaceExistingUrls = () => {
+        if (existingUrls.length === 0) return;
+        setRemovedUrls((prev) => [...new Set([...prev, ...existingUrls])]);
+        setExistingUrls([]);
+    };
+
     // 성공/실패 시 토스트 표시
     useEffect(() => {
         if (state.success) {
@@ -124,6 +130,7 @@ export default function UpdateActivityReportForm({ report, reportId }: UpdateAct
                 description="보고서 대표 썸네일 이미지를 업로드하세요"
                 defaultValue={existingUrls}
                 onUrlRemove={handleUrlRemove}
+                onReplaceExistingUrls={handleReplaceExistingUrls}
                 error={state.fieldErrors?.images}
                 id="images"
             />

@@ -7,15 +7,57 @@
  *
  * cwd = standalone 배포 루트 (node_modules 가 있는 곳). script = 그 안의 apps/앱명/server.js
  * 그래야 Next가 찾는 node_modules 를 올바르게 찾음 (MODULE_NOT_FOUND 방지).
+ *
+ * 서버 전용 런타임 env는 같은 디렉터리의 `.env.pm2.dev`, `.env.pm2.prod`에서 읽습니다.
  */
+
+const fs = require("fs");
+const path = require("path");
 
 const env = process.env.PM2_APP_ENV || "dev";
 
+function loadPm2Env(targetEnv) {
+    const filePath = path.join(__dirname, `.env.pm2.${targetEnv}`);
+
+    if (!fs.existsSync(filePath)) {
+        return {};
+    }
+
+    return fs
+        .readFileSync(filePath, "utf8")
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("#") && line.includes("="))
+        .reduce((acc, line) => {
+            const separatorIndex = line.indexOf("=");
+            const key = line.slice(0, separatorIndex).trim();
+            const rawValue = line.slice(separatorIndex + 1).trim();
+            const value =
+                (rawValue.startsWith('"') && rawValue.endsWith('"')) ||
+                (rawValue.startsWith("'") && rawValue.endsWith("'"))
+                    ? rawValue.slice(1, -1)
+                    : rawValue;
+
+            acc[key] = value;
+            return acc;
+        }, {});
+}
+
+const pm2Env = loadPm2Env(env);
+
 // standalone 을 SCP한 루트 (node_modules, apps/ 가 있는 디렉터리)
-const clientDevRoot = process.env.DEPLOY_CLIENT_DIR || "/home/ec2-user/dongle.front.dev/dongle.client.dev";
-const adminDevRoot = process.env.DEPLOY_ADMIN_DIR || "/home/ec2-user/dongle.front.dev/dongle.admin.dev";
-const clientProdRoot = process.env.DEPLOY_CLIENT_DIR_PROD || "/home/ec2-user/dongle.front.prod/dongle.client.prod";
-const adminProdRoot = process.env.DEPLOY_ADMIN_DIR_PROD || "/home/ec2-user/dongle.front.prod/dongle.admin.prod";
+const clientDevRoot =
+    process.env.DEPLOY_CLIENT_DIR || pm2Env.DEPLOY_CLIENT_DIR || "/home/ec2-user/dongle.front.dev/dongle.client.dev";
+const adminDevRoot =
+    process.env.DEPLOY_ADMIN_DIR || pm2Env.DEPLOY_ADMIN_DIR || "/home/ec2-user/dongle.front.dev/dongle.admin.dev";
+const clientProdRoot =
+    process.env.DEPLOY_CLIENT_DIR_PROD ||
+    pm2Env.DEPLOY_CLIENT_DIR_PROD ||
+    "/home/ec2-user/dongle.front.prod/dongle.client.prod";
+const adminProdRoot =
+    process.env.DEPLOY_ADMIN_DIR_PROD ||
+    pm2Env.DEPLOY_ADMIN_DIR_PROD ||
+    "/home/ec2-user/dongle.front.prod/dongle.admin.prod";
 
 const commonAppConfig = {
     instances: 1,
@@ -39,6 +81,7 @@ const configs = {
                 script: `${clientDevRoot}/apps/DONGLE-CLIENT/server.js`,
                 max_memory_restart: "700M",
                 env: {
+                    ...pm2Env,
                     NODE_ENV: "development",
                     HOSTNAME: "0.0.0.0",
                     PORT: 3001,
@@ -52,6 +95,7 @@ const configs = {
                 script: `${adminDevRoot}/apps/DONGLE-ADMIN/server.js`,
                 max_memory_restart: "500M",
                 env: {
+                    ...pm2Env,
                     NODE_ENV: "development",
                     HOSTNAME: "0.0.0.0",
                     PORT: 4001,
@@ -69,6 +113,7 @@ const configs = {
                 script: `${clientProdRoot}/apps/DONGLE-CLIENT/server.js`,
                 max_memory_restart: "700M",
                 env: {
+                    ...pm2Env,
                     NODE_ENV: "production",
                     HOSTNAME: "0.0.0.0",
                     PORT: 3000,
@@ -82,6 +127,7 @@ const configs = {
                 script: `${adminProdRoot}/apps/DONGLE-ADMIN/server.js`,
                 max_memory_restart: "500M",
                 env: {
+                    ...pm2Env,
                     NODE_ENV: "production",
                     HOSTNAME: "0.0.0.0",
                     PORT: 4000,

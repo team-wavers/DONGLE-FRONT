@@ -27,6 +27,7 @@ export interface FileUploadProps {
     maxFiles?: number; // 최대 파일 개수
     onFileChange?: (files: File[]) => void;
     onUrlRemove?: (url: string) => void; // 기존 URL 제거 콜백
+    onReplaceExistingUrls?: () => void;
     className?: string;
     id?: string;
     showPreview?: boolean;
@@ -235,6 +236,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
             maxFiles = 5,
             onFileChange,
             onUrlRemove,
+            onReplaceExistingUrls,
             className,
             id,
             showPreview = true,
@@ -296,6 +298,10 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         const applyReplaceSelection = (validFiles: File[], invalidTypeCount: number, invalidSizeCount: number) => {
             const replacedFiles = validFiles.slice(0, maxFiles);
             const maxFilesExceeded = validFiles.length > maxFiles;
+
+            if (replacedFiles.length > 0) {
+                onReplaceExistingUrls?.();
+            }
 
             setFiles(replacedFiles);
             onFileChange?.(replacedFiles);
