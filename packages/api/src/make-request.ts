@@ -76,7 +76,12 @@ export async function makeRequest({
     }
 
     if (!response.ok) {
-        console.error("HTTP error:", response);
+        console.error("HTTP error:", {
+            method,
+            url: `${baseUrl}${url}`,
+            status: response.status,
+            statusText: response.statusText,
+        });
     }
     return response;
 }
