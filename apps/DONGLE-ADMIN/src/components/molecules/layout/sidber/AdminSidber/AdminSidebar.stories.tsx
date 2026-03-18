@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
 import { SidebarProvider } from "@dongle/ui/sidebar";
+import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
 import AdminSidber from "./AdminSideber";
 
 const meta: Meta<typeof AdminSidber> = {
@@ -12,7 +13,7 @@ const meta: Meta<typeof AdminSidber> = {
     argTypes: {
         role: {
             control: "select",
-            options: ["club", "admin"],
+            options: [AUTH_ROLE.PRESIDENT, AUTH_ROLE.ADMIN],
             description: "사용자 역할",
         },
     },
@@ -24,7 +25,7 @@ type Story = StoryObj<typeof meta>;
 // 기본 동아리 관리자 대시보드
 export const ClubManager: Story = {
     args: {
-        role: "club",
+        role: AUTH_ROLE.PRESIDENT,
     },
     parameters: {
         docs: {
@@ -43,7 +44,7 @@ export const ClubManager: Story = {
 // 시스템 관리자 대시보드
 export const SystemAdmin: Story = {
     args: {
-        role: "admin",
+        role: AUTH_ROLE.ADMIN,
     },
     parameters: {
         docs: {

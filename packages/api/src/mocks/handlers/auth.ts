@@ -1,5 +1,6 @@
 import { decodeJwt, JWTPayload } from "jose";
 import { http, HttpResponse } from "msw";
+import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
 
 // JWT 토큰 생성을 위한 간단한 함수
 function generateMockJWT(payload: JWTPayload): string {
@@ -27,7 +28,7 @@ const authHandlers = [
             const adminPayload = {
                 sub: "admin_user",
                 user_id: 1,
-                role: "admin",
+                role: AUTH_ROLE.ADMIN,
                 exp: now + 3600, // 1시간 후 만료
                 iat: now,
                 username: "admin",
@@ -39,7 +40,7 @@ const authHandlers = [
             const refreshPayload = {
                 sub: "admin_user",
                 user_id: 1,
-                role: "admin",
+                role: AUTH_ROLE.ADMIN,
                 exp: now + 7 * 24 * 3600, // 7일 후 만료
                 iat: now,
                 username: "admin",
@@ -55,7 +56,7 @@ const authHandlers = [
                     refreshToken: refreshToken,
                     tokenType: "Bearer",
                     expiresIn: 3600 * 1000, // 밀리초 단위 (1시간 = 3600000ms)
-                    role: "admin",
+                    role: AUTH_ROLE.ADMIN,
                 },
             });
         }
@@ -64,7 +65,7 @@ const authHandlers = [
         const clubPayload = {
             sub: "club_user",
             user_id: 2,
-            role: "club",
+            role: AUTH_ROLE.PRESIDENT,
             exp: now + 3600, // 1시간 후 만료
             iat: now,
             username: login_id,
@@ -77,7 +78,7 @@ const authHandlers = [
         const refreshPayload = {
             sub: "club_user",
             user_id: 2,
-            role: "club",
+            role: AUTH_ROLE.PRESIDENT,
             exp: now + 7 * 24 * 3600, // 7일 후 만료
             iat: now,
             username: login_id,
@@ -94,7 +95,7 @@ const authHandlers = [
                 refreshToken: refreshToken,
                 tokenType: "Bearer",
                 expiresIn: 3600 * 1000, // 밀리초 단위 (1시간 = 3600000ms)
-                role: "club",
+                role: AUTH_ROLE.PRESIDENT,
                 club_id: 1,
             },
         });
