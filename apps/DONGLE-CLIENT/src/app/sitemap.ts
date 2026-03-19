@@ -13,18 +13,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
     ];
 
-    const clubListResponse = await getClubListService();
+    try {
+        const clubListResponse = await getClubListService();
 
-    if (!clubListResponse.isSuccess || !clubListResponse.result) {
+        if (!clubListResponse.isSuccess || !clubListResponse.result) {
+            return staticRoutes;
+        }
+
+        const clubRoutes = clubListResponse.result.map((club) => ({
+            url: `${siteUrl}/clubs/${club.id}`,
+            lastModified: club.updated_at ? new Date(club.updated_at) : new Date(),
+            changeFrequency: "weekly" as const,
+            priority: 0.8,
+        }));
+
+        return [...staticRoutes, ...clubRoutes];
+    } catch (error) {
+        console.error("[sitemap] failed to fetch club list:", error);
         return staticRoutes;
     }
-
-    const clubRoutes = clubListResponse.result.map((club) => ({
-        url: `${siteUrl}/clubs/${club.id}`,
-        lastModified: club.updated_at ? new Date(club.updated_at) : new Date(),
-        changeFrequency: "weekly" as const,
-        priority: 0.8,
-    }));
-
-    return [...staticRoutes, ...clubRoutes];
 }

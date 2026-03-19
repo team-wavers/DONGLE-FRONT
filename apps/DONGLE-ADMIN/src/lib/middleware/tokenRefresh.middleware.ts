@@ -21,8 +21,11 @@ export async function handleTokenRefresh(request: NextRequest, refreshToken: str
             const accessTokenExpiresIn = getTokenExpiresIn(accessTokenPayload, 900); // 기본값 15분
             const refreshTokenExpiresIn = getTokenExpiresIn(refreshTokenPayload, 7 * 24 * 3600); // 기본값 7일
 
-            // 토큰 리프레시 성공 - 새 토큰 설정
-            const response = NextResponse.next();
+            // 현재 요청은 기존 쿠키 상태로 이미 평가 중이므로,
+            // 새 토큰을 심은 뒤 같은 URL로 한 번 더 보내야 이후 로직이 새 쿠키를 보게 된다.
+            const response = NextResponse.redirect(
+                new URL(request.nextUrl.pathname + request.nextUrl.search, request.url)
+            );
             response.cookies.set("accessToken", refreshTokenResponse.result.accessToken, {
                 ...getCookieOptions({ maxAge: accessTokenExpiresIn, httpOnly: true }),
             });
