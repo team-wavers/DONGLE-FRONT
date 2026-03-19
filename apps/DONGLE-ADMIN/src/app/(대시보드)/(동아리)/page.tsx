@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { decodeJwtToken } from "@dongle/api/utils/jwt.util";
+import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export default async function MainPage() {
 
     const { role, club_id: clubId } = payload;
 
-    if (role === "admin") {
+    if (role === AUTH_ROLE.ADMIN) {
         redirect("/admin");
     }
 

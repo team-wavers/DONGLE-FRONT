@@ -1,3 +1,5 @@
+import type { AuthRole } from "./auth-role";
+
 export interface LoginActionState {
     success?: boolean;
     error?: string;
@@ -5,7 +7,7 @@ export interface LoginActionState {
         username?: string;
         password?: string;
     };
-    role?: "admin" | "club";
+    role?: AuthRole;
     clubId?: string;
 }
 

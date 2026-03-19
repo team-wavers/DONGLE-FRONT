@@ -1,10 +1,11 @@
 import { decodeJwt } from "jose";
+import type { AuthRole } from "@dongle/types/auth/auth-role";
 
 interface JwtPayload {
     sub?: string | number;
     user_id?: string | number;
     id?: string | number;
-    role?: "president" | "admin";
+    role?: AuthRole;
     exp?: number;
     iat?: number;
     [key: string]: unknown;
@@ -86,7 +87,7 @@ export function getUserClubIdFromToken(token: string): number | null {
  * @param token JWT 토큰 문자열
  * @returns 사용자 역할 또는 null
  */
-export function getUserRoleFromToken(token: string): string | null {
+export function getUserRoleFromToken(token: string): AuthRole | null {
     const payload = decodeJwtToken(token);
     if (!payload) {
         return null;

@@ -2,6 +2,7 @@
 
 import { loginService } from "@dongle/service/auth/auth.service";
 import { LoginActionState } from "@dongle/types/auth/auth";
+import type { AuthRole } from "@dongle/types/auth/auth-role";
 import { getCookieOptions } from "@dongle/api/utils/cookie/cookie.options";
 import { getTokenExpiresIn, decodeJwtToken } from "@dongle/api/utils/jwt.util";
 
@@ -65,7 +66,7 @@ export async function loginFormAction(prevState: LoginActionState, formData: For
         return {
             success: true,
             clubId: accessTokenPayload?.club_id?.toString(),
-            role: accessTokenPayload?.role as "admin" | "club" | undefined,
+            role: accessTokenPayload?.role as AuthRole | undefined,
         };
     } catch (error) {
         if (error instanceof Error) {

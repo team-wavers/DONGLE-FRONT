@@ -7,6 +7,7 @@ import { LoadingButton } from "@/components/atoms/button/loading-button/loading-
 import { toast } from "sonner";
 import { loginFormAction } from "@/feature/auth/action/login-form.action";
 import { useRouter, useSearchParams } from "next/navigation";
+import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
 
 function LoginFormContent() {
     const router = useRouter();
@@ -24,7 +25,7 @@ function LoginFormContent() {
         if (state.success) {
             toast.success("로그인 성공");
             const clubId = state.clubId;
-            const url = state.role === "admin" ? "/admin" : `/${clubId}/club-form`;
+            const url = state.role === AUTH_ROLE.ADMIN ? "/admin" : `/${clubId}/club-form`;
             router.push(url);
         }
         if (state.error) {

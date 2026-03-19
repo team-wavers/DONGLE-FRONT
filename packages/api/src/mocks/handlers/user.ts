@@ -1,4 +1,5 @@
 import { http, HttpResponse } from "msw";
+import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
 
 const userHandlers = [
     // 사용자 목록 조회
@@ -11,7 +12,7 @@ const userHandlers = [
                     name: "홍길동",
                     login_id: "2020123456",
                     password: "hashed_password",
-                    role: "club",
+                    role: AUTH_ROLE.PRESIDENT,
                     phone: "010-1234-5678",
                     refresh_token: "mock-refresh-token",
                     created_at: "2023-01-01T00:00:00Z",
@@ -27,7 +28,7 @@ const userHandlers = [
                     name: "김철수",
                     login_id: "admin",
                     password: "hashed_password",
-                    role: "admin",
+                    role: AUTH_ROLE.ADMIN,
                     phone: "010-9876-5432",
                     refresh_token: "mock-refresh-token",
                     created_at: "2023-01-01T00:00:00Z",
@@ -50,7 +51,7 @@ const userHandlers = [
                 name: userId === 1 ? "홍길동" : "김철수",
                 login_id: userId === 1 ? "2020123456" : "admin",
                 password: "hashed_password",
-                role: userId === 1 ? "club" : "admin",
+                role: userId === 1 ? AUTH_ROLE.PRESIDENT : AUTH_ROLE.ADMIN,
                 phone: userId === 1 ? "010-1234-5678" : "010-9876-5432",
                 refresh_token: "mock-refresh-token",
                 created_at: "2023-01-01T00:00:00Z",
@@ -116,7 +117,7 @@ const userHandlers = [
             name: body.name || "홍길동",
             login_id: body.login_id || "2020123456",
             password: body.password ? "hashed_" + body.password : "hashed_password",
-            role: body.role || "club",
+            role: body.role || AUTH_ROLE.PRESIDENT,
             phone: body.phone || "010-1234-5678",
             refresh_token: body.refresh_token || "mock-refresh-token",
             created_at: "2023-01-01T00:00:00Z",
