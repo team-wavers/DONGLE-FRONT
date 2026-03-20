@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
@@ -14,6 +15,7 @@ export default function RootError({ error, reset }: ErrorProps) {
     const router = useRouter();
 
     useEffect(() => {
+        Sentry.captureException(error);
         console.error("클라이언트 페이지 에러:", error);
     }, [error]);
 

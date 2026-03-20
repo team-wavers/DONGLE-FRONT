@@ -12,6 +12,7 @@ import {
     validateUserPhone,
     type UserFormFieldErrors,
 } from "@/feature/user/validation/user-form.validation";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 export interface UserEditActionState {
     success?: boolean;
@@ -115,7 +116,10 @@ export async function userEditFormAction(
             success: true,
         };
     } catch (error) {
-        console.error("사용자 정보 수정 중 오류 발생:", error);
+        captureServerException(error, "사용자 정보 수정 중 오류 발생", {
+            action: "userEditFormAction",
+            userId,
+        });
         const message =
             error instanceof Error ? error.message : "사용자 정보 수정에 실패했습니다. 다시 시도해주세요.";
         return {

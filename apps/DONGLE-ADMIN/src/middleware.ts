@@ -5,7 +5,7 @@ import { decodeJwtToken, isTokenExpired } from "@dongle/api/utils/jwt.util";
 import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
 import { handleTokenRefresh } from "@/lib/middleware/tokenRefresh.middleware";
 
-const PUBLIC_ROUTES = ["/login", "/club-register"];
+const PUBLIC_ROUTES = ["/login", "/club-register", "/sentry-example-page"];
 const ADMIN_ROUTES = ["/admin"];
 
 function redirectToLogin(request: NextRequest, reason: string) {

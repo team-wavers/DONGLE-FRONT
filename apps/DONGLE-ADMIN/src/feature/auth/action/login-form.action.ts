@@ -7,6 +7,7 @@ import { getCookieOptions } from "@dongle/api/utils/cookie/cookie.options";
 import { getTokenExpiresIn, decodeJwtToken } from "@dongle/api/utils/jwt.util";
 
 import { cookies } from "next/headers";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 // 서버 액션 (실제로는 별도 파일에 있을 수 있음)
 export async function loginFormAction(prevState: LoginActionState, formData: FormData): Promise<LoginActionState> {
@@ -69,6 +70,9 @@ export async function loginFormAction(prevState: LoginActionState, formData: For
             role: accessTokenPayload?.role as AuthRole | undefined,
         };
     } catch (error) {
+        captureServerException(error, "로그인 처리 중 오류", {
+            action: "loginFormAction",
+        });
         if (error instanceof Error) {
             return {
                 success: false,

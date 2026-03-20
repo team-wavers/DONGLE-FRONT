@@ -6,6 +6,7 @@ import {
 } from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 // 서버 액션 타입 정의
 export interface ActivityReportActionState {
@@ -74,7 +75,10 @@ export async function activityReportAction(
               imageUrls.push(result);
             }
           } catch (error) {
-            console.error("이미지 업로드 실패:", error);
+            captureServerException(error, "활동보고서 이미지 업로드 실패", {
+              action: "activityReportAction",
+              clubId,
+            });
             return {
               error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
             };
@@ -97,7 +101,10 @@ export async function activityReportAction(
       return { error: "활동보고서 생성에 실패했습니다. 다시 시도해주세요." };
     }
   } catch (error) {
-    console.error("활동보고서 생성 실패:", error);
+    captureServerException(error, "활동보고서 생성 실패", {
+      action: "activityReportAction",
+      clubId,
+    });
     return {
       error: "활동 보고서 등록에 실패했습니다. 다시 시도해주세요.",
     };
