@@ -5,6 +5,7 @@ import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-
 import { UpdateUserRequest } from "@dongle/types/user/user";
 import { decodeJwtToken, getUserClubIdFromToken } from "@dongle/api/utils/jwt.util";
 import { revalidateTag } from "next/cache";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 export interface PresidentInfoActionState {
   fieldErrors?: {
@@ -132,7 +133,9 @@ export async function presidentInfoFormAction(
       success: true,
     };
   } catch (error) {
-    console.error("회장 정보 수정 중 오류 발생:", error);
+    captureServerException(error, "회장 정보 수정 중 오류 발생", {
+      action: "presidentInfoFormAction",
+    });
     return {
       success: false,
       error: "회장 정보 수정에 실패했습니다. 다시 시도해주세요.",

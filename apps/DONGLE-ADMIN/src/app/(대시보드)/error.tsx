@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { Button } from "@dongle/ui/button";
 import { AlertTriangle, RefreshCw, ArrowLeft } from "lucide-react";
@@ -11,6 +12,7 @@ interface ErrorProps {
 
 export default function DashboardError({ error, reset }: ErrorProps) {
     useEffect(() => {
+        Sentry.captureException(error);
         console.error("대시보드 페이지 에러:", error);
     }, [error]);
 

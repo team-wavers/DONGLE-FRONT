@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadMainBannerImageService } from "@dongle/service/main-banner/main-banner.service";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 export async function POST(request: NextRequest) {
     try {
@@ -23,7 +24,10 @@ export async function POST(request: NextRequest) {
         const status = response.isSuccess ? 200 : 400;
         return NextResponse.json(response, { status });
     } catch (error) {
-        console.error("Main banner image upload API Route 오류:", error);
+        captureServerException(error, "메인 배너 이미지 업로드 API Route 오류", {
+            route: "/api/main-banners/images",
+            method: "POST",
+        });
         return NextResponse.json(
             {
                 isSuccess: false,

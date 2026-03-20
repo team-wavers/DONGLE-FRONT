@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 export async function POST(request: NextRequest) {
     void request;
@@ -49,7 +50,10 @@ export async function POST(request: NextRequest) {
         // 3. 백엔드 응답을 그대로 클라이언트에 전달
         return NextResponse.json(data, { status: response.status });
     } catch (error) {
-        console.error("API Route 오류:", error);
+        captureServerException(error, "동아리 등록 URL 생성 API Route 오류", {
+            route: "/api/clubs/registration-urls",
+            method: "POST",
+        });
         return NextResponse.json(
             {
                 isSuccess: false,

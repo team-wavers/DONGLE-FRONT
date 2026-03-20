@@ -10,6 +10,7 @@ import { createUserService, patchUserService } from "@dongle/service/user/user.s
 import { revalidateTag } from "next/cache";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 // 휴대폰 번호 검증 함수
 function isValidPhoneNumber(phoneNumber: string): boolean {
@@ -315,6 +316,10 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
 
         return { success: true };
     } catch (error) {
+        captureServerException(error, "동아리 수정 중 오류", {
+            action: "clubFormAction",
+            clubId,
+        });
         return {
             success: false,
             error: getActionErrorMessage(error, "동아리 수정에 실패했습니다. 다시 시도해주세요."),
@@ -374,6 +379,11 @@ export async function updateClubPresidentAction(
 
         return { success: true };
     } catch (error) {
+        captureServerException(error, "회장 정보 수정 중 오류", {
+            action: "updateClubPresidentAction",
+            clubId,
+            presidentId,
+        });
         return {
             success: false,
             error: getActionErrorMessage(error, "회장 정보 수정에 실패했습니다. 다시 시도해주세요."),
@@ -470,6 +480,10 @@ export async function clubRegisterFormAction(prevState: ClubActionState, formDat
             clubName: extractedData.clubName,
         };
     } catch (error) {
+        captureServerException(error, "동아리 등록 중 오류", {
+            action: "clubRegisterFormAction",
+            registrationKey,
+        });
         return {
             success: false,
             error: getActionErrorMessage(error, "동아리 등록에 실패했습니다. 다시 시도해주세요."),
@@ -508,7 +522,10 @@ export async function deleteClubAction(clubId: number): Promise<{
 
         return { success: true };
     } catch (error) {
-        console.error("동아리 삭제 중 오류:", error);
+        captureServerException(error, "동아리 삭제 중 오류", {
+            action: "deleteClubAction",
+            clubId,
+        });
         return {
             success: false,
             error: getActionErrorMessage(error, "동아리 삭제 중 오류가 발생했습니다. 다시 시도해주세요."),
