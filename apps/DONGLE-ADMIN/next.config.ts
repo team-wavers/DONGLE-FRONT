@@ -49,23 +49,6 @@ const nextConfig: NextConfig = {
         : []),
     ],
   },
-  // HTTPS 리다이렉트 설정 (프로덕션 환경)
-  async redirects() {
-    return [
-      {
-        source: "/(.*)",
-        has: [
-          {
-            type: "header",
-            key: "x-forwarded-proto",
-            value: "http",
-          },
-        ],
-        destination: "https://admin.dev.dongle.wavers.kr/:path*",
-        permanent: true,
-      },
-    ];
-  },
   // 보안 헤더 설정
   async headers() {
     return [
