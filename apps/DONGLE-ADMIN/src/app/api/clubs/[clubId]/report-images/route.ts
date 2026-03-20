@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadClubReportImageService } from "@dongle/service/club/club.report.service";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 export async function POST(
     request: NextRequest,
@@ -28,7 +29,10 @@ export async function POST(
 
         return NextResponse.json(response, { status });
     } catch (error) {
-        console.error("Club report image upload API Route 오류:", error);
+        captureServerException(error, "활동보고서 이미지 업로드 API Route 오류", {
+            route: "/api/clubs/[clubId]/report-images",
+            method: "POST",
+        });
         return NextResponse.json(
             {
                 isSuccess: false,

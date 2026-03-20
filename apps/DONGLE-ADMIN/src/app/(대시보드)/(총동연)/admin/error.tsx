@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { Button } from "@dongle/ui/button";
 import { AlertTriangle, RefreshCw, ArrowLeft, LogIn } from "lucide-react";
@@ -12,6 +13,7 @@ interface ErrorProps {
 
 export default function AdminError({ error, reset }: ErrorProps) {
     useEffect(() => {
+        Sentry.captureException(error);
         console.error("관리자 페이지 에러:", error);
     }, [error]);
 

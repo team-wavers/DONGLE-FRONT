@@ -11,6 +11,7 @@ import {
     validateUserPhone,
     type UserFormFieldErrors,
 } from "@/feature/user/validation/user-form.validation";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 export interface UserCreateActionState {
     success?: boolean;
@@ -66,7 +67,11 @@ export async function userCreateFormAction(
 
         return { success: true };
     } catch (err) {
-        console.error("사용자 생성 중 오류:", err);
+        captureServerException(err, "사용자 생성 중 오류", {
+            action: "userCreateFormAction",
+            login_id,
+            role,
+        });
         const message =
             err instanceof Error ? err.message : "사용자 생성 중 오류가 발생했습니다. 다시 시도해주세요.";
         return {

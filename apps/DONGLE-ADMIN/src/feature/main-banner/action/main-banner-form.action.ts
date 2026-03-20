@@ -8,6 +8,7 @@ import {
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 export interface MainBannerActionState {
     success?: boolean;
@@ -158,7 +159,9 @@ export async function createMainBannerAction(
             success: true,
         };
     } catch (error) {
-        console.error("배너 등록 중 오류:", error);
+        captureServerException(error, "배너 등록 중 오류", {
+            action: "createMainBannerAction",
+        });
         return {
             ...prevState,
             error: "배너 등록 중 오류가 발생했습니다. 다시 시도해주세요.",
@@ -230,7 +233,10 @@ export async function updateMainBannerAction(
             success: true,
         };
     } catch (error) {
-        console.error("배너 수정 중 오류:", error);
+        captureServerException(error, "배너 수정 중 오류", {
+            action: "updateMainBannerAction",
+            bannerId,
+        });
         return {
             ...prevState,
             error: "배너 수정 중 오류가 발생했습니다. 다시 시도해주세요.",

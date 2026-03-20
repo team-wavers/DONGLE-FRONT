@@ -6,6 +6,7 @@ import { UpdateUserRequest } from "@dongle/types/user/user.d";
 import { getUserIdFromToken } from "@dongle/api/utils/jwt.util";
 import { revalidateTag } from "next/cache";
 import { loginService } from "@dongle/service/auth/auth.service";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 export interface ChangeAccountActionState {
     fieldErrors?: {
@@ -129,6 +130,9 @@ export async function changeAccountFormAction(
             success: true,
         };
     } catch (error) {
+        captureServerException(error, "계정 정보 변경 중 오류", {
+            action: "changeAccountFormAction",
+        });
         return {
             success: false,
             error: "계정 정보 변경에 실패했습니다. 다시 시도해주세요.",

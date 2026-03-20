@@ -43,11 +43,29 @@ jobs:
       - name: Validate types
         run: pnpm type
 
-      - name: Build standalone artifacts
+      - name: Build client standalone artifact
         env:
           API_URL: ${{ secrets.PROD_API_URL }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.CLIENT_NEXT_PUBLIC_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.CLIENT_SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.CLIENT_SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.CLIENT_SENTRY_PROJECT }}
+          SENTRY_ENVIRONMENT: production
+          SENTRY_RELEASE: ${{ github.sha }}
           NEXT_TELEMETRY_DISABLED: "1"
-        run: pnpm deploy:standalone:prod
+        run: pnpm --filter dongle-client deploy:standalone:prod
+
+      - name: Build admin standalone artifact
+        env:
+          API_URL: ${{ secrets.PROD_API_URL }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.ADMIN_NEXT_PUBLIC_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.ADMIN_SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.ADMIN_SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.ADMIN_SENTRY_PROJECT }}
+          SENTRY_ENVIRONMENT: production
+          SENTRY_RELEASE: ${{ github.sha }}
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: pnpm --filter dongle-admin deploy:standalone:prod
 
       - name: Prepare SSH key
         env:
@@ -101,6 +119,16 @@ jobs:
         env:
           LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
           PROD_API_URL: ${{ secrets.PROD_API_URL }}
+          SENTRY_ENVIRONMENT: production
+          SENTRY_RELEASE: ${{ github.sha }}
+          CLIENT_NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.CLIENT_NEXT_PUBLIC_SENTRY_DSN }}
+          CLIENT_SENTRY_DSN: ${{ secrets.CLIENT_SENTRY_DSN }}
+          CLIENT_SENTRY_ENVIRONMENT: production
+          CLIENT_SENTRY_RELEASE: ${{ github.sha }}
+          ADMIN_NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.ADMIN_NEXT_PUBLIC_SENTRY_DSN }}
+          ADMIN_SENTRY_DSN: ${{ secrets.ADMIN_SENTRY_DSN }}
+          ADMIN_SENTRY_ENVIRONMENT: production
+          ADMIN_SENTRY_RELEASE: ${{ github.sha }}
           CLIENT_HEALTHCHECK_URL: ${{ secrets.PROD_CLIENT_HEALTHCHECK_URL }}
           ADMIN_HEALTHCHECK_URL: ${{ secrets.PROD_ADMIN_HEALTHCHECK_URL }}
         run: |
@@ -108,6 +136,16 @@ jobs:
           set -e
           cat > "$ROOT_DIR/.env.pm2.prod" <<ENVFILE
           API_URL=$PROD_API_URL
+          SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT
+          SENTRY_RELEASE=$SENTRY_RELEASE
+          CLIENT_NEXT_PUBLIC_SENTRY_DSN=$CLIENT_NEXT_PUBLIC_SENTRY_DSN
+          CLIENT_SENTRY_DSN=$CLIENT_SENTRY_DSN
+          CLIENT_SENTRY_ENVIRONMENT=$CLIENT_SENTRY_ENVIRONMENT
+          CLIENT_SENTRY_RELEASE=$CLIENT_SENTRY_RELEASE
+          ADMIN_NEXT_PUBLIC_SENTRY_DSN=$ADMIN_NEXT_PUBLIC_SENTRY_DSN
+          ADMIN_SENTRY_DSN=$ADMIN_SENTRY_DSN
+          ADMIN_SENTRY_ENVIRONMENT=$ADMIN_SENTRY_ENVIRONMENT
+          ADMIN_SENTRY_RELEASE=$ADMIN_SENTRY_RELEASE
           DEPLOY_CLIENT_DIR_PROD=$CLIENT_DIR
           DEPLOY_ADMIN_DIR_PROD=$ADMIN_DIR
           ENVFILE

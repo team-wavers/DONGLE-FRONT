@@ -3,6 +3,7 @@
 import { updateClubReportService, uploadClubReportImageService } from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 // 서버 액션 타입 정의
 export interface UpdateActivityReportActionState {
@@ -47,7 +48,9 @@ export async function updateActivityReportAction(
             originalImageUrls = JSON.parse(originalImageUrlsJson);
         }
     } catch (error) {
-        console.error("이미지 URL 파싱 오류:", error);
+        captureServerException(error, "보고서 수정 이미지 URL 파싱 오류", {
+            action: "updateActivityReportAction",
+        });
     }
 
     // 클라이언트 사이드 검증
@@ -98,7 +101,11 @@ export async function updateActivityReportAction(
                             imageUrls.push(result);
                         }
                     } catch (error) {
-                        console.error("이미지 업로드 실패:", error);
+                        captureServerException(error, "보고서 수정 이미지 업로드 실패", {
+                            action: "updateActivityReportAction",
+                            clubId,
+                            reportId,
+                        });
                         return {
                             error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
                         };
@@ -149,7 +156,11 @@ export async function updateActivityReportAction(
             success: true,
         };
     } catch (error) {
-        console.error("보고서 수정 실패:", error);
+        captureServerException(error, "보고서 수정 실패", {
+            action: "updateActivityReportAction",
+            clubId,
+            reportId,
+        });
         return {
             error: "보고서 수정에 실패했습니다. 다시 시도해주세요.",
         };

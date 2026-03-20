@@ -3,6 +3,7 @@
 import { deleteUserService } from "@dongle/service/user/user.service";
 import { revalidateTag } from "next/cache";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
+import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 // 사용자 삭제 서버 액션
 export async function deleteUserAction(userId: number): Promise<{
@@ -27,7 +28,10 @@ export async function deleteUserAction(userId: number): Promise<{
 
         return { success: true };
     } catch (error: unknown) {
-        console.error("사용자 삭제 중 오류:", error);
+        captureServerException(error, "사용자 삭제 중 오류", {
+            action: "deleteUserAction",
+            userId,
+        });
         const message =
             error instanceof Error
                 ? error.message
