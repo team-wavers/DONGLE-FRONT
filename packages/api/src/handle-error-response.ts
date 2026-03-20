@@ -31,29 +31,33 @@ function summarizeRequestPayload(requestPayload: unknown) {
 }
 
 function extractErrorMessage(errorData: unknown, response: Response): string {
+    const fallback401Message = "권한이 없거나 로그인 세션이 만료되었습니다.";
+
+    if (errorData && typeof errorData === "object") {
+        const payload = errorData as {
+            message?: unknown;
+            detail?: unknown;
+            error?: {
+                message?: unknown;
+                detail?: unknown;
+            };
+        };
+
+        const candidates = [payload.error?.detail, payload.error?.message, payload.detail, payload.message];
+
+        for (const candidate of candidates) {
+            if (typeof candidate === "string" && candidate.trim()) {
+                return candidate;
+            }
+        }
+    }
+
     if (response.status === 401) {
-        return "권한이 없거나 로그인 세션이 만료되었습니다.";
+        return fallback401Message;
     }
 
     if (!errorData || typeof errorData !== "object") {
         return `HTTP ${response.status}: ${response.statusText}`;
-    }
-
-    const payload = errorData as {
-        message?: unknown;
-        detail?: unknown;
-        error?: {
-            message?: unknown;
-            detail?: unknown;
-        };
-    };
-
-    const candidates = [payload.error?.detail, payload.error?.message, payload.detail, payload.message];
-
-    for (const candidate of candidates) {
-        if (typeof candidate === "string" && candidate.trim()) {
-            return candidate;
-        }
     }
 
     return `HTTP ${response.status}: ${response.statusText}`;
