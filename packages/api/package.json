@@ -17,5 +17,8 @@
   },
   "peerDependencies": {
     "next": "15.5.9"
+  },
+  "devDependencies": {
+    "@types/js-cookie": "^3.0.6"
   }
 }

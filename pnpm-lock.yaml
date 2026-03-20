@@ -21,6 +21,9 @@ importers:
       turbo:
         specifier: ^2.0.0
         version: 2.8.3
+      typescript:
+        specifier: ^5
+        version: 5.9.3
 
   apps/DONGLE-ADMIN:
     dependencies:
@@ -365,6 +368,10 @@ importers:
       next:
         specifier: 15.5.9
         version: 15.5.9(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+    devDependencies:
+      '@types/js-cookie':
+        specifier: ^3.0.6
+        version: 3.0.6
 
   packages/rich-text:
     dependencies:

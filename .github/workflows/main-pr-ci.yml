@@ -1,0 +1,46 @@
+name: Main PR CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: main-pr-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 20
+  PNPM_VERSION: 10.28.2
+  API_URL: https://api.example.com/v1
+  NEXT_PUBLIC_S3_URL: s3.ap-northeast-2.amazonaws.com
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm type
+
+      - name: Build
+        run: pnpm build
