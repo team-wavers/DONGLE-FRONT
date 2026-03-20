@@ -45,6 +45,10 @@ function loadPm2Env(targetEnv) {
 
 const pm2Env = loadPm2Env(env);
 
+function pickFirstDefined(...values) {
+    return values.find((value) => value !== undefined && value !== "");
+}
+
 // standalone 을 SCP한 루트 (node_modules, apps/ 가 있는 디렉터리)
 const clientDevRoot =
     process.env.DEPLOY_CLIENT_DIR || pm2Env.DEPLOY_CLIENT_DIR || "/home/ec2-user/dongle.front.dev/dongle.client.dev";
@@ -86,6 +90,32 @@ const configs = {
                     HOSTNAME: "0.0.0.0",
                     PORT: 3001,
                     NODE_OPTIONS: "--max-old-space-size=768",
+                    NEXT_PUBLIC_SENTRY_DSN: pickFirstDefined(
+                        process.env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                        process.env.NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.NEXT_PUBLIC_SENTRY_DSN,
+                    ),
+                    SENTRY_DSN: pickFirstDefined(
+                        process.env.CLIENT_SENTRY_DSN,
+                        pm2Env.CLIENT_SENTRY_DSN,
+                        process.env.SENTRY_DSN,
+                        pm2Env.SENTRY_DSN,
+                        process.env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                    ),
+                    SENTRY_ENVIRONMENT: pickFirstDefined(
+                        process.env.CLIENT_SENTRY_ENVIRONMENT,
+                        pm2Env.CLIENT_SENTRY_ENVIRONMENT,
+                        process.env.SENTRY_ENVIRONMENT,
+                        pm2Env.SENTRY_ENVIRONMENT,
+                    ),
+                    SENTRY_RELEASE: pickFirstDefined(
+                        process.env.CLIENT_SENTRY_RELEASE,
+                        pm2Env.CLIENT_SENTRY_RELEASE,
+                        process.env.SENTRY_RELEASE,
+                        pm2Env.SENTRY_RELEASE,
+                    ),
                 },
             },
             {
@@ -100,6 +130,32 @@ const configs = {
                     HOSTNAME: "0.0.0.0",
                     PORT: 4001,
                     NODE_OPTIONS: "--max-old-space-size=512",
+                    NEXT_PUBLIC_SENTRY_DSN: pickFirstDefined(
+                        process.env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                        process.env.NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.NEXT_PUBLIC_SENTRY_DSN,
+                    ),
+                    SENTRY_DSN: pickFirstDefined(
+                        process.env.ADMIN_SENTRY_DSN,
+                        pm2Env.ADMIN_SENTRY_DSN,
+                        process.env.SENTRY_DSN,
+                        pm2Env.SENTRY_DSN,
+                        process.env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                    ),
+                    SENTRY_ENVIRONMENT: pickFirstDefined(
+                        process.env.ADMIN_SENTRY_ENVIRONMENT,
+                        pm2Env.ADMIN_SENTRY_ENVIRONMENT,
+                        process.env.SENTRY_ENVIRONMENT,
+                        pm2Env.SENTRY_ENVIRONMENT,
+                    ),
+                    SENTRY_RELEASE: pickFirstDefined(
+                        process.env.ADMIN_SENTRY_RELEASE,
+                        pm2Env.ADMIN_SENTRY_RELEASE,
+                        process.env.SENTRY_RELEASE,
+                        pm2Env.SENTRY_RELEASE,
+                    ),
                 },
             },
         ],
@@ -118,6 +174,32 @@ const configs = {
                     HOSTNAME: "0.0.0.0",
                     PORT: 3000,
                     NODE_OPTIONS: "--max-old-space-size=768",
+                    NEXT_PUBLIC_SENTRY_DSN: pickFirstDefined(
+                        process.env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                        process.env.NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.NEXT_PUBLIC_SENTRY_DSN,
+                    ),
+                    SENTRY_DSN: pickFirstDefined(
+                        process.env.CLIENT_SENTRY_DSN,
+                        pm2Env.CLIENT_SENTRY_DSN,
+                        process.env.SENTRY_DSN,
+                        pm2Env.SENTRY_DSN,
+                        process.env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                    ),
+                    SENTRY_ENVIRONMENT: pickFirstDefined(
+                        process.env.CLIENT_SENTRY_ENVIRONMENT,
+                        pm2Env.CLIENT_SENTRY_ENVIRONMENT,
+                        process.env.SENTRY_ENVIRONMENT,
+                        pm2Env.SENTRY_ENVIRONMENT,
+                    ),
+                    SENTRY_RELEASE: pickFirstDefined(
+                        process.env.CLIENT_SENTRY_RELEASE,
+                        pm2Env.CLIENT_SENTRY_RELEASE,
+                        process.env.SENTRY_RELEASE,
+                        pm2Env.SENTRY_RELEASE,
+                    ),
                 },
             },
             {
@@ -132,6 +214,32 @@ const configs = {
                     HOSTNAME: "0.0.0.0",
                     PORT: 4000,
                     NODE_OPTIONS: "--max-old-space-size=512",
+                    NEXT_PUBLIC_SENTRY_DSN: pickFirstDefined(
+                        process.env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                        process.env.NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.NEXT_PUBLIC_SENTRY_DSN,
+                    ),
+                    SENTRY_DSN: pickFirstDefined(
+                        process.env.ADMIN_SENTRY_DSN,
+                        pm2Env.ADMIN_SENTRY_DSN,
+                        process.env.SENTRY_DSN,
+                        pm2Env.SENTRY_DSN,
+                        process.env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                        pm2Env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                    ),
+                    SENTRY_ENVIRONMENT: pickFirstDefined(
+                        process.env.ADMIN_SENTRY_ENVIRONMENT,
+                        pm2Env.ADMIN_SENTRY_ENVIRONMENT,
+                        process.env.SENTRY_ENVIRONMENT,
+                        pm2Env.SENTRY_ENVIRONMENT,
+                    ),
+                    SENTRY_RELEASE: pickFirstDefined(
+                        process.env.ADMIN_SENTRY_RELEASE,
+                        pm2Env.ADMIN_SENTRY_RELEASE,
+                        process.env.SENTRY_RELEASE,
+                        pm2Env.SENTRY_RELEASE,
+                    ),
                 },
             },
         ],
