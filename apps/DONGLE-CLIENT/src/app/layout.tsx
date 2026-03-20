@@ -5,9 +5,41 @@ import Link from "next/link";
 import { AppHeader } from "@dongle/ui";
 import "./globals.css";
 
+const siteUrl = "https://dongle.wavers.kr";
+const siteTitle = "동글";
+const siteDescription = "우리의 동아리, 우리의 동글";
+const defaultOgImage = "/logo/logo-og.png";
+
 export const metadata: Metadata = {
-    title: "동글",
-    description: "우리의 동아리, 우리의 동글",
+    metadataBase: new URL(siteUrl),
+    title: {
+        default: siteTitle,
+        template: "%s | 동글",
+    },
+    description: siteDescription,
+    alternates: {
+        canonical: "/",
+    },
+    openGraph: {
+        title: siteTitle,
+        description: siteDescription,
+        url: siteUrl,
+        siteName: siteTitle,
+        locale: "ko_KR",
+        type: "website",
+        images: [
+            {
+                url: defaultOgImage,
+                alt: "동글 로고",
+            },
+        ],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: siteTitle,
+        description: siteDescription,
+        images: [defaultOgImage],
+    },
     icons: {
         icon: "/favicon.ico",
         apple: "/favicon.ico",

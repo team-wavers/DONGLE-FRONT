@@ -1,0 +1,130 @@
+name: Deploy Prod To Lightsail
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: prod-lightsail-deploy
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 20
+  PNPM_VERSION: 10.28.2
+  ROOT_DIR: /home/ec2-user/dongle.front.prod
+  CLIENT_DIR: /home/ec2-user/dongle.front.prod/dongle.client.prod
+  ADMIN_DIR: /home/ec2-user/dongle.front.prod/dongle.admin.prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate types
+        run: pnpm type
+
+      - name: Build standalone artifacts
+        env:
+          API_URL: ${{ secrets.PROD_API_URL }}
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: pnpm deploy:standalone:prod
+
+      - name: Prepare SSH key
+        env:
+          LIGHTSAIL_SSH_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$LIGHTSAIL_SSH_KEY" > ~/.ssh/lightsail.pem
+          chmod 600 ~/.ssh/lightsail.pem
+
+      - name: Trust Lightsail host
+        env:
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: ssh-keyscan -H "$LIGHTSAIL_HOST" >> ~/.ssh/known_hosts
+
+      - name: Ensure remote directories
+        env:
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: |
+          ssh -i ~/.ssh/lightsail.pem ec2-user@"$LIGHTSAIL_HOST" \
+            "mkdir -p '$ROOT_DIR' '$CLIENT_DIR' '$ADMIN_DIR'"
+
+      - name: Sync PM2 config
+        env:
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/lightsail.pem" \
+            ecosystem.config.js \
+            ec2-user@"$LIGHTSAIL_HOST":"$ROOT_DIR"/
+
+      - name: Sync client artifact
+        env:
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/lightsail.pem" \
+            apps/DONGLE-CLIENT/.next/standalone/ \
+            ec2-user@"$LIGHTSAIL_HOST":"$CLIENT_DIR"/
+
+      - name: Sync admin artifact
+        env:
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/lightsail.pem" \
+            apps/DONGLE-ADMIN/.next/standalone/ \
+            ec2-user@"$LIGHTSAIL_HOST":"$ADMIN_DIR"/
+
+      - name: Reload PM2
+        env:
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          PROD_API_URL: ${{ secrets.PROD_API_URL }}
+          CLIENT_HEALTHCHECK_URL: ${{ secrets.PROD_CLIENT_HEALTHCHECK_URL }}
+          ADMIN_HEALTHCHECK_URL: ${{ secrets.PROD_ADMIN_HEALTHCHECK_URL }}
+        run: |
+          ssh -i ~/.ssh/lightsail.pem ec2-user@"$LIGHTSAIL_HOST" <<EOF
+          set -e
+          cat > "$ROOT_DIR/.env.pm2.prod" <<ENVFILE
+          API_URL=$PROD_API_URL
+          DEPLOY_CLIENT_DIR_PROD=$CLIENT_DIR
+          DEPLOY_ADMIN_DIR_PROD=$ADMIN_DIR
+          ENVFILE
+
+          if pm2 describe dongle.client.prod >/dev/null 2>&1; then
+            PM2_APP_ENV=prod pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env
+          else
+            PM2_APP_ENV=prod pm2 start "$ROOT_DIR/ecosystem.config.js" --update-env
+          fi
+
+          pm2 save
+          EOF
+
+          if [ -n "$CLIENT_HEALTHCHECK_URL" ]; then
+            curl --fail --silent --show-error --retry 5 --retry-delay 5 "$CLIENT_HEALTHCHECK_URL" >/dev/null
+          fi
+
+          if [ -n "$ADMIN_HEALTHCHECK_URL" ]; then
+            curl --fail --silent --show-error --retry 5 --retry-delay 5 "$ADMIN_HEALTHCHECK_URL" >/dev/null
+          fi

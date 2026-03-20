@@ -202,7 +202,10 @@ export function RichTextEditor({
             editor.chain().focus().setImage({ src: data.result }).run();
             toast.success("이미지를 본문에 추가했습니다.");
         } catch (uploadError) {
-            console.error(uploadError);
+            console.error(
+                "리치텍스트 이미지 업로드 실패:",
+                uploadError instanceof Error ? uploadError.message : uploadError
+            );
             toast.error(uploadError instanceof Error ? uploadError.message : "이미지 업로드에 실패했습니다.");
         } finally {
             setIsUploadingImage(false);
