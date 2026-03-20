@@ -8,7 +8,7 @@ import "./globals.css";
 const siteUrl = "https://dongle.wavers.kr";
 const siteTitle = "동글";
 const siteDescription = "우리의 동아리, 우리의 동글";
-const defaultOgImage = "/logo/logo-full.svg";
+const defaultOgImage = "/logo/logo-og.png";
 
 export const metadata: Metadata = {
     metadataBase: new URL(siteUrl),

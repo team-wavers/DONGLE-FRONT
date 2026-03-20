@@ -14,7 +14,7 @@ interface ClubDetailPageProps {
 }
 
 const siteTitle = "동글";
-const defaultOgImage = "/logo/logo-full.svg";
+const defaultOgImage = "/logo/logo-og.png";
 
 function buildClubDescription(description: string, mainActivities: string) {
     const rawDescription = description?.trim() || mainActivities?.trim() || "동아리 상세 정보를 확인해보세요.";
