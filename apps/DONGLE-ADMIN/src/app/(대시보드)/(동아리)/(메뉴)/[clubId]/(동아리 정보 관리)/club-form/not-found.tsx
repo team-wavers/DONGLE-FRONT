@@ -2,8 +2,13 @@
 
 import { Button } from "@dongle/ui/button";
 import { Search, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 export default function NotFound() {
+    const params = useParams<{ clubId: string }>();
+    const clubId = params?.clubId;
+
     return (
         <div className="flex items-center justify-center p-4 md:p-16">
             <div className="w-full max-w-sm text-center space-y-6">
@@ -21,10 +26,17 @@ export default function NotFound() {
                 </div>
 
                 {/* 버튼 */}
-                <Button variant="outline" size="sm" className="w-full" onClick={() => window.history.back()}>
-                    <ArrowLeft className="w-4 h-4 mr-1" />
-                    뒤로가기
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => window.history.back()}>
+                        <ArrowLeft className="w-4 h-4 mr-1" />
+                        뒤로가기
+                    </Button>
+                    {clubId ? (
+                        <Button size="sm" className="flex-1" asChild>
+                            <Link href={`/${clubId}/report`}>보고서 목록</Link>
+                        </Button>
+                    ) : null}
+                </div>
             </div>
         </div>
     );
