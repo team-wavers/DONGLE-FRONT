@@ -25,14 +25,16 @@ function LoginFormContent() {
         if (state.success) {
             toast.success("로그인 성공");
             const clubId = state.clubId;
-            const url = state.role === AUTH_ROLE.ADMIN ? "/admin" : `/${clubId}/club-form`;
+            const returnTo = searchParams.get("returnTo");
+            const safeReturnTo = returnTo?.startsWith("/") ? returnTo : null;
+            const url = safeReturnTo || (state.role === AUTH_ROLE.ADMIN ? "/admin" : `/${clubId}/club-form`);
             router.push(url);
         }
         if (state.error) {
             if (state.error) toast.error(state.error);
             else toast.error("로그인에 실패했습니다");
         }
-    }, [state, router]);
+    }, [router, searchParams, state]);
 
     useEffect(() => {
         const reason = searchParams.get("reason");
