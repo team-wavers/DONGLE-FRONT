@@ -9,6 +9,19 @@ import { RECRUITMENT_STATUS, RECRUITMENT_STATUS_LABEL } from "@/feature/club/con
 
 interface ClubBasicInfoProps {
     club?: Club;
+    values?: {
+        clubName: string;
+        recruitmentStatus: string;
+        category: string;
+        location: string;
+        iconUrls: string[];
+    };
+    onClubNameChange?: (value: string) => void;
+    onRecruitmentStatusChange?: (value: string) => void;
+    onCategoryChange?: (value: string) => void;
+    onLocationChange?: (value: string) => void;
+    onIconUrlRemove?: (url: string) => void;
+    onReplaceExistingIconUrls?: () => void;
     fieldErrors?: {
         clubName?: string;
         recruitmentStatus?: string;
@@ -18,7 +31,17 @@ interface ClubBasicInfoProps {
     };
 }
 
-export function ClubBasicInfo({ club, fieldErrors }: ClubBasicInfoProps) {
+export function ClubBasicInfo({
+    club,
+    values,
+    onClubNameChange,
+    onRecruitmentStatusChange,
+    onCategoryChange,
+    onLocationChange,
+    onIconUrlRemove,
+    onReplaceExistingIconUrls,
+    fieldErrors,
+}: ClubBasicInfoProps) {
     return (
         <Card>
             <CardHeader>
@@ -37,7 +60,9 @@ export function ClubBasicInfo({ club, fieldErrors }: ClubBasicInfoProps) {
                     placeholder="동아리 이름을 입력하세요"
                     required
                     error={fieldErrors?.clubName}
-                    defaultValue={club?.name}
+                    defaultValue={values ? undefined : club?.name}
+                    value={values?.clubName}
+                    onChange={(event) => onClubNameChange?.(event.target.value)}
                 />
 
                 {/* 모집여부 */}
@@ -46,7 +71,11 @@ export function ClubBasicInfo({ club, fieldErrors }: ClubBasicInfoProps) {
                         모집여부 <span className="text-red-500">*</span>
                     </label>
                     <Select
-                        defaultValue={club?.is_recruiting ? RECRUITMENT_STATUS.RECRUITING : RECRUITMENT_STATUS.CLOSED}
+                        defaultValue={
+                            values ? undefined : club?.is_recruiting ? RECRUITMENT_STATUS.RECRUITING : RECRUITMENT_STATUS.CLOSED
+                        }
+                        value={values?.recruitmentStatus}
+                        onValueChange={onRecruitmentStatusChange}
                         name="recruitmentStatus">
                         <SelectTrigger>
                             <SelectValue placeholder="모집 상태를 선택하세요" />
@@ -71,7 +100,11 @@ export function ClubBasicInfo({ club, fieldErrors }: ClubBasicInfoProps) {
                     <label className="text-base font-bold">
                         분과 <span className="text-red-500">*</span>
                     </label>
-                    <Select name="category" defaultValue={club?.category}>
+                    <Select
+                        name="category"
+                        defaultValue={values ? undefined : club?.category}
+                        value={values?.category}
+                        onValueChange={onCategoryChange}>
                         <SelectTrigger>
                             <SelectValue placeholder="분과를 선택하세요" />
                         </SelectTrigger>
@@ -95,7 +128,9 @@ export function ClubBasicInfo({ club, fieldErrors }: ClubBasicInfoProps) {
                     name="location"
                     placeholder="예: 학생회관 3층 301호"
                     required
-                    defaultValue={club?.location}
+                    defaultValue={values ? undefined : club?.location}
+                    value={values?.location}
+                    onChange={(event) => onLocationChange?.(event.target.value)}
                     error={fieldErrors?.location}
                 />
 
@@ -104,12 +139,14 @@ export function ClubBasicInfo({ club, fieldErrors }: ClubBasicInfoProps) {
                     name="icon"
                     label="동아리 아이콘"
                     description="동아리를 대표하는 아이콘 이미지를 업로드하세요"
-                    defaultValue={club?.icon_url ? [club.icon_url] : []}
+                    defaultValue={values?.iconUrls ?? (club?.icon_url ? [club.icon_url] : [])}
                     fileType="image"
                     maxSize={5}
                     maxFiles={1}
                     selectionMode="replace"
                     error={fieldErrors?.icon}
+                    onUrlRemove={onIconUrlRemove}
+                    onReplaceExistingUrls={onReplaceExistingIconUrls}
                 />
             </CardContent>
         </Card>

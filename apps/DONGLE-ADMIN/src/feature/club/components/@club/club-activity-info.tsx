@@ -6,13 +6,25 @@ import dayjs from "dayjs";
 
 interface ClubActivityInfoProps {
     club?: Club;
+    values?: {
+        recruitmentStartDate?: Date;
+        recruitmentEndDate?: Date;
+    };
+    onRecruitmentStartDateChange?: (date: Date | undefined) => void;
+    onRecruitmentEndDateChange?: (date: Date | undefined) => void;
     fieldErrors?: {
         recruitmentStartDate?: string;
         recruitmentEndDate?: string;
     };
 }
 
-export function ClubActivityInfo({ club, fieldErrors }: ClubActivityInfoProps) {
+export function ClubActivityInfo({
+    club,
+    values,
+    onRecruitmentStartDateChange,
+    onRecruitmentEndDateChange,
+    fieldErrors,
+}: ClubActivityInfoProps) {
     return (
         <Card>
             <CardHeader>
@@ -29,13 +41,17 @@ export function ClubActivityInfo({ club, fieldErrors }: ClubActivityInfoProps) {
                         id="recruitmentStartDate"
                         label="모집 시작일"
                         error={fieldErrors?.recruitmentStartDate}
-                        defaultValue={club?.recruit_start ? dayjs(club.recruit_start).toDate() : undefined}
+                        defaultValue={values ? undefined : club?.recruit_start ? dayjs(club.recruit_start).toDate() : undefined}
+                        value={values?.recruitmentStartDate}
+                        onSelect={onRecruitmentStartDateChange}
                     />
                     <FormDatePicker
                         id="recruitmentEndDate"
                         label="모집 마감일"
                         error={fieldErrors?.recruitmentEndDate}
-                        defaultValue={club?.recruit_end ? dayjs(club.recruit_end).toDate() : undefined}
+                        defaultValue={values ? undefined : club?.recruit_end ? dayjs(club.recruit_end).toDate() : undefined}
+                        value={values?.recruitmentEndDate}
+                        onSelect={onRecruitmentEndDateChange}
                     />
                 </div>
             </CardContent>
