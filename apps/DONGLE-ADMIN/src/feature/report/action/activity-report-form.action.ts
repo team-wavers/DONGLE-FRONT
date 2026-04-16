@@ -12,6 +12,7 @@ import { captureServerException } from "@/lib/sentry/capture-server-exception";
 export interface ActivityReportActionState {
   success?: boolean;
   error?: string;
+  sessionExpired?: boolean;
   fieldErrors?: {
     title?: string;
     content?: string;
@@ -101,6 +102,13 @@ export async function activityReportAction(
       return { error: "활동보고서 생성에 실패했습니다. 다시 시도해주세요." };
     }
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return {
+        error: "로그인 시간이 만료되었습니다. 다시 로그인해주세요.",
+        sessionExpired: true,
+      };
+    }
+
     captureServerException(error, "활동보고서 생성 실패", {
       action: "activityReportAction",
       clubId,

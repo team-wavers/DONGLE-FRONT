@@ -13,13 +13,17 @@ export default async function CreateReportPage({ params }: CreateReportPageProps
     return (
         <div className="flex flex-col w-full items-center gap-4">
             <div className="pt-12 justify-start w-full">
-                <GoBackButton />
+                <GoBackButton fallbackHref={`/${clubId}/report`} />
             </div>
             <div className="w-full">
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold mb-2">활동보고서 작성</h1>
                 </div>
-                <ActivityReportForm clubId={clubId} />
+                <ActivityReportForm
+                    clubId={clubId}
+                    successRedirectHref={`/${clubId}/report`}
+                    successMessage="활동 보고서가 성공적으로 등록되었습니다!"
+                />
             </div>
         </div>
     );

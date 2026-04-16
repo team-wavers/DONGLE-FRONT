@@ -36,6 +36,8 @@ export interface RichTextEditorProps {
     description?: string;
     placeholder?: string;
     defaultValue?: string;
+    value?: string;
+    onChange?: (value: string) => void;
 }
 
 interface ToolbarButton {
@@ -72,12 +74,15 @@ export function RichTextEditor({
     description,
     placeholder = "내용을 입력하세요.",
     defaultValue = "",
+    value,
+    onChange,
 }: RichTextEditorProps) {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [linkValue, setLinkValue] = useState("https://");
     const [isLinkPopoverOpen, setIsLinkPopoverOpen] = useState(false);
-    const [htmlValue, setHtmlValue] = useState(defaultValue);
+    const resolvedValue = value ?? defaultValue;
+    const [htmlValue, setHtmlValue] = useState(resolvedValue);
     const editor = useEditor({
         immediatelyRender: false,
         extensions: [
@@ -110,25 +115,27 @@ export function RichTextEditor({
                 ),
             },
         },
-        content: defaultValue,
+        content: resolvedValue,
         onUpdate: ({ editor: currentEditor }) => {
-            setHtmlValue(currentEditor.getHTML());
+            const nextValue = currentEditor.getHTML();
+            setHtmlValue(nextValue);
+            onChange?.(nextValue);
         },
     });
 
     useEffect(() => {
-        setHtmlValue(defaultValue);
-    }, [defaultValue]);
+        setHtmlValue(resolvedValue);
+    }, [resolvedValue]);
 
     useEffect(() => {
         if (!editor) {
             return;
         }
 
-        if (editor.getHTML() !== defaultValue) {
-            editor.commands.setContent(defaultValue, { emitUpdate: false });
+        if (editor.getHTML() !== resolvedValue) {
+            editor.commands.setContent(resolvedValue, { emitUpdate: false });
         }
-    }, [defaultValue, editor]);
+    }, [resolvedValue, editor]);
 
     const handleOpenLinkPopover = () => {
         if (!editor) {
