@@ -26,6 +26,8 @@ function isValidPhoneNumber(phoneNumber: string): boolean {
 interface ClubActionState {
     success?: boolean;
     error?: string;
+    warningMessage?: string;
+    sessionExpired?: boolean;
     tempId?: string;
     tempPassword?: string;
     clubName?: string;
@@ -63,6 +65,35 @@ interface ClubFormData {
 
 function getActionErrorMessage(error: unknown, fallback: string): string {
     return error instanceof Error && error.message ? error.message : fallback;
+}
+
+function extractUploadedIconUrl(result: unknown): string | undefined {
+    if (typeof result === "string" && result.trim()) {
+        return result;
+    }
+
+    if (result && typeof result === "object") {
+        const iconUrl = (result as { icon_url?: unknown }).icon_url;
+        if (typeof iconUrl === "string" && iconUrl.trim()) {
+            return iconUrl;
+        }
+    }
+
+    return undefined;
+}
+
+function getFirstFieldErrorMessage(fieldErrors: ClubActionState["fieldErrors"], fallback: string): string {
+    if (!fieldErrors) {
+        return fallback;
+    }
+
+    for (const value of Object.values(fieldErrors)) {
+        if (typeof value === "string" && value.trim()) {
+            return value;
+        }
+    }
+
+    return fallback;
 }
 
 function normalizeRecruitmentStatus(status?: string | null): string {
@@ -211,7 +242,11 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
     const { fieldErrors, isValid } = validateClubForm(extractedData, { requirePresident: false });
 
     if (!isValid) {
-        return { fieldErrors };
+        return {
+            fieldErrors,
+            success: false,
+            error: getFirstFieldErrorMessage(fieldErrors, "동아리 정보를 다시 확인해주세요."),
+        };
     }
 
     // 선택적 필드만 포함 (빈 값 제외)
@@ -268,16 +303,10 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
     }
 
     // SNS 필드가 하나라도 있으면 추가
-    const sns: { youtube?: string; instagram?: string } = {};
-    if (extractedData.youtube && extractedData.youtube.trim()) {
-        sns.youtube = extractedData.youtube;
-    }
-    if (extractedData.instagram && extractedData.instagram.trim()) {
-        sns.instagram = extractedData.instagram;
-    }
-    if (Object.keys(sns).length > 0) {
-        clubPayload.sns = sns;
-    }
+    clubPayload.sns = {
+        youtube: extractedData.youtube.trim(),
+        instagram: extractedData.instagram.trim(),
+    };
     try {
         await requireServerActionAccessToken();
 
@@ -294,11 +323,25 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
             if (!iconUploadResult.isSuccess) {
                 return {
                     success: false,
+                    error: "아이콘 업로드에 실패했습니다. 다시 시도해주세요.",
                     fieldErrors: {
                         icon: "아이콘 업로드에 실패했습니다. 다시 시도해주세요.",
                     },
                 };
             }
+
+            const uploadedIconUrl = extractUploadedIconUrl(iconUploadResult.result);
+            if (!uploadedIconUrl) {
+                return {
+                    success: false,
+                    error: "아이콘 업로드 결과를 확인할 수 없습니다. 다시 시도해주세요.",
+                    fieldErrors: {
+                        icon: "아이콘 업로드 결과를 확인할 수 없습니다. 다시 시도해주세요.",
+                    },
+                };
+            }
+
+            clubPayload.icon_url = uploadedIconUrl;
         }
 
         const { isSuccess: clubIsSuccess, error: clubError } = await updateClubService(Number(clubId), clubPayload);
@@ -316,6 +359,14 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
 
         return { success: true };
     } catch (error) {
+        if (error instanceof Error && error.message === "Unauthorized") {
+            return {
+                success: false,
+                error: "로그인 시간이 만료되었습니다. 다시 로그인해주세요.",
+                sessionExpired: true,
+            };
+        }
+
         captureServerException(error, "동아리 수정 중 오류", {
             action: "clubFormAction",
             clubId,
@@ -354,7 +405,11 @@ export async function updateClubPresidentAction(
     }
 
     if (Object.keys(fieldErrors).length > 0) {
-        return { fieldErrors };
+        return {
+            fieldErrors,
+            success: false,
+            error: getFirstFieldErrorMessage(fieldErrors, "회장 정보를 다시 확인해주세요."),
+        };
     }
 
     try {
@@ -379,6 +434,14 @@ export async function updateClubPresidentAction(
 
         return { success: true };
     } catch (error) {
+        if (error instanceof Error && error.message === "Unauthorized") {
+            return {
+                success: false,
+                error: "로그인 시간이 만료되었습니다. 다시 로그인해주세요.",
+                sessionExpired: true,
+            };
+        }
+
         captureServerException(error, "회장 정보 수정 중 오류", {
             action: "updateClubPresidentAction",
             clubId,
@@ -407,7 +470,7 @@ export async function clubRegisterFormAction(prevState: ClubActionState, formDat
         return {
             fieldErrors,
             success: false,
-            error: "등록에 실패했습니다. 다시 시도해주세요.",
+            error: getFirstFieldErrorMessage(fieldErrors, "동아리 등록 내용을 다시 확인해주세요."),
         };
     }
 
@@ -460,6 +523,31 @@ export async function clubRegisterFormAction(prevState: ClubActionState, formDat
             };
         }
 
+        let warningMessage: string | undefined;
+        const createdClubId = club.result?.id;
+        const iconFile = formData.get("icon") as File | null;
+
+        if (createdClubId && iconFile && iconFile.size > 0) {
+            const iconUploadResult = await uploadClubIconService(createdClubId, iconFile);
+
+            if (iconUploadResult.isSuccess) {
+                const uploadedIconUrl = extractUploadedIconUrl(iconUploadResult.result);
+                if (!uploadedIconUrl) {
+                    warningMessage = "동아리는 등록되었지만 아이콘 업로드 결과를 확인하지 못했습니다.";
+                } else {
+                const iconUpdateResult = await updateClubService(createdClubId, {
+                    icon_url: uploadedIconUrl,
+                });
+
+                if (!iconUpdateResult.isSuccess) {
+                    warningMessage = "동아리는 등록되었지만 아이콘 저장에 실패했습니다.";
+                }
+                }
+            } else {
+                warningMessage = "동아리는 등록되었지만 아이콘 업로드에 실패했습니다.";
+            }
+        }
+
         // // 새 동아리 등록 시 모든 동아리 관련 캐시 초기화
         // revalidateTag("club");
 
@@ -475,11 +563,20 @@ export async function clubRegisterFormAction(prevState: ClubActionState, formDat
 
         return {
             success: true,
+            warningMessage,
             tempId,
             tempPassword,
             clubName: extractedData.clubName,
         };
     } catch (error) {
+        if (error instanceof Error && error.message === "Unauthorized") {
+            return {
+                success: false,
+                error: "로그인 시간이 만료되었습니다. 다시 로그인해주세요.",
+                sessionExpired: true,
+            };
+        }
+
         captureServerException(error, "동아리 등록 중 오류", {
             action: "clubRegisterFormAction",
             registrationKey,
