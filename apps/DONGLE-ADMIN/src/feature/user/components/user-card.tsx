@@ -17,6 +17,21 @@ interface UserCardProps {
     user: User;
 }
 
+function formatUserCreatedAt(value: string) {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return new Intl.DateTimeFormat("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "Asia/Seoul",
+    }).format(date);
+}
+
 export default function UserCard({ user }: UserCardProps) {
     const router = useRouter();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -104,7 +119,7 @@ export default function UserCard({ user }: UserCardProps) {
                             )}
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <Calendar className="w-4 h-4" />
-                                <span>가입일: {new Date(user.created_at).toLocaleDateString("ko-KR")}</span>
+                                <span>가입일: {formatUserCreatedAt(user.created_at)}</span>
                             </div>
                         </div>
                     </div>
