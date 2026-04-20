@@ -37,6 +37,20 @@ function loadLocalEnv() {
 loadLocalEnv();
 
 const isCI = Boolean(process.env.CI);
+const requestedProjects = process.argv
+    .flatMap((arg) => {
+        if (arg.startsWith("--project=")) {
+            return arg.slice("--project=".length).split(",");
+        }
+
+        return [];
+    })
+    .map((project) => project.trim())
+    .filter(Boolean);
+const shouldRunProject = (projectName: string) =>
+    requestedProjects.length === 0 || requestedProjects.includes(projectName);
+const needsClientServer = shouldRunProject("client");
+const needsAdminServer = shouldRunProject("admin") || shouldRunProject("club");
 const clientCommand = isCI
     ? "pnpm --filter dongle-client build && pnpm --filter dongle-client start:e2e"
     : "pnpm --filter dongle-client dev";
@@ -85,21 +99,29 @@ export default defineConfig({
         },
     ],
     webServer: [
-        {
-            command: clientCommand,
-            url: "http://127.0.0.1:4000",
-            reuseExistingServer: !isCI,
-            stdout: "pipe",
-            stderr: "pipe",
-            timeout: clientTimeout,
-        },
-        {
-            command: adminCommand,
-            url: "http://127.0.0.1:4001",
-            reuseExistingServer: !isCI,
-            stdout: "pipe",
-            stderr: "pipe",
-            timeout: adminTimeout,
-        },
+        ...(needsClientServer
+            ? [
+                  {
+                      command: clientCommand,
+                      url: "http://127.0.0.1:4000",
+                      reuseExistingServer: !isCI,
+                      stdout: "pipe" as const,
+                      stderr: "pipe" as const,
+                      timeout: clientTimeout,
+                  },
+              ]
+            : []),
+        ...(needsAdminServer
+            ? [
+                  {
+                      command: adminCommand,
+                      url: "http://127.0.0.1:4001",
+                      reuseExistingServer: !isCI,
+                      stdout: "pipe" as const,
+                      stderr: "pipe" as const,
+                      timeout: adminTimeout,
+                  },
+              ]
+            : []),
     ],
 });

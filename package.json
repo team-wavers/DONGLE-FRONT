@@ -6,6 +6,7 @@
         "dev": "turbo dev",
         "dev:admin": "pnpm --filter dongle-admin dev",
         "dev:client": "pnpm --filter dongle-client dev",
+        "verify:docs": "node scripts/check-doc-contracts.mjs",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:e2e": "playwright test",
@@ -23,7 +24,7 @@
         "deploy:scp:prod": "pnpm run deploy:standalone:prod && pnpm run scp:client && pnpm run scp:admin",
         "lint": "turbo lint",
         "type": "turbo type",
-        "verify:fast": "pnpm type && pnpm test",
+        "verify:fast": "pnpm verify:docs && pnpm type && pnpm test",
         "storybook": "pnpm --filter @dongle/ui storybook",
         "storybook:build": "pnpm --filter @dongle/ui storybook:build"
     },
