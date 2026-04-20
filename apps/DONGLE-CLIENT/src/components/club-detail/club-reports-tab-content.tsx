@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { formatDateByLocale } from "@dongle/ui";
 import ClubReportDetailModal from "./club-report-detail-modal";
@@ -9,21 +9,61 @@ type ClubReportCardViewModel = {
     id: number;
     title: string;
     createdAt: string;
-    content: string;
     image_urls: string[];
 };
 
+type ClubReportDetailViewModel = ClubReportCardViewModel & {
+    content: string;
+};
+
 interface ClubReportsTabContentProps {
+    clubId: string;
     reports: ClubReportCardViewModel[];
 }
 
-export default function ClubReportsTabContent({ reports }: ClubReportsTabContentProps) {
+export default function ClubReportsTabContent({ clubId, reports }: ClubReportsTabContentProps) {
     const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
+    const [selectedReport, setSelectedReport] = useState<ClubReportDetailViewModel | null>(null);
+    const [isDetailLoading, setIsDetailLoading] = useState(false);
 
-    const selectedReport = useMemo(
-        () => reports.find((report) => report.id === selectedReportId) ?? null,
-        [reports, selectedReportId]
-    );
+    useEffect(() => {
+        if (selectedReportId === null) {
+            setSelectedReport(null);
+            setIsDetailLoading(false);
+            return;
+        }
+
+        const controller = new AbortController();
+        setIsDetailLoading(true);
+
+        void fetch(`/api/clubs/${clubId}/reports/${selectedReportId}`, {
+            signal: controller.signal,
+        })
+            .then(async (response) => {
+                const data = await response.json();
+
+                if (!response.ok || !data.isSuccess || !data.result) {
+                    throw new Error("활동보고서 상세 조회 실패");
+                }
+
+                setSelectedReport(data.result);
+            })
+            .catch((error) => {
+                if (controller.signal.aborted) {
+                    return;
+                }
+
+                console.error(error);
+                setSelectedReport(null);
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) {
+                    setIsDetailLoading(false);
+                }
+            });
+
+        return () => controller.abort();
+    }, [clubId, selectedReportId]);
 
     const openReportModal = (report: ClubReportCardViewModel) => {
         setSelectedReportId(report.id);
@@ -75,9 +115,10 @@ export default function ClubReportsTabContent({ reports }: ClubReportsTabContent
             </div>
 
             <ClubReportDetailModal
-                key={`${selectedReportId ?? "empty"}-${selectedReport !== null ? "open" : "closed"}`}
+                key={`${selectedReportId ?? "empty"}-${selectedReport !== null ? "loaded" : "idle"}`}
                 report={selectedReport}
-                open={selectedReport !== null}
+                open={selectedReportId !== null}
+                isLoading={isDetailLoading}
                 onOpenChange={closeReportModal}
             />
         </>

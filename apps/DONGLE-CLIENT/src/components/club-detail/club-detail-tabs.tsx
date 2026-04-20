@@ -13,12 +13,12 @@ type ClubDetailReportViewModel = {
     id: number;
     title: string;
     createdAt: string;
-    content: string;
     image_urls: string[];
 };
 
 interface ClubDetailTabsProps {
     club: ClubDetailIntroViewModel;
+    clubId: string;
     reports: ClubDetailReportViewModel[];
 }
 
@@ -28,7 +28,7 @@ const styles = {
     tabContent: "pt-8",
 } as const;
 
-export default function ClubDetailTabs({ club, reports }: ClubDetailTabsProps) {
+export default function ClubDetailTabs({ club, clubId, reports }: ClubDetailTabsProps) {
     return (
         <Tabs defaultValue="intro" className="w-full">
             <TabsList className="w-full grid grid-cols-2 h-11 rounded-none bg-transparent p-0 border-b border-zinc-200">
@@ -45,7 +45,7 @@ export default function ClubDetailTabs({ club, reports }: ClubDetailTabsProps) {
             </TabsContent>
 
             <TabsContent value="reports" className={styles.tabContent}>
-                <ClubReportsTabContent reports={reports} />
+                <ClubReportsTabContent clubId={clubId} reports={reports} />
             </TabsContent>
         </Tabs>
     );

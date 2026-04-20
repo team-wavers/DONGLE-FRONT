@@ -107,7 +107,6 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
               id: report.id,
               title: report.title,
               createdAt: report.createdAt,
-              content: report.content,
               image_urls: report.image_urls,
           }))
         : [];
@@ -204,7 +203,7 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                 </dl>
             </header>
 
-            <ClubDetailTabs club={intro} reports={reports} />
+            <ClubDetailTabs club={intro} clubId={clubId} reports={reports} />
         </section>
     );
 }

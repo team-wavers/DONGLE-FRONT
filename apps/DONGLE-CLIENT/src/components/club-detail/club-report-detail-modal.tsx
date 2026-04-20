@@ -17,6 +17,7 @@ type ClubReportDetailViewModel = {
 interface ClubReportDetailModalProps {
     report: ClubReportDetailViewModel | null;
     open: boolean;
+    isLoading?: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
@@ -25,7 +26,12 @@ const styles = {
         "absolute top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70 flex items-center justify-center disabled:opacity-40",
 } as const;
 
-export default function ClubReportDetailModal({ report, open, onOpenChange }: ClubReportDetailModalProps) {
+export default function ClubReportDetailModal({
+    report,
+    open,
+    isLoading = false,
+    onOpenChange,
+}: ClubReportDetailModalProps) {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
     const selectedImages = report?.image_urls ?? [];
@@ -44,7 +50,11 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="w-full max-w-[90vw] sm:max-w-2xl max-h-[90vh] p-0 gap-0 overflow-hidden">
-                {report && (
+                {isLoading ? (
+                    <section className="p-6 md:p-8 min-h-[18rem] flex items-center justify-center text-sm text-zinc-500">
+                        활동보고서를 불러오는 중입니다.
+                    </section>
+                ) : report ? (
                     <section className="p-4 md:p-5 min-h-0 max-h-[90vh] overflow-y-auto space-y-4">
                         <DialogTitle className="sr-only">{report.title}</DialogTitle>
                         <DialogDescription className="sr-only">
@@ -120,7 +130,7 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
                             </DialogClose>
                         </div>
                     </section>
-                )}
+                ) : null}
             </DialogContent>
         </Dialog>
     );
