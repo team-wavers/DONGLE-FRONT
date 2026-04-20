@@ -14,11 +14,11 @@ interface FilterableClubListProps {
     searchPlaceholder: string;
 }
 
-function normalizeKeyword(value: string) {
+export function normalizeClubKeyword(value: string) {
     return value.trim().toLowerCase();
 }
 
-function matchesClub(club: Club, keyword: string) {
+export function matchesClub(club: Club, keyword: string) {
     if (!keyword) {
         return true;
     }
@@ -26,6 +26,10 @@ function matchesClub(club: Club, keyword: string) {
     const searchableText = [club.name, club.category].join(" ").toLowerCase();
 
     return searchableText.includes(keyword);
+}
+
+export function filterClubsByKeyword(clubs: Club[], keyword: string) {
+    return clubs.filter((club) => matchesClub(club, keyword));
 }
 
 export default function FilterableClubList({
@@ -42,7 +46,7 @@ export default function FilterableClubList({
     useEffect(() => {
         const timer = window.setTimeout(() => {
             startTransition(() => {
-                setSearchKeyword(normalizeKeyword(inputValue));
+                setSearchKeyword(normalizeClubKeyword(inputValue));
             });
         }, 300);
 
@@ -50,10 +54,7 @@ export default function FilterableClubList({
     }, [inputValue, startTransition]);
 
     const deferredKeyword = useDeferredValue(searchKeyword);
-    const filteredClubs = useMemo(
-        () => clubs.filter((club) => matchesClub(club, deferredKeyword)),
-        [clubs, deferredKeyword]
-    );
+    const filteredClubs = useMemo(() => filterClubsByKeyword(clubs, deferredKeyword), [clubs, deferredKeyword]);
 
     if (clubs.length === 0) {
         return (

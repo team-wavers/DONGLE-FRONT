@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import { Button } from "@dongle/ui/button";
 import { AlertTriangle, RefreshCw, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -10,6 +12,9 @@ interface ErrorProps {
 }
 
 export default function Error({ error, reset }: ErrorProps) {
+  const params = useParams<{ clubId: string }>();
+  const clubId = params?.clubId;
+
   useEffect(() => {
     console.error("동아리 페이지 에러:", error);
   }, [error]);
@@ -49,6 +54,11 @@ export default function Error({ error, reset }: ErrorProps) {
             <RefreshCw className="w-4 h-4" />
             다시 시도
           </Button>
+          {clubId ? (
+            <Button variant="outline" size="sm" className="flex-1" asChild>
+              <Link href={`/${clubId}/report`}>보고서 목록</Link>
+            </Button>
+          ) : null}
         </div>
       </div>
     </div>

@@ -1,14 +1,22 @@
 "use server";
 
-import { updateClubReportService, uploadClubReportImageService } from "@dongle/service/club/club.report.service";
+import { updateClubReportService } from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
+import { validateActivityReportInput } from "@/feature/report/validation/activity-report.validation";
+import {
+    buildReportUpdatePayload,
+    mergeReportImageUrls,
+    parseJsonStringArray,
+} from "@/feature/report/validation/report-update-payload";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { uploadReportImages } from "./upload-report-images";
 
 // 서버 액션 타입 정의
 export interface UpdateActivityReportActionState {
     success?: boolean;
     error?: string;
+    sessionExpired?: boolean;
     fieldErrors?: {
         title?: string;
         content?: string;
@@ -29,8 +37,6 @@ export async function updateActivityReportAction(
     const originalTitle = formData.get("originalTitle") as string;
     const originalContent = formData.get("originalContent") as string;
     const originalImageUrlsJson = formData.get("originalImageUrls") as string;
-
-    // 기존 이미지 URL과 삭제된 이미지 URL 처리
     const existingUrlsJson = formData.get("existingUrls") as string;
     const removedUrlsJson = formData.get("removedUrls") as string;
     let existingUrls: string[] = [];
@@ -38,43 +44,21 @@ export async function updateActivityReportAction(
     let originalImageUrls: string[] = [];
 
     try {
-        if (existingUrlsJson) {
-            existingUrls = JSON.parse(existingUrlsJson);
-        }
-        if (removedUrlsJson) {
-            removedUrls = JSON.parse(removedUrlsJson);
-        }
-        if (originalImageUrlsJson) {
-            originalImageUrls = JSON.parse(originalImageUrlsJson);
-        }
+        existingUrls = parseJsonStringArray(existingUrlsJson);
+        removedUrls = parseJsonStringArray(removedUrlsJson);
+        originalImageUrls = parseJsonStringArray(originalImageUrlsJson);
     } catch (error) {
         captureServerException(error, "보고서 수정 이미지 URL 파싱 오류", {
             action: "updateActivityReportAction",
         });
     }
 
-    // 클라이언트 사이드 검증
-    const fieldErrors: {
-        title?: string;
-        content?: string;
-        images?: string;
-    } = {};
+    const { fieldErrors, isValid } = validateActivityReportInput({
+        title,
+        content,
+    });
 
-    if (!title) {
-        fieldErrors.title = "제목을 입력해주세요";
-    } else if (title.length < 2) {
-        fieldErrors.title = "제목은 최소 2자 이상이어야 합니다";
-    } else if (title.length > 100) {
-        fieldErrors.title = "제목은 최대 100자 이하여야 합니다";
-    }
-
-    if (!content) {
-        fieldErrors.content = "내용을 입력해주세요";
-    } else if (content.length < 10) {
-        fieldErrors.content = "내용은 최소 10자 이상이어야 합니다";
-    }
-
-    if (Object.keys(fieldErrors).length > 0) {
+    if (!isValid) {
         return {
             fieldErrors,
         };
@@ -83,59 +67,34 @@ export async function updateActivityReportAction(
     try {
         await requireServerActionAccessToken();
 
-        const imageUrls: string[] = [];
+        let uploadedImageUrls: string[] = [];
 
-        // 기존 이미지 URL 추가 (삭제되지 않은 것만)
-        if (existingUrls && existingUrls.length > 0) {
-            imageUrls.push(...existingUrls.filter((url) => !removedUrls.includes(url)));
+        try {
+            uploadedImageUrls = await uploadReportImages({
+                clubId,
+                images,
+            });
+        } catch (error) {
+            captureServerException(error, "보고서 수정 이미지 업로드 실패", {
+                action: "updateActivityReportAction",
+                clubId,
+                reportId,
+            });
+            return {
+                error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
+            };
         }
 
-        // 새로 업로드한 이미지가 있으면 업로드 (한 번에 한 장씩)
-        if (images && images.length > 0) {
-            for (const image of images) {
-                if (image.size > 0) {
-                    // 빈 파일이 아닌 경우만 업로드
-                    try {
-                        const { result, isSuccess } = await uploadClubReportImageService(Number(clubId), image);
-                        if (isSuccess && result) {
-                            imageUrls.push(result);
-                        }
-                    } catch (error) {
-                        captureServerException(error, "보고서 수정 이미지 업로드 실패", {
-                            action: "updateActivityReportAction",
-                            clubId,
-                            reportId,
-                        });
-                        return {
-                            error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
-                        };
-                    }
-                }
-            }
-        }
+        const imageUrls = mergeReportImageUrls(existingUrls, removedUrls, uploadedImageUrls);
+        const updatePayload = buildReportUpdatePayload({
+            title,
+            content,
+            imageUrls,
+            originalTitle,
+            originalContent,
+            originalImageUrls,
+        });
 
-        // 선택적 필드만 포함 (빈 값 제외)
-        const updatePayload: {
-            title?: string;
-            content?: string;
-            image_urls?: string[];
-        } = {};
-
-        if (title !== originalTitle) {
-            updatePayload.title = title;
-        }
-
-        if (content !== originalContent) {
-            updatePayload.content = content;
-        }
-
-        const finalImageUrls = imageUrls.sort().join(",");
-        const originalImageUrlsSorted = originalImageUrls.sort().join(",");
-        if (finalImageUrls !== originalImageUrlsSorted) {
-            updatePayload.image_urls = imageUrls;
-        }
-
-        // 변경된 값이 없으면 에러 반환
         if (Object.keys(updatePayload).length === 0) {
             return {
                 success: false,
@@ -156,6 +115,13 @@ export async function updateActivityReportAction(
             success: true,
         };
     } catch (error) {
+        if (error instanceof Error && error.message === "Unauthorized") {
+            return {
+                error: "로그인 시간이 만료되었습니다. 다시 로그인해주세요.",
+                sessionExpired: true,
+            };
+        }
+
         captureServerException(error, "보고서 수정 실패", {
             action: "updateActivityReportAction",
             clubId,

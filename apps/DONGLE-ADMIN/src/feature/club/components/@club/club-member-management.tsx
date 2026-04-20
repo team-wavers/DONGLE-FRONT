@@ -5,6 +5,12 @@ import { Club } from "@dongle/types/club/club.d";
 
 interface ClubMemberManagementProps {
     club?: Club;
+    values?: {
+        presidentName: string;
+        presidentContact: string;
+    };
+    onPresidentNameChange?: (value: string) => void;
+    onPresidentContactChange?: (value: string) => void;
     fieldErrors?: {
         presidentName?: string;
         presidentContact?: string;
@@ -12,7 +18,14 @@ interface ClubMemberManagementProps {
     isRequired?: boolean;
 }
 
-export function ClubMemberManagement({ club, fieldErrors, isRequired = true }: ClubMemberManagementProps) {
+export function ClubMemberManagement({
+    club,
+    values,
+    onPresidentNameChange,
+    onPresidentContactChange,
+    fieldErrors,
+    isRequired = true,
+}: ClubMemberManagementProps) {
     return (
         <Card>
             <CardHeader>
@@ -32,7 +45,9 @@ export function ClubMemberManagement({ club, fieldErrors, isRequired = true }: C
                     placeholder="회장님의 이름을 입력하세요"
                     required={isRequired}
                     error={fieldErrors?.presidentName}
-                    defaultValue={club?.president?.name}
+                    defaultValue={values ? undefined : club?.president?.name}
+                    value={values?.presidentName}
+                    onChange={(event) => onPresidentNameChange?.(event.target.value)}
                 />
 
                 {/* 회장 연락처 */}
@@ -44,7 +59,9 @@ export function ClubMemberManagement({ club, fieldErrors, isRequired = true }: C
                     placeholder="010-0000-0000"
                     required={isRequired}
                     error={fieldErrors?.presidentContact}
-                    defaultValue={club?.president?.phone}
+                    defaultValue={values ? undefined : club?.president?.phone}
+                    value={values?.presidentContact}
+                    onChange={(event) => onPresidentContactChange?.(event.target.value)}
                 />
             </CardContent>
         </Card>

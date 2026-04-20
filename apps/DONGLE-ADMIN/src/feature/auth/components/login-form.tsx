@@ -3,9 +3,9 @@
 import { useActionState, useEffect, Suspense } from "react";
 import { FormField } from "@/components/atoms/form/form-field/form-field";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
-
 import { toast } from "sonner";
 import { loginFormAction } from "@/feature/auth/action/login-form.action";
+import { normalizeInternalReturnTo } from "@/feature/auth/utils/normalize-internal-return-to";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
 
@@ -25,14 +25,15 @@ function LoginFormContent() {
         if (state.success) {
             toast.success("로그인 성공");
             const clubId = state.clubId;
-            const url = state.role === AUTH_ROLE.ADMIN ? "/admin" : `/${clubId}/club-form`;
+            const safeReturnTo = normalizeInternalReturnTo(searchParams.get("returnTo"));
+            const url = safeReturnTo || (state.role === AUTH_ROLE.ADMIN ? "/admin" : `/${clubId}/club-form`);
             router.push(url);
         }
         if (state.error) {
             if (state.error) toast.error(state.error);
             else toast.error("로그인에 실패했습니다");
         }
-    }, [state, router]);
+    }, [router, searchParams, state]);
 
     useEffect(() => {
         const reason = searchParams.get("reason");

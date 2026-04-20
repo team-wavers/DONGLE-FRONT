@@ -11,9 +11,15 @@ import { Club } from "@dongle/types/club/club.d";
 
 interface ClubContactInfoProps {
   club?: Club;
+  values?: {
+    instagram: string;
+    youtube: string;
+  };
+  onInstagramChange?: (value: string) => void;
+  onYoutubeChange?: (value: string) => void;
 }
 
-export function ClubContactInfo({ club }: ClubContactInfoProps) {
+export function ClubContactInfo({ club, values, onInstagramChange, onYoutubeChange }: ClubContactInfoProps) {
   return (
     <Card>
       <CardHeader>
@@ -33,7 +39,9 @@ export function ClubContactInfo({ club }: ClubContactInfoProps) {
               type="text"
               name="instagram"
               placeholder="@username 또는 전체 URL"
-              defaultValue={club?.sns?.instagram}
+              defaultValue={values ? undefined : club?.sns?.instagram}
+              value={values?.instagram}
+              onChange={(event) => onInstagramChange?.(event.target.value)}
             />
             <FormField
               id="youtube"
@@ -41,7 +49,9 @@ export function ClubContactInfo({ club }: ClubContactInfoProps) {
               type="text"
               name="youtube"
               placeholder="채널명 또는 전체 URL"
-              defaultValue={club?.sns?.youtube}
+              defaultValue={values ? undefined : club?.sns?.youtube}
+              value={values?.youtube}
+              onChange={(event) => onYoutubeChange?.(event.target.value)}
             />
           </div>
         </div>

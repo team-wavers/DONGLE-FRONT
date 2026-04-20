@@ -6,6 +6,9 @@
         "dev": "turbo dev",
         "dev:admin": "pnpm --filter dongle-admin dev",
         "dev:client": "pnpm --filter dongle-client dev",
+        "verify:docs": "node scripts/check-doc-contracts.mjs",
+        "test": "vitest run",
+        "test:watch": "vitest",
         "test:e2e": "playwright test",
         "test:e2e:admin": "playwright test --project=admin",
         "test:e2e:client": "playwright test --project=client",
@@ -21,6 +24,7 @@
         "deploy:scp:prod": "pnpm run deploy:standalone:prod && pnpm run scp:client && pnpm run scp:admin",
         "lint": "turbo lint",
         "type": "turbo type",
+        "verify:fast": "pnpm verify:docs && pnpm type && pnpm test",
         "storybook": "pnpm --filter @dongle/ui storybook",
         "storybook:build": "pnpm --filter @dongle/ui storybook:build"
     },
@@ -28,7 +32,8 @@
         "@playwright/test": "^1.58.2",
         "env-cmd": "^11.0.0",
         "turbo": "^2.0.0",
-        "typescript": "^5"
+        "typescript": "^5",
+        "vitest": "^3.2.4"
     },
     "dependencies": {
         "isomorphic-dompurify": "^3.3.0"

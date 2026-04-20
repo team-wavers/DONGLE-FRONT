@@ -4,7 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getClubReportListService, getClubService } from "@/lib/server/cached-services";
-import { Badge, RecruitmentStatusBadge, formatDateRange } from "@dongle/ui";
+import { Badge } from "@dongle/ui/badge";
+import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
+import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
 import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@dongle/ui/skeleton";
@@ -107,7 +109,6 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
               id: report.id,
               title: report.title,
               createdAt: report.createdAt,
-              content: report.content,
               image_urls: report.image_urls,
           }))
         : [];
@@ -115,6 +116,8 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         description: club.description,
         main_activities: club.main_activities,
     };
+    const instagramUrl = normalizeSocialUrl("instagram", club.sns.instagram);
+    const youtubeUrl = normalizeSocialUrl("youtube", club.sns.youtube);
 
     return (
         <section className="py-6 flex flex-col gap-12">
@@ -176,22 +179,22 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                             </dd>
                         </div>
                     )}
-                    {(club.sns.instagram || club.sns.youtube) && (
+                    {(instagramUrl || youtubeUrl) && (
                         <div className="flex gap-4">
                             <dt className={styles.dt}>SNS</dt>
                             <dd className="flex items-center gap-4 text-sm font-medium">
-                                {club.sns.instagram && (
+                                {instagramUrl && (
                                     <Link
-                                        href={club.sns.instagram}
+                                        href={instagramUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-zinc-700 underline underline-offset-4 hover:text-primary">
                                         instagram
                                     </Link>
                                 )}
-                                {club.sns.youtube && (
+                                {youtubeUrl && (
                                     <Link
-                                        href={club.sns.youtube}
+                                        href={youtubeUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-zinc-700 underline underline-offset-4 hover:text-primary">
@@ -204,7 +207,7 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                 </dl>
             </header>
 
-            <ClubDetailTabs club={intro} reports={reports} />
+            <ClubDetailTabs club={intro} clubId={clubId} reports={reports} />
         </section>
     );
 }

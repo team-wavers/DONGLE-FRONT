@@ -1,32 +1,97 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { formatDateByLocale } from "@dongle/ui";
+import { formatDateByLocale } from "@dongle/ui/utils";
 import ClubReportDetailModal from "./club-report-detail-modal";
 
 type ClubReportCardViewModel = {
     id: number;
     title: string;
     createdAt: string;
-    content: string;
     image_urls: string[];
 };
 
+type ClubReportDetailViewModel = ClubReportCardViewModel & {
+    content: string;
+};
+
 interface ClubReportsTabContentProps {
+    clubId: string;
     reports: ClubReportCardViewModel[];
 }
 
-export default function ClubReportsTabContent({ reports }: ClubReportsTabContentProps) {
+export default function ClubReportsTabContent({ clubId, reports }: ClubReportsTabContentProps) {
     const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
+    const [selectedReport, setSelectedReport] = useState<ClubReportDetailViewModel | null>(null);
+    const [isDetailLoading, setIsDetailLoading] = useState(false);
+    const reportCacheRef = useRef(new Map<number, ClubReportDetailViewModel>());
 
-    const selectedReport = useMemo(
-        () => reports.find((report) => report.id === selectedReportId) ?? null,
-        [reports, selectedReportId]
-    );
+    const loadReportDetail = async (reportId: number, options?: { signal?: AbortSignal }) => {
+        const cachedReport = reportCacheRef.current.get(reportId);
+
+        if (cachedReport) {
+            return cachedReport;
+        }
+
+        const response = await fetch(`/api/clubs/${clubId}/reports/${reportId}`, {
+            signal: options?.signal,
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.isSuccess || !data.result) {
+            throw new Error("활동보고서 상세 조회 실패");
+        }
+
+        reportCacheRef.current.set(reportId, data.result);
+        return data.result as ClubReportDetailViewModel;
+    };
+
+    useEffect(() => {
+        if (selectedReportId === null) {
+            setSelectedReport(null);
+            setIsDetailLoading(false);
+            return;
+        }
+
+        const controller = new AbortController();
+        setIsDetailLoading(true);
+
+        void loadReportDetail(selectedReportId, {
+            signal: controller.signal,
+        })
+            .then((report) => {
+                setSelectedReport(report);
+            })
+            .catch((error) => {
+                if (controller.signal.aborted) {
+                    return;
+                }
+
+                console.error(error);
+                setSelectedReport(null);
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) {
+                    setIsDetailLoading(false);
+                }
+            });
+
+        return () => controller.abort();
+    }, [clubId, selectedReportId]);
 
     const openReportModal = (report: ClubReportCardViewModel) => {
         setSelectedReportId(report.id);
+    };
+
+    const prefetchReportModal = (reportId: number) => {
+        if (reportCacheRef.current.has(reportId)) {
+            return;
+        }
+
+        void loadReportDetail(reportId).catch(() => {
+            // Ignore prefetch failures and retry on actual open.
+        });
     };
 
     const closeReportModal = (open: boolean) => {
@@ -50,6 +115,8 @@ export default function ClubReportsTabContent({ reports }: ClubReportsTabContent
                         key={report.id}
                         type="button"
                         className="w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                        onMouseEnter={() => prefetchReportModal(report.id)}
+                        onFocus={() => prefetchReportModal(report.id)}
                         onClick={() => openReportModal(report)}>
                         <div className="relative aspect-[16/10] bg-zinc-100">
                             {report.image_urls[0] ? (
@@ -75,9 +142,10 @@ export default function ClubReportsTabContent({ reports }: ClubReportsTabContent
             </div>
 
             <ClubReportDetailModal
-                key={`${selectedReportId ?? "empty"}-${selectedReport !== null ? "open" : "closed"}`}
+                key={`${selectedReportId ?? "empty"}-${selectedReport !== null ? "loaded" : "idle"}`}
                 report={selectedReport}
-                open={selectedReport !== null}
+                open={selectedReportId !== null}
+                isLoading={isDetailLoading}
                 onOpenChange={closeReportModal}
             />
         </>

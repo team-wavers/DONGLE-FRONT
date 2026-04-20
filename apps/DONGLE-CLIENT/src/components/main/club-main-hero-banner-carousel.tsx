@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { CarouselApi } from "@dongle/ui/carousel";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@dongle/ui/carousel";
-import { cn } from "@dongle/ui";
+import { cn } from "@dongle/ui/utils";
 import Image from "next/image";
 
 interface ClubMainHeroBannerCarouselProps {

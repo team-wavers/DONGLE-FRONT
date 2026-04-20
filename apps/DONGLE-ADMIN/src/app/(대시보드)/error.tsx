@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { Button } from "@dongle/ui/button";
 import { AlertTriangle, RefreshCw, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 interface ErrorProps {
     error: Error & { digest?: string };
@@ -43,6 +44,9 @@ export default function DashboardError({ error, reset }: ErrorProps) {
                     <Button onClick={reset} className="flex-1 bg-primary hover:bg-primary/90" size="sm">
                         <RefreshCw className="w-4 h-4 mr-1" />
                         다시 시도
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1" asChild>
+                        <Link href="/">홈으로</Link>
                     </Button>
                 </div>
             </div>

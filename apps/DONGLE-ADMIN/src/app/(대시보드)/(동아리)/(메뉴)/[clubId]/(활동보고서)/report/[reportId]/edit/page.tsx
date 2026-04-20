@@ -20,7 +20,7 @@ async function EditReportContent({ clubId, reportId }: { clubId: string; reportI
     return (
         <div className="flex flex-col gap-4 w-full">
             <div className="mb-4">
-                <GoBackButton />
+                <GoBackButton fallbackHref={`/${clubId}/report/${reportId}`} />
             </div>
 
             <div className="max-w-4xl w-full">
@@ -35,6 +35,8 @@ async function EditReportContent({ clubId, reportId }: { clubId: string; reportI
                     clubId={clubId}
                     images={result.image_urls}
                     reportId={reportId}
+                    successRedirectHref={`/${clubId}/report/${reportId}`}
+                    successMessage="활동 보고서가 성공적으로 수정되었습니다!"
                 />
             </div>
         </div>

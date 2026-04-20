@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
 import { Button } from "@dongle/ui/button";
+import Link from "next/link";
 
 interface GlobalErrorProps {
     error: Error & { digest?: string };
@@ -43,6 +44,9 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                             <Button className="flex-1 bg-primary hover:bg-primary/90" onClick={reset}>
                                 <RefreshCw className="mr-1 h-4 w-4" />
                                 다시 시도
+                            </Button>
+                            <Button variant="outline" className="flex-1" asChild>
+                                <Link href="/">홈으로</Link>
                             </Button>
                         </div>
                     </div>
