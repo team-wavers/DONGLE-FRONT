@@ -107,6 +107,17 @@
 관련 테스트:
 - [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts)
 
+## Client Report Detail API
+
+### 상세 조회 상태코드 매핑
+
+- 활동보고서 상세 조회 성공은 200으로 응답한다.
+- 목록에서 해당 report를 찾지 못한 경우만 404로 응답한다.
+- 목록 조회 자체 실패 등 upstream 실패는 5xx로 응답한다.
+
+관련 테스트:
+- [get-club-report-route-status.test.ts](../../apps/DONGLE-CLIENT/src/lib/get-club-report-route-status.test.ts)
+
 ## Shared Utilities
 
 ### Club Fixture Path Parsing
@@ -140,3 +151,12 @@
 
 관련 테스트:
 - [use-session-storage-draft.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-session-storage-draft.test.ts)
+
+### SNS URL Normalization
+
+- instagram 값은 handle, 도메인 입력, 전체 URL을 실제 instagram URL로 정규화한다.
+- youtube 값은 handle, 전체 URL, 일반 문자열을 실제 youtube URL 또는 검색 URL로 정규화한다.
+- 다른 도메인 URL이 들어와도 외부 도메인으로 그대로 이동시키지 않는다.
+
+관련 테스트:
+- [normalize-social-url.test.ts](../../apps/DONGLE-CLIENT/src/lib/normalize-social-url.test.ts)

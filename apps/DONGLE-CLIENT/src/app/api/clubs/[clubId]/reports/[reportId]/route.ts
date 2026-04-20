@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getClubReportFromListService } from "@/lib/server/cached-services";
+import { getClubReportRouteStatus } from "@/lib/get-club-report-route-status";
 
 interface RouteContext {
     params: Promise<{
@@ -28,7 +29,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
     try {
         const response = await getClubReportFromListService(clubIdNumber, reportIdNumber);
-        return NextResponse.json(response, { status: response.isSuccess ? 200 : 404 });
+        return NextResponse.json(response, { status: getClubReportRouteStatus(response) });
     } catch (error) {
         console.error("클럽 보고서 상세 조회 API Route 오류", {
             error,

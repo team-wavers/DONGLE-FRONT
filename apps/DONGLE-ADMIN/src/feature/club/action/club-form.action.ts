@@ -18,6 +18,7 @@ import {
 } from "@/feature/club/validation/club-form.validation";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { normalizeSocialUrl } from "@dongle/ui/utils";
 
 interface ClubActionState {
     success?: boolean;
@@ -74,6 +75,13 @@ function parseStringArrayField(formData: FormData, key: string): string[] {
     } catch {
         return [];
     }
+}
+
+function normalizeClubSnsPayload(instagram: string, youtube: string) {
+    return {
+        instagram: normalizeSocialUrl("instagram", instagram) ?? instagram.trim(),
+        youtube: normalizeSocialUrl("youtube", youtube) ?? youtube.trim(),
+    };
 }
 
 // 공통 폼 데이터 추출 함수
@@ -180,10 +188,7 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
     }
 
     // SNS 필드가 하나라도 있으면 추가
-    clubPayload.sns = {
-        youtube: extractedData.youtube.trim(),
-        instagram: extractedData.instagram.trim(),
-    };
+    clubPayload.sns = normalizeClubSnsPayload(extractedData.instagram, extractedData.youtube);
     try {
         await requireServerActionAccessToken();
 
@@ -378,10 +383,7 @@ export async function clubRegisterFormAction(prevState: ClubActionState, formDat
             tags: extractedData.tags,
             description: extractedData.description,
             main_activities: extractedData.main_activities,
-            sns: {
-                youtube: extractedData.youtube,
-                instagram: extractedData.instagram,
-            },
+            sns: normalizeClubSnsPayload(extractedData.instagram, extractedData.youtube),
             is_recruiting: extractedData.recruitmentStatus === RECRUITMENT_STATUS.RECRUITING,
             president_id: user.result?.id,
             location: extractedData.location,
