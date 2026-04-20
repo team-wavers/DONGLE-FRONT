@@ -1,6 +1,6 @@
 "use server";
 
-import { updateClubReportService, uploadClubReportImageService } from "@dongle/service/club/club.report.service";
+import { updateClubReportService } from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
 import { validateActivityReportInput } from "@/feature/report/validation/activity-report.validation";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/feature/report/validation/report-update-payload";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { uploadReportImages } from "./upload-report-images";
 
 // 서버 액션 타입 정의
 export interface UpdateActivityReportActionState {
@@ -66,28 +67,22 @@ export async function updateActivityReportAction(
     try {
         await requireServerActionAccessToken();
 
-        const uploadedImageUrls: string[] = [];
+        let uploadedImageUrls: string[] = [];
 
-        if (images && images.length > 0) {
-            for (const image of images) {
-                if (image.size > 0) {
-                    try {
-                        const { result, isSuccess } = await uploadClubReportImageService(Number(clubId), image);
-                        if (isSuccess && result) {
-                            uploadedImageUrls.push(result);
-                        }
-                    } catch (error) {
-                        captureServerException(error, "보고서 수정 이미지 업로드 실패", {
-                            action: "updateActivityReportAction",
-                            clubId,
-                            reportId,
-                        });
-                        return {
-                            error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
-                        };
-                    }
-                }
-            }
+        try {
+            uploadedImageUrls = await uploadReportImages({
+                clubId,
+                images,
+            });
+        } catch (error) {
+            captureServerException(error, "보고서 수정 이미지 업로드 실패", {
+                action: "updateActivityReportAction",
+                clubId,
+                reportId,
+            });
+            return {
+                error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
+            };
         }
 
         const imageUrls = mergeReportImageUrls(existingUrls, removedUrls, uploadedImageUrls);

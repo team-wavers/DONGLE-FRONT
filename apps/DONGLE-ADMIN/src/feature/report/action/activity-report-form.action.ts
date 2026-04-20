@@ -2,12 +2,12 @@
 
 import {
   createClubReportService,
-  uploadClubReportImageService,
 } from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
 import { validateActivityReportInput } from "@/feature/report/validation/activity-report.validation";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { uploadReportImages } from "./upload-report-images";
 
 // 서버 액션 타입 정의
 export interface ActivityReportActionState {
@@ -46,30 +46,21 @@ export async function activityReportAction(
   try {
     await requireServerActionAccessToken();
 
-    const imageUrls: string[] = [];
+    let imageUrls: string[] = [];
 
-    if (images && images.length > 0) {
-      for (const image of images) {
-        if (image.size > 0) {
-          try {
-            const { result, isSuccess } = await uploadClubReportImageService(
-              Number(clubId),
-              image
-            );
-            if (isSuccess && result) {
-              imageUrls.push(result);
-            }
-          } catch (error) {
-            captureServerException(error, "활동보고서 이미지 업로드 실패", {
-              action: "activityReportAction",
-              clubId,
-            });
-            return {
-              error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
-            };
-          }
-        }
-      }
+    try {
+      imageUrls = await uploadReportImages({
+        clubId,
+        images,
+      });
+    } catch (error) {
+      captureServerException(error, "활동보고서 이미지 업로드 실패", {
+        action: "activityReportAction",
+        clubId,
+      });
+      return {
+        error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
+      };
     }
 
     const response = await createClubReportService(Number(clubId), {
