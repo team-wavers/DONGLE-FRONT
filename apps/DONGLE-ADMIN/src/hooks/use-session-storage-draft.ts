@@ -33,6 +33,7 @@ export function useSessionStorageDraft<T>({
 }: UseSessionStorageDraftOptions<T>) {
     const [didRestoreDraft, setDidRestoreDraft] = useState(false);
     const didRunRestoreRef = useRef(false);
+    const previousKeyRef = useRef(key);
     const shouldRestoreRef = useRef(shouldRestore);
     const deserializeRef = useRef(deserialize);
     const serializeRef = useRef(serialize);
@@ -48,6 +49,17 @@ export function useSessionStorageDraft<T>({
         onClearRef.current = onClear;
         onRestoreStateChangeRef.current = onRestoreStateChange;
     }, [deserialize, onClear, onRestore, onRestoreStateChange, serialize, shouldRestore]);
+
+    useEffect(() => {
+        if (previousKeyRef.current === key) {
+            return;
+        }
+
+        previousKeyRef.current = key;
+        didRunRestoreRef.current = false;
+        setDidRestoreDraft(false);
+        onRestoreStateChangeRef.current?.(false);
+    }, [key]);
 
     useEffect(() => {
         if (typeof window === "undefined") {

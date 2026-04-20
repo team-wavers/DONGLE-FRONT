@@ -51,7 +51,7 @@ function validateMarkdownLinks(relativePath) {
     }
 
     for (const match of content.matchAll(markdownLinkPattern)) {
-        const rawTarget = match[1].split("#")[0].split(":")[0];
+        const rawTarget = match[1].split("#")[0];
 
         if (rawTarget.length === 0) {
             continue;
@@ -61,10 +61,14 @@ function validateMarkdownLinks(relativePath) {
             continue;
         }
 
-        const resolvedTarget = path.isAbsolute(rawTarget) ? rawTarget : path.resolve(fileDir, rawTarget);
+        const normalizedTarget = rawTarget.split(":")[0];
+
+        const resolvedTarget = path.isAbsolute(normalizedTarget)
+            ? normalizedTarget
+            : path.resolve(fileDir, normalizedTarget);
 
         if (!fs.existsSync(resolvedTarget)) {
-            errors.push(`${relativePath}의 링크 대상 파일이 없습니다: ${rawTarget}`);
+            errors.push(`${relativePath}의 링크 대상 파일이 없습니다: ${normalizedTarget}`);
         }
     }
 }
