@@ -46,6 +46,7 @@ jobs:
       - name: Build client standalone artifact
         env:
           API_URL: ${{ secrets.PROD_API_URL }}
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
           NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.CLIENT_NEXT_PUBLIC_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.CLIENT_SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.CLIENT_SENTRY_ORG }}
@@ -58,6 +59,7 @@ jobs:
       - name: Build admin standalone artifact
         env:
           API_URL: ${{ secrets.PROD_API_URL }}
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
           NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.ADMIN_NEXT_PUBLIC_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.ADMIN_SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.ADMIN_SENTRY_ORG }}
@@ -119,6 +121,7 @@ jobs:
         env:
           LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
           PROD_API_URL: ${{ secrets.PROD_API_URL }}
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
           SENTRY_ENVIRONMENT: production
           SENTRY_RELEASE: ${{ github.sha }}
           CLIENT_NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.CLIENT_NEXT_PUBLIC_SENTRY_DSN }}
@@ -136,6 +139,7 @@ jobs:
           set -e
           cat > "$ROOT_DIR/.env.pm2.prod" <<ENVFILE
           API_URL=$PROD_API_URL
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
           SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT
           SENTRY_RELEASE=$SENTRY_RELEASE
           CLIENT_NEXT_PUBLIC_SENTRY_DSN=$CLIENT_NEXT_PUBLIC_SENTRY_DSN
