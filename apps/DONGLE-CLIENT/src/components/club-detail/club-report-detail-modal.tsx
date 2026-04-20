@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, formatDateByLocale } from "@dongle/ui";
 import { RichTextViewer } from "@dongle/rich-text";
+import { Skeleton } from "@dongle/ui/skeleton";
 
 type ClubReportDetailViewModel = {
     id: number;
@@ -51,8 +52,33 @@ export default function ClubReportDetailModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="w-full max-w-[90vw] sm:max-w-2xl max-h-[90vh] p-0 gap-0 overflow-hidden">
                 {isLoading ? (
-                    <section className="p-6 md:p-8 min-h-[18rem] flex items-center justify-center text-sm text-zinc-500">
-                        활동보고서를 불러오는 중입니다.
+                    <section className="p-4 md:p-5 min-h-0 max-h-[90vh] overflow-y-auto space-y-4">
+                        <div className="flex flex-col gap-4 pt-4">
+                            <Skeleton className="aspect-[16/10] w-full rounded-xl" />
+
+                            <div className="flex gap-2 overflow-x-auto pb-1">
+                                <Skeleton className="h-14 w-20 shrink-0 rounded-md" />
+                                <Skeleton className="h-14 w-20 shrink-0 rounded-md" />
+                                <Skeleton className="h-14 w-20 shrink-0 rounded-md" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Skeleton className="h-8 w-2/3 rounded-md" />
+                            <Skeleton className="h-4 w-28 rounded-md" />
+                        </div>
+
+                        <div className="space-y-3 py-4">
+                            <Skeleton className="h-4 w-full rounded-md" />
+                            <Skeleton className="h-4 w-full rounded-md" />
+                            <Skeleton className="h-4 w-5/6 rounded-md" />
+                            <Skeleton className="h-4 w-full rounded-md" />
+                            <Skeleton className="h-4 w-4/6 rounded-md" />
+                        </div>
+
+                        <div className="pt-2">
+                            <Skeleton className="h-10 w-full rounded-md" />
+                        </div>
                     </section>
                 ) : report ? (
                     <section className="p-4 md:p-5 min-h-0 max-h-[90vh] overflow-y-auto space-y-4">
