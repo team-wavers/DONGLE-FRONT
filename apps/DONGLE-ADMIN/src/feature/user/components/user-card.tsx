@@ -11,25 +11,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { User as UserIcon, Phone, Calendar, Edit, Trash2 } from "lucide-react";
 import UserEditForm from "@/feature/user/components/user-edit-form";
 import { deleteUserAction } from "@/feature/user/action/user-form.action";
+import { formatUserCreatedAt } from "@/feature/user/utils/format-user-created-at";
 import { toast } from "sonner";
 
 interface UserCardProps {
     user: User;
-}
-
-function formatUserCreatedAt(value: string) {
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return new Intl.DateTimeFormat("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        timeZone: "Asia/Seoul",
-    }).format(date);
 }
 
 export default function UserCard({ user }: UserCardProps) {
