@@ -25,7 +25,7 @@
 
 1. 의존성 설치
 2. 타입 검사
-3. `pnpm deploy:standalone:prod`
+3. `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`를 포함해 `pnpm deploy:standalone:prod`
 4. `rsync`로 Lightsail에 업로드
 5. `/home/ec2-user/dongle.front.prod/.env.pm2.prod` 생성
 6. `PM2_APP_ENV=prod pm2 reload ecosystem.config.js --update-env`
@@ -35,6 +35,7 @@
 - `LIGHTSAIL_HOST`
 - `LIGHTSAIL_SSH_KEY`
 - `PROD_API_URL`
+- `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`
 - `PROD_CLIENT_HEALTHCHECK_URL` (선택)
 - `PROD_ADMIN_HEALTHCHECK_URL` (선택)
 
@@ -57,6 +58,11 @@
 - `PROD_API_URL`
   - 운영 API의 베이스 URL
   - 현재 프로젝트 기준 예시: `https://api.dongle.wavers.kr/v1`
+- `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`
+  - Next.js Server Action 암호화 키
+  - 빌드마다 바뀌지 않도록 운영에서 고정해야 함
+  - base64 인코딩된 32바이트 키 권장
+  - 예시 생성: `openssl rand -base64 32`
 - `PROD_CLIENT_HEALTHCHECK_URL`
   - 배포 후 client 앱이 정상 응답하는지 확인할 URL
   - 별도 health endpoint가 없으면 메인 도메인을 넣어도 됩니다
@@ -75,6 +81,12 @@ GitHub에서 등록 위치:
 5. `Repository secrets`
 
 현재 구성에서는 `Repository secrets`에 넣는 것을 권장합니다.
+
+## Server Action 주의사항
+
+- `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`는 빌드 시점과 런타임에 동일한 값으로 주입해야 합니다.
+- 이 값이 없으면 Next.js가 빌드마다 다른 Server Action ID를 생성할 수 있습니다.
+- 사용자가 이전 배포의 로그인 페이지를 열어둔 상태에서 제출하면 `UnrecognizedActionError` 또는 `failed-to-find-server-action`이 발생할 수 있습니다.
 
 ## 서버 준비 체크리스트
 
