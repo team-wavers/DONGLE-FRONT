@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, formatDateByLocale } from "@dongle/ui";
 import { RichTextViewer } from "@dongle/rich-text";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@dongle/ui/dialog";
 import { Skeleton } from "@dongle/ui/skeleton";
+import { formatDateByLocale } from "@dongle/ui/utils";
 
 type ClubReportDetailViewModel = {
     id: number;

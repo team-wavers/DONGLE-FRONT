@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getClubReportFromListService } from "@dongle/service";
+import { getClubReportFromListService } from "@/lib/server/cached-services";
 
 interface RouteContext {
     params: Promise<{

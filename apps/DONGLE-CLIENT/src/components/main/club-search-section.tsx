@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@dongle/ui";
+import { Input } from "@dongle/ui/input";
 import { Search } from "lucide-react";
 import ClubFilterChips from "@/components/main/club-filter-chips";
 import type { ClubFilterStatus } from "@/hooks/use-club-filters";

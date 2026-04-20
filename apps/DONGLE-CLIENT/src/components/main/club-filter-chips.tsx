@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@dongle/ui";
+import { cn } from "@dongle/ui/utils";
 import type { ClubFilterStatus } from "@/hooks/use-club-filters";
 
 interface ClubFilterChipsProps {

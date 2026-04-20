@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { RecruitmentStatus } from "@dongle/ui";
+import type { RecruitmentStatus } from "@dongle/ui/badges/recruitment-status-badge";
 
 type ClubFilterItem = {
     id: number;

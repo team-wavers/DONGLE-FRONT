@@ -1,6 +1,6 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dongle/ui";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dongle/ui/tabs";
 import ClubIntroTabContent from "./club-intro-tab-content";
 import ClubReportsTabContent from "./club-reports-tab-content";
 

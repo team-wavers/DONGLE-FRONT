@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AppHeader } from "@dongle/ui";
+import { AppHeader } from "@dongle/ui/headers/app-header";
 import "./globals.css";
 
 const siteUrl = "https://dongle.wavers.kr";
