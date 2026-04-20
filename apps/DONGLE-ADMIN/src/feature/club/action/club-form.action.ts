@@ -9,19 +9,15 @@ import {
 import { createUserService, patchUserService } from "@dongle/service/user/user.service";
 import { revalidateTag } from "next/cache";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
+import {
+    isValidPhoneNumber,
+    normalizeRecruitmentStatus,
+    validateClubForm,
+    type ClubFormData,
+    type ClubFormFieldErrors,
+} from "@/feature/club/validation/club-form.validation";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
-
-// 휴대폰 번호 검증 함수
-function isValidPhoneNumber(phoneNumber: string): boolean {
-    // 공백 제거
-    const cleaned = phoneNumber.replace(/\s/g, "");
-
-    // 한국 휴대폰 번호 패턴 (010, 011, 016, 017, 018, 019)
-    const phoneRegex = /^01[0-9]-?\d{3,4}-?\d{4}$/;
-
-    return phoneRegex.test(cleaned);
-}
 
 interface ClubActionState {
     success?: boolean;
@@ -31,36 +27,7 @@ interface ClubActionState {
     tempId?: string;
     tempPassword?: string;
     clubName?: string;
-    fieldErrors?: {
-        clubName?: string;
-        recruitmentStatus?: string;
-        department?: string;
-        location?: string;
-        presidentName?: string;
-        presidentContact?: string;
-        recruitmentStartDate?: string;
-        recruitmentEndDate?: string;
-        description?: string;
-        main_activities?: string;
-        category?: string;
-        icon?: string;
-    };
-}
-
-interface ClubFormData {
-    clubName: string;
-    category: string;
-    recruitmentStatus: string;
-    tags: string[];
-    main_activities: string;
-    description: string;
-    location: string;
-    recruitmentStartDate: string;
-    recruitmentEndDate: string;
-    instagram: string;
-    youtube: string;
-    presidentName: string;
-    presidentContact: string;
+    fieldErrors?: ClubFormFieldErrors;
 }
 
 function getActionErrorMessage(error: unknown, fallback: string): string {
@@ -96,20 +63,6 @@ function getFirstFieldErrorMessage(fieldErrors: ClubActionState["fieldErrors"], 
     return fallback;
 }
 
-function normalizeRecruitmentStatus(status?: string | null): string {
-    const trimmed = String(status ?? "").trim();
-
-    if (trimmed === RECRUITMENT_STATUS.RECRUITING || trimmed === "모집중") {
-        return RECRUITMENT_STATUS.RECRUITING;
-    }
-
-    if (trimmed === RECRUITMENT_STATUS.CLOSED || trimmed === "모집마감") {
-        return RECRUITMENT_STATUS.CLOSED;
-    }
-
-    return trimmed;
-}
-
 function getTrimmedString(formData: FormData, key: string): string {
     return String(formData.get(key) || "").trim();
 }
@@ -121,82 +74,6 @@ function parseStringArrayField(formData: FormData, key: string): string[] {
     } catch {
         return [];
     }
-}
-
-// 공통 검증 함수
-function validateClubForm(
-    formData: ClubFormData,
-    options?: {
-        requirePresident?: boolean;
-    }
-): {
-    fieldErrors: ClubActionState["fieldErrors"];
-    isValid: boolean;
-} {
-    const fieldErrors: ClubActionState["fieldErrors"] = {};
-    const requirePresident = options?.requirePresident ?? true;
-    const normalizedRecruitmentStatus = normalizeRecruitmentStatus(formData.recruitmentStatus);
-    const isRecruiting = normalizedRecruitmentStatus === RECRUITMENT_STATUS.RECRUITING;
-
-    if (!formData.category) {
-        fieldErrors.category = "분과를 선택해주세요";
-    }
-
-    if (!formData.clubName) {
-        fieldErrors.clubName = "동아리 이름을 입력해주세요";
-    }
-
-    if (!formData.location) {
-        fieldErrors.location = "동아리 방 정보를 입력해주세요.";
-    }
-
-    if (!formData.recruitmentStatus) {
-        fieldErrors.recruitmentStatus = "모집여부를 선택해주세요";
-    }
-
-    if (!formData.description) {
-        fieldErrors.description = "동아리 설명을 입력해주세요";
-    }
-
-    if (!formData.main_activities) {
-        fieldErrors.main_activities = "주요 활동을 입력해주세요";
-    }
-
-    if (requirePresident) {
-        if (!formData.presidentName) {
-            fieldErrors.presidentName = "회장 이름을 입력해주세요";
-        }
-
-        if (!formData.presidentContact) {
-            fieldErrors.presidentContact = "회장 연락처를 입력해주세요";
-        } else if (!isValidPhoneNumber(formData.presidentContact)) {
-            fieldErrors.presidentContact = "올바른 휴대폰 번호 형식이 아닙니다 (예: 010-1234-5678)";
-        }
-    }
-
-    // 모집중일 때는 모집기간 필수, 모집마감일 때는 선택 입력
-    if (isRecruiting) {
-        if (!formData.recruitmentStartDate) {
-            fieldErrors.recruitmentStartDate = "모집 시작일을 입력해주세요";
-        }
-        if (!formData.recruitmentEndDate) {
-            fieldErrors.recruitmentEndDate = "모집 마감일을 입력해주세요";
-        }
-    }
-
-    // 모집기간이 둘 다 있는 경우 날짜 순서 검증
-    if (formData.recruitmentStartDate && formData.recruitmentEndDate) {
-        const startDate = new Date(formData.recruitmentStartDate);
-        const endDate = new Date(formData.recruitmentEndDate);
-        if (startDate > endDate) {
-            fieldErrors.recruitmentEndDate = "모집 마감일은 모집 시작일보다 늦어야 합니다";
-        }
-    }
-
-    return {
-        fieldErrors,
-        isValid: Object.keys(fieldErrors).length === 0,
-    };
 }
 
 // 공통 폼 데이터 추출 함수

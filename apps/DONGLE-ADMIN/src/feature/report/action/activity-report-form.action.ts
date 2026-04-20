@@ -5,6 +5,7 @@ import {
   uploadClubReportImageService,
 } from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
+import { validateActivityReportInput } from "@/feature/report/validation/activity-report.validation";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
@@ -31,29 +32,12 @@ export async function activityReportAction(
   const clubId = formData.get("clubId") as string;
   const images = formData.getAll("images") as File[];
 
-  // 클라이언트 사이드 검증
-  const fieldErrors: {
-    title?: string;
-    content?: string;
-    reportDate?: string;
-    images?: string;
-  } = {};
+  const { fieldErrors, isValid } = validateActivityReportInput({
+    title,
+    content,
+  });
 
-  if (!title) {
-    fieldErrors.title = "제목을 입력해주세요";
-  } else if (title.length < 2) {
-    fieldErrors.title = "제목은 최소 2자 이상이어야 합니다";
-  } else if (title.length > 100) {
-    fieldErrors.title = "제목은 최대 100자 이하여야 합니다";
-  }
-
-  if (!content) {
-    fieldErrors.content = "내용을 입력해주세요";
-  } else if (content.length < 10) {
-    fieldErrors.content = "내용은 최소 10자 이상이어야 합니다";
-  }
-
-  if (Object.keys(fieldErrors).length > 0) {
+  if (!isValid) {
     return {
       fieldErrors,
     };
