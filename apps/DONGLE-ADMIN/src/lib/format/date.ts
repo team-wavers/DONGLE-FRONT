@@ -1,4 +1,4 @@
-export function formatUserCreatedAt(value: string) {
+export function formatKoreanDate(value: string) {
     const date = new Date(value);
 
     if (Number.isNaN(date.getTime())) {
