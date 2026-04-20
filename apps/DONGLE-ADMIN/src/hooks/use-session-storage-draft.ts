@@ -17,6 +17,18 @@ interface UseSessionStorageDraftOptions<T> {
     onRestoreStateChange?: (restored: boolean) => void;
 }
 
+export function shouldClearSessionStorageDraft({
+    isDirty,
+    success,
+    previousSuccess,
+}: {
+    isDirty: boolean;
+    success: boolean;
+    previousSuccess: boolean;
+}) {
+    return !isDirty || (success && !previousSuccess);
+}
+
 export function useSessionStorageDraft<T>({
     key,
     currentValue,
@@ -40,6 +52,7 @@ export function useSessionStorageDraft<T>({
     const onRestoreRef = useRef(onRestore);
     const onClearRef = useRef(onClear);
     const onRestoreStateChangeRef = useRef(onRestoreStateChange);
+    const previousSuccessRef = useRef(success);
 
     useEffect(() => {
         shouldRestoreRef.current = shouldRestore;
@@ -101,7 +114,14 @@ export function useSessionStorageDraft<T>({
             return;
         }
 
-        if (success || !isDirty) {
+        const shouldClear = shouldClearSessionStorageDraft({
+            isDirty,
+            success,
+            previousSuccess: previousSuccessRef.current,
+        });
+        previousSuccessRef.current = success;
+
+        if (shouldClear) {
             window.sessionStorage.removeItem(key);
             onClearRef.current?.();
             return;

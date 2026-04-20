@@ -82,6 +82,16 @@
 관련 테스트:
 - [use-url-generator.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-url-generator.test.ts)
 
+## Admin Auth
+
+### 로그인 후 내부 복귀 경로 검증
+
+- `returnTo`는 내부 경로만 허용한다.
+- protocol-relative URL(`//...`)과 외부 URL은 허용하지 않는다.
+
+관련 테스트:
+- [normalize-internal-return-to.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/normalize-internal-return-to.test.ts)
+
 ## Client Club Search
 
 ### 검색 로직
@@ -122,3 +132,11 @@
 
 관련 테스트:
 - [date.test.ts](../../apps/DONGLE-ADMIN/src/lib/format/date.test.ts)
+
+### Session Draft Clear Rule
+
+- draft는 저장 성공으로 막 전이된 시점에만 제거된다.
+- 성공 이후 같은 화면에서 다시 수정 중이면 임시저장이 계속 동작해야 한다.
+
+관련 테스트:
+- [use-session-storage-draft.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-session-storage-draft.test.ts)
