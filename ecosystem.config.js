@@ -1,23 +1,20 @@
 /**
- * PM2 설정 (서버용) - dev/prod 한 파일에서 환경변수로 선택
+ * PM2 설정 (운영 Lightsail 서버용)
  *
  * 사용:
- *   pm2 start ecosystem.config.js              → 개발 (기본)
- *   PM2_APP_ENV=prod pm2 start ecosystem.config.js → 운영
+ *   pm2 start ecosystem.config.js
  *
  * cwd = standalone 배포 루트 (node_modules 가 있는 곳). script = 그 안의 apps/앱명/server.js
  * 그래야 Next가 찾는 node_modules 를 올바르게 찾음 (MODULE_NOT_FOUND 방지).
  *
- * 서버 전용 런타임 env는 같은 디렉터리의 `.env.pm2.dev`, `.env.pm2.prod`에서 읽습니다.
+ * 서버 전용 런타임 env는 같은 디렉터리의 `.env.pm2.prod`에서 읽습니다.
  */
 
 const fs = require("fs");
 const path = require("path");
 
-const env = process.env.PM2_APP_ENV || "dev";
-
-function loadPm2Env(targetEnv) {
-    const filePath = path.join(__dirname, `.env.pm2.${targetEnv}`);
+function loadPm2Env() {
+    const filePath = path.join(__dirname, ".env.pm2.prod");
 
     if (!fs.existsSync(filePath)) {
         return {};
@@ -43,25 +40,21 @@ function loadPm2Env(targetEnv) {
         }, {});
 }
 
-const pm2Env = loadPm2Env(env);
+const pm2Env = loadPm2Env();
 
 function pickFirstDefined(...values) {
     return values.find((value) => value !== undefined && value !== "");
 }
 
-// standalone 을 SCP한 루트 (node_modules, apps/ 가 있는 디렉터리)
-const clientDevRoot =
-    process.env.DEPLOY_CLIENT_DIR || pm2Env.DEPLOY_CLIENT_DIR || "/home/ec2-user/dongle.front.dev/dongle.client.dev";
-const adminDevRoot =
-    process.env.DEPLOY_ADMIN_DIR || pm2Env.DEPLOY_ADMIN_DIR || "/home/ec2-user/dongle.front.dev/dongle.admin.dev";
+// standalone 을 배포한 루트 (node_modules, apps/ 가 있는 디렉터리)
 const clientProdRoot =
     process.env.DEPLOY_CLIENT_DIR_PROD ||
     pm2Env.DEPLOY_CLIENT_DIR_PROD ||
-    "/home/ec2-user/dongle.front.prod/dongle.client.prod";
+    "/home/ec2-user/dongle.front.prod/current.client";
 const adminProdRoot =
     process.env.DEPLOY_ADMIN_DIR_PROD ||
     pm2Env.DEPLOY_ADMIN_DIR_PROD ||
-    "/home/ec2-user/dongle.front.prod/dongle.admin.prod";
+    "/home/ec2-user/dongle.front.prod/current.admin";
 
 const commonAppConfig = {
     instances: 1,
@@ -75,175 +68,75 @@ const commonAppConfig = {
     time: true,
 };
 
-const configs = {
-    dev: {
-        apps: [
-            {
-                ...commonAppConfig,
-                name: "dongle.client.dev",
-                cwd: clientDevRoot,
-                script: `${clientDevRoot}/apps/DONGLE-CLIENT/server.js`,
-                max_memory_restart: "700M",
-                env: {
-                    ...pm2Env,
-                    NODE_ENV: "development",
-                    HOSTNAME: "0.0.0.0",
-                    PORT: 3001,
-                    NODE_OPTIONS: "--max-old-space-size=768",
-                    NEXT_PUBLIC_SENTRY_DSN: pickFirstDefined(
-                        process.env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
-                        process.env.NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.NEXT_PUBLIC_SENTRY_DSN,
-                    ),
-                    SENTRY_DSN: pickFirstDefined(
-                        process.env.CLIENT_SENTRY_DSN,
-                        pm2Env.CLIENT_SENTRY_DSN,
-                        process.env.SENTRY_DSN,
-                        pm2Env.SENTRY_DSN,
-                        process.env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
-                    ),
-                    SENTRY_ENVIRONMENT: pickFirstDefined(
-                        process.env.CLIENT_SENTRY_ENVIRONMENT,
-                        pm2Env.CLIENT_SENTRY_ENVIRONMENT,
-                        process.env.SENTRY_ENVIRONMENT,
-                        pm2Env.SENTRY_ENVIRONMENT,
-                    ),
-                    SENTRY_RELEASE: pickFirstDefined(
-                        process.env.CLIENT_SENTRY_RELEASE,
-                        pm2Env.CLIENT_SENTRY_RELEASE,
-                        process.env.SENTRY_RELEASE,
-                        pm2Env.SENTRY_RELEASE,
-                    ),
-                },
+module.exports = {
+    apps: [
+        {
+            ...commonAppConfig,
+            name: "dongle.client.prod",
+            cwd: clientProdRoot,
+            script: `${clientProdRoot}/apps/DONGLE-CLIENT/server.js`,
+            max_memory_restart: "700M",
+            env: {
+                ...pm2Env,
+                NODE_ENV: "production",
+                HOSTNAME: "0.0.0.0",
+                PORT: 3000,
+                NODE_OPTIONS: "--max-old-space-size=768",
+                NEXT_PUBLIC_SENTRY_DSN: pickFirstDefined(
+                    process.env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                    pm2Env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                    process.env.NEXT_PUBLIC_SENTRY_DSN,
+                    pm2Env.NEXT_PUBLIC_SENTRY_DSN,
+                ),
+                SENTRY_DSN: pickFirstDefined(
+                    process.env.SENTRY_DSN,
+                    pm2Env.SENTRY_DSN,
+                    process.env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                    pm2Env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
+                ),
+                SENTRY_ENVIRONMENT: pickFirstDefined(
+                    process.env.SENTRY_ENVIRONMENT,
+                    pm2Env.SENTRY_ENVIRONMENT,
+                ),
+                SENTRY_RELEASE: pickFirstDefined(
+                    process.env.SENTRY_RELEASE,
+                    pm2Env.SENTRY_RELEASE,
+                ),
             },
-            {
-                ...commonAppConfig,
-                name: "dongle.admin.dev",
-                cwd: adminDevRoot,
-                script: `${adminDevRoot}/apps/DONGLE-ADMIN/server.js`,
-                max_memory_restart: "500M",
-                env: {
-                    ...pm2Env,
-                    NODE_ENV: "development",
-                    HOSTNAME: "0.0.0.0",
-                    PORT: 4001,
-                    NODE_OPTIONS: "--max-old-space-size=512",
-                    NEXT_PUBLIC_SENTRY_DSN: pickFirstDefined(
-                        process.env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
-                        process.env.NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.NEXT_PUBLIC_SENTRY_DSN,
-                    ),
-                    SENTRY_DSN: pickFirstDefined(
-                        process.env.ADMIN_SENTRY_DSN,
-                        pm2Env.ADMIN_SENTRY_DSN,
-                        process.env.SENTRY_DSN,
-                        pm2Env.SENTRY_DSN,
-                        process.env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
-                    ),
-                    SENTRY_ENVIRONMENT: pickFirstDefined(
-                        process.env.ADMIN_SENTRY_ENVIRONMENT,
-                        pm2Env.ADMIN_SENTRY_ENVIRONMENT,
-                        process.env.SENTRY_ENVIRONMENT,
-                        pm2Env.SENTRY_ENVIRONMENT,
-                    ),
-                    SENTRY_RELEASE: pickFirstDefined(
-                        process.env.ADMIN_SENTRY_RELEASE,
-                        pm2Env.ADMIN_SENTRY_RELEASE,
-                        process.env.SENTRY_RELEASE,
-                        pm2Env.SENTRY_RELEASE,
-                    ),
-                },
+        },
+        {
+            ...commonAppConfig,
+            name: "dongle.admin.prod",
+            cwd: adminProdRoot,
+            script: `${adminProdRoot}/apps/DONGLE-ADMIN/server.js`,
+            max_memory_restart: "500M",
+            env: {
+                ...pm2Env,
+                NODE_ENV: "production",
+                HOSTNAME: "0.0.0.0",
+                PORT: 4000,
+                NODE_OPTIONS: "--max-old-space-size=512",
+                NEXT_PUBLIC_SENTRY_DSN: pickFirstDefined(
+                    process.env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                    pm2Env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                    process.env.NEXT_PUBLIC_SENTRY_DSN,
+                    pm2Env.NEXT_PUBLIC_SENTRY_DSN,
+                ),
+                SENTRY_DSN: pickFirstDefined(
+                    process.env.SENTRY_DSN,
+                    pm2Env.SENTRY_DSN,
+                    process.env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                    pm2Env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
+                ),
+                SENTRY_ENVIRONMENT: pickFirstDefined(
+                    process.env.SENTRY_ENVIRONMENT,
+                    pm2Env.SENTRY_ENVIRONMENT,
+                ),
+                SENTRY_RELEASE: pickFirstDefined(
+                    process.env.SENTRY_RELEASE,
+                    pm2Env.SENTRY_RELEASE,
+                ),
             },
-        ],
-    },
-    prod: {
-        apps: [
-            {
-                ...commonAppConfig,
-                name: "dongle.client.prod",
-                cwd: clientProdRoot,
-                script: `${clientProdRoot}/apps/DONGLE-CLIENT/server.js`,
-                max_memory_restart: "700M",
-                env: {
-                    ...pm2Env,
-                    NODE_ENV: "production",
-                    HOSTNAME: "0.0.0.0",
-                    PORT: 3000,
-                    NODE_OPTIONS: "--max-old-space-size=768",
-                    NEXT_PUBLIC_SENTRY_DSN: pickFirstDefined(
-                        process.env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
-                        process.env.NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.NEXT_PUBLIC_SENTRY_DSN,
-                    ),
-                    SENTRY_DSN: pickFirstDefined(
-                        process.env.CLIENT_SENTRY_DSN,
-                        pm2Env.CLIENT_SENTRY_DSN,
-                        process.env.SENTRY_DSN,
-                        pm2Env.SENTRY_DSN,
-                        process.env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.CLIENT_NEXT_PUBLIC_SENTRY_DSN,
-                    ),
-                    SENTRY_ENVIRONMENT: pickFirstDefined(
-                        process.env.CLIENT_SENTRY_ENVIRONMENT,
-                        pm2Env.CLIENT_SENTRY_ENVIRONMENT,
-                        process.env.SENTRY_ENVIRONMENT,
-                        pm2Env.SENTRY_ENVIRONMENT,
-                    ),
-                    SENTRY_RELEASE: pickFirstDefined(
-                        process.env.CLIENT_SENTRY_RELEASE,
-                        pm2Env.CLIENT_SENTRY_RELEASE,
-                        process.env.SENTRY_RELEASE,
-                        pm2Env.SENTRY_RELEASE,
-                    ),
-                },
-            },
-            {
-                ...commonAppConfig,
-                name: "dongle.admin.prod",
-                cwd: adminProdRoot,
-                script: `${adminProdRoot}/apps/DONGLE-ADMIN/server.js`,
-                max_memory_restart: "500M",
-                env: {
-                    ...pm2Env,
-                    NODE_ENV: "production",
-                    HOSTNAME: "0.0.0.0",
-                    PORT: 4000,
-                    NODE_OPTIONS: "--max-old-space-size=512",
-                    NEXT_PUBLIC_SENTRY_DSN: pickFirstDefined(
-                        process.env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
-                        process.env.NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.NEXT_PUBLIC_SENTRY_DSN,
-                    ),
-                    SENTRY_DSN: pickFirstDefined(
-                        process.env.ADMIN_SENTRY_DSN,
-                        pm2Env.ADMIN_SENTRY_DSN,
-                        process.env.SENTRY_DSN,
-                        pm2Env.SENTRY_DSN,
-                        process.env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
-                        pm2Env.ADMIN_NEXT_PUBLIC_SENTRY_DSN,
-                    ),
-                    SENTRY_ENVIRONMENT: pickFirstDefined(
-                        process.env.ADMIN_SENTRY_ENVIRONMENT,
-                        pm2Env.ADMIN_SENTRY_ENVIRONMENT,
-                        process.env.SENTRY_ENVIRONMENT,
-                        pm2Env.SENTRY_ENVIRONMENT,
-                    ),
-                    SENTRY_RELEASE: pickFirstDefined(
-                        process.env.ADMIN_SENTRY_RELEASE,
-                        pm2Env.ADMIN_SENTRY_RELEASE,
-                        process.env.SENTRY_RELEASE,
-                        pm2Env.SENTRY_RELEASE,
-                    ),
-                },
-            },
-        ],
-    },
+        },
+    ],
 };
-
-module.exports = configs[env] || configs.dev;

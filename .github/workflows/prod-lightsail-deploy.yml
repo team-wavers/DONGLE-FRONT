@@ -14,8 +14,9 @@ env:
   NODE_VERSION: 20
   PNPM_VERSION: 10.28.2
   ROOT_DIR: /home/ec2-user/dongle.front.prod
-  CLIENT_DIR: /home/ec2-user/dongle.front.prod/dongle.client.prod
-  ADMIN_DIR: /home/ec2-user/dongle.front.prod/dongle.admin.prod
+  RELEASES_DIR: /home/ec2-user/dongle.front.prod/releases
+  CURRENT_CLIENT_DIR: /home/ec2-user/dongle.front.prod/current.client
+  CURRENT_ADMIN_DIR: /home/ec2-user/dongle.front.prod/current.admin
 
 jobs:
   deploy:
@@ -40,8 +41,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Validate types
-        run: pnpm type
+      - name: Verify fast
+        run: pnpm verify:fast
 
       - name: Build client standalone artifact
         env:
@@ -86,9 +87,10 @@ jobs:
       - name: Ensure remote directories
         env:
           LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          RELEASE_ID: ${{ github.sha }}
         run: |
           ssh -i ~/.ssh/lightsail.pem ec2-user@"$LIGHTSAIL_HOST" \
-            "mkdir -p '$ROOT_DIR' '$CLIENT_DIR' '$ADMIN_DIR'"
+            "mkdir -p '$ROOT_DIR' '$RELEASES_DIR' '$RELEASES_DIR/$RELEASE_ID/client' '$RELEASES_DIR/$RELEASE_ID/admin'"
 
       - name: Sync PM2 config
         env:
@@ -102,71 +104,121 @@ jobs:
       - name: Sync client artifact
         env:
           LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          RELEASE_ID: ${{ github.sha }}
         run: |
           rsync -az --delete \
             -e "ssh -i ~/.ssh/lightsail.pem" \
             apps/DONGLE-CLIENT/.next/standalone/ \
-            ec2-user@"$LIGHTSAIL_HOST":"$CLIENT_DIR"/
+            ec2-user@"$LIGHTSAIL_HOST":"$RELEASES_DIR"/"$RELEASE_ID"/client/
 
       - name: Sync admin artifact
         env:
           LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          RELEASE_ID: ${{ github.sha }}
         run: |
           rsync -az --delete \
             -e "ssh -i ~/.ssh/lightsail.pem" \
             apps/DONGLE-ADMIN/.next/standalone/ \
-            ec2-user@"$LIGHTSAIL_HOST":"$ADMIN_DIR"/
+            ec2-user@"$LIGHTSAIL_HOST":"$RELEASES_DIR"/"$RELEASE_ID"/admin/
 
-      - name: Reload PM2
+      - name: Reload PM2 With Rollback
         env:
           LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          RELEASE_ID: ${{ github.sha }}
           PROD_API_URL: ${{ secrets.PROD_API_URL }}
           NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
           SENTRY_ENVIRONMENT: production
           SENTRY_RELEASE: ${{ github.sha }}
           CLIENT_NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.CLIENT_NEXT_PUBLIC_SENTRY_DSN }}
-          CLIENT_SENTRY_DSN: ${{ secrets.CLIENT_SENTRY_DSN }}
-          CLIENT_SENTRY_ENVIRONMENT: production
-          CLIENT_SENTRY_RELEASE: ${{ github.sha }}
           ADMIN_NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.ADMIN_NEXT_PUBLIC_SENTRY_DSN }}
-          ADMIN_SENTRY_DSN: ${{ secrets.ADMIN_SENTRY_DSN }}
-          ADMIN_SENTRY_ENVIRONMENT: production
-          ADMIN_SENTRY_RELEASE: ${{ github.sha }}
           CLIENT_HEALTHCHECK_URL: ${{ secrets.PROD_CLIENT_HEALTHCHECK_URL }}
           ADMIN_HEALTHCHECK_URL: ${{ secrets.PROD_ADMIN_HEALTHCHECK_URL }}
         run: |
           ssh -i ~/.ssh/lightsail.pem ec2-user@"$LIGHTSAIL_HOST" <<EOF
-          set -e
+          set -euo pipefail
+          RELEASE_DIR="$RELEASES_DIR/$RELEASE_ID"
+          CLIENT_RELEASE_DIR="\$RELEASE_DIR/client"
+          ADMIN_RELEASE_DIR="\$RELEASE_DIR/admin"
+          CLIENT_HEALTHCHECK_URL="$CLIENT_HEALTHCHECK_URL"
+          ADMIN_HEALTHCHECK_URL="$ADMIN_HEALTHCHECK_URL"
+          PREVIOUS_CLIENT_TARGET=\$(readlink -f "$CURRENT_CLIENT_DIR" || true)
+          PREVIOUS_ADMIN_TARGET=\$(readlink -f "$CURRENT_ADMIN_DIR" || true)
+
+          rollback() {
+            if [ -n "\$PREVIOUS_CLIENT_TARGET" ]; then
+              ln -sfn "\$PREVIOUS_CLIENT_TARGET" "$CURRENT_CLIENT_DIR"
+            fi
+
+            if [ -n "\$PREVIOUS_ADMIN_TARGET" ]; then
+              ln -sfn "\$PREVIOUS_ADMIN_TARGET" "$CURRENT_ADMIN_DIR"
+            fi
+
+            if pm2 describe dongle.client.prod >/dev/null 2>&1 || pm2 describe dongle.admin.prod >/dev/null 2>&1; then
+              pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env || true
+            else
+              pm2 start "$ROOT_DIR/ecosystem.config.js" --update-env || true
+            fi
+
+            if [ -n "\${CLIENT_HEALTHCHECK_URL:-}" ]; then
+              curl --fail --silent --show-error --retry 3 --retry-delay 3 "\$CLIENT_HEALTHCHECK_URL" >/dev/null || true
+            fi
+
+            if [ -n "\${ADMIN_HEALTHCHECK_URL:-}" ]; then
+              curl --fail --silent --show-error --retry 3 --retry-delay 3 "\$ADMIN_HEALTHCHECK_URL" >/dev/null || true
+            fi
+
+            if [ -n "\$PREVIOUS_CLIENT_TARGET" ]; then
+              echo "Rolled back client to \$PREVIOUS_CLIENT_TARGET"
+            fi
+
+            if [ -n "\$PREVIOUS_ADMIN_TARGET" ]; then
+              echo "Rolled back admin to \$PREVIOUS_ADMIN_TARGET"
+            fi
+
+            if pm2 describe dongle.client.prod >/dev/null 2>&1 || pm2 describe dongle.admin.prod >/dev/null 2>&1; then
+              pm2 save || true
+            fi
+          }
+
           cat > "$ROOT_DIR/.env.pm2.prod" <<ENVFILE
           API_URL=$PROD_API_URL
           NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
           SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT
           SENTRY_RELEASE=$SENTRY_RELEASE
           CLIENT_NEXT_PUBLIC_SENTRY_DSN=$CLIENT_NEXT_PUBLIC_SENTRY_DSN
-          CLIENT_SENTRY_DSN=$CLIENT_SENTRY_DSN
-          CLIENT_SENTRY_ENVIRONMENT=$CLIENT_SENTRY_ENVIRONMENT
-          CLIENT_SENTRY_RELEASE=$CLIENT_SENTRY_RELEASE
           ADMIN_NEXT_PUBLIC_SENTRY_DSN=$ADMIN_NEXT_PUBLIC_SENTRY_DSN
-          ADMIN_SENTRY_DSN=$ADMIN_SENTRY_DSN
-          ADMIN_SENTRY_ENVIRONMENT=$ADMIN_SENTRY_ENVIRONMENT
-          ADMIN_SENTRY_RELEASE=$ADMIN_SENTRY_RELEASE
-          DEPLOY_CLIENT_DIR_PROD=$CLIENT_DIR
-          DEPLOY_ADMIN_DIR_PROD=$ADMIN_DIR
+          DEPLOY_CLIENT_DIR_PROD=$CURRENT_CLIENT_DIR
+          DEPLOY_ADMIN_DIR_PROD=$CURRENT_ADMIN_DIR
           ENVFILE
 
-          if pm2 describe dongle.client.prod >/dev/null 2>&1; then
-            PM2_APP_ENV=prod pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env
+          ln -sfn "\$CLIENT_RELEASE_DIR" "$CURRENT_CLIENT_DIR"
+          ln -sfn "\$ADMIN_RELEASE_DIR" "$CURRENT_ADMIN_DIR"
+
+          if pm2 describe dongle.client.prod >/dev/null 2>&1 || pm2 describe dongle.admin.prod >/dev/null 2>&1; then
+            pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env
           else
-            PM2_APP_ENV=prod pm2 start "$ROOT_DIR/ecosystem.config.js" --update-env
+            pm2 start "$ROOT_DIR/ecosystem.config.js" --update-env
+          fi
+
+          if ! curl --fail --silent --show-error --retry 5 --retry-delay 3 http://127.0.0.1:3000/api/health | grep -q "\"release\":\"$SENTRY_RELEASE\""; then
+            rollback
+            exit 1
+          fi
+
+          if ! curl --fail --silent --show-error --retry 5 --retry-delay 3 http://127.0.0.1:4000/api/health | grep -q "\"release\":\"$SENTRY_RELEASE\""; then
+            rollback
+            exit 1
+          fi
+
+          if [ -n "\${CLIENT_HEALTHCHECK_URL:-}" ] && ! curl --fail --silent --show-error --retry 5 --retry-delay 3 "\$CLIENT_HEALTHCHECK_URL" >/dev/null; then
+            rollback
+            exit 1
+          fi
+
+          if [ -n "\${ADMIN_HEALTHCHECK_URL:-}" ] && ! curl --fail --silent --show-error --retry 5 --retry-delay 3 "\$ADMIN_HEALTHCHECK_URL" >/dev/null; then
+            rollback
+            exit 1
           fi
 
           pm2 save
           EOF
-
-          if [ -n "$CLIENT_HEALTHCHECK_URL" ]; then
-            curl --fail --silent --show-error --retry 5 --retry-delay 5 "$CLIENT_HEALTHCHECK_URL" >/dev/null
-          fi
-
-          if [ -n "$ADMIN_HEALTHCHECK_URL" ]; then
-            curl --fail --silent --show-error --retry 5 --retry-delay 5 "$ADMIN_HEALTHCHECK_URL" >/dev/null
-          fi
