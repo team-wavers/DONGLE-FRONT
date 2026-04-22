@@ -141,10 +141,27 @@ jobs:
           ADMIN_RELEASE_DIR="\$RELEASE_DIR/admin"
           CLIENT_HEALTHCHECK_URL="$CLIENT_HEALTHCHECK_URL"
           ADMIN_HEALTHCHECK_URL="$ADMIN_HEALTHCHECK_URL"
+          LEGACY_CLIENT_TARGET="$ROOT_DIR/dongle.client.prod"
+          LEGACY_ADMIN_TARGET="$ROOT_DIR/dongle.admin.prod"
           PREVIOUS_CLIENT_TARGET=\$(readlink -f "$CURRENT_CLIENT_DIR" || true)
           PREVIOUS_ADMIN_TARGET=\$(readlink -f "$CURRENT_ADMIN_DIR" || true)
+          ROLLBACK_STARTED=0
+
+          if [ -z "\$PREVIOUS_CLIENT_TARGET" ] && [ -d "\$LEGACY_CLIENT_TARGET" ]; then
+            PREVIOUS_CLIENT_TARGET="\$LEGACY_CLIENT_TARGET"
+          fi
+
+          if [ -z "\$PREVIOUS_ADMIN_TARGET" ] && [ -d "\$LEGACY_ADMIN_TARGET" ]; then
+            PREVIOUS_ADMIN_TARGET="\$LEGACY_ADMIN_TARGET"
+          fi
 
           rollback() {
+            if [ "\$ROLLBACK_STARTED" = "1" ]; then
+              return
+            fi
+
+            ROLLBACK_STARTED=1
+
             if [ -n "\$PREVIOUS_CLIENT_TARGET" ]; then
               ln -sfn "\$PREVIOUS_CLIENT_TARGET" "$CURRENT_CLIENT_DIR"
             fi
@@ -194,10 +211,15 @@ jobs:
           ln -sfn "\$CLIENT_RELEASE_DIR" "$CURRENT_CLIENT_DIR"
           ln -sfn "\$ADMIN_RELEASE_DIR" "$CURRENT_ADMIN_DIR"
 
-          if pm2 describe dongle.client.prod >/dev/null 2>&1 || pm2 describe dongle.admin.prod >/dev/null 2>&1; then
-            pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env
-          else
-            pm2 start "$ROOT_DIR/ecosystem.config.js" --update-env
+          if ! {
+            if pm2 describe dongle.client.prod >/dev/null 2>&1 || pm2 describe dongle.admin.prod >/dev/null 2>&1; then
+              pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env
+            else
+              pm2 start "$ROOT_DIR/ecosystem.config.js" --update-env
+            fi
+          }; then
+            rollback
+            exit 1
           fi
 
           if ! curl --fail --silent --show-error --retry 5 --retry-delay 3 http://127.0.0.1:3000/api/health | grep -q "\"release\":\"$SENTRY_RELEASE\""; then
