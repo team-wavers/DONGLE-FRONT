@@ -1,7 +1,6 @@
 {
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
-        "baseUrl": ".",
         "plugins": [
             {
                 "name": "next",
@@ -15,6 +14,8 @@
             "@dongle/service/*": ["../../packages/service/src/*"],
             "@dongle/rich-text": ["../../packages/rich-text/src/index.ts"],
             "@dongle/rich-text/*": ["../../packages/rich-text/src/*"],
+            "@dongle/content": ["../../packages/content/src/index.ts"],
+            "@dongle/content/*": ["../../packages/content/src/*"],
             "@dongle/types": ["../../packages/types/src/index.ts"],
             "@dongle/types/*": ["../../packages/types/src/*"],
             "@dongle/ui": ["../../packages/ui/src/index.ts"],

@@ -61,8 +61,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     <main className="flex-1 w-full max-w-[1024px] mx-auto px-6">{children}</main>
                 </div>
                 <footer className="border-t border-zinc-200 bg-zinc-50">
-                    <div className="w-full max-w-[1024px] mx-auto px-6 py-6 text-xs text-zinc-500 space-y-1">
-                        <p>&copy; {new Date().getFullYear()} DONGLE.</p>
+                    <div className="w-full max-w-[1024px] mx-auto px-6 py-6 text-xs text-zinc-500 space-y-2">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <p>&copy; {new Date().getFullYear()} DONGLE.</p>
+                            <Link href="/privacy" className="font-medium text-zinc-600 hover:text-zinc-900">
+                                개인정보처리방침
+                            </Link>
+                        </div>
                         <p>All rights reserved.</p>
                     </div>
                 </footer>

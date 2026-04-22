@@ -25,6 +25,7 @@
     },
     "dependencies": {
         "@dongle/api": "workspace:*",
+        "@dongle/content": "workspace:*",
         "@dongle/rich-text": "workspace:*",
         "@dongle/service": "workspace:*",
         "@dongle/types": "workspace:*",
