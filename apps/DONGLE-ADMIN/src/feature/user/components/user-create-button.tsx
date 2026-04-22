@@ -18,7 +18,7 @@ export default function UserCreateButton() {
         <>
             <Button type="button" onClick={() => setIsOpen(true)} className="font-semibold flex items-center gap-2">
                 <UserPlus className="w-4 h-4" />
-                사용자 생성
+                관리자 생성
             </Button>
             {isOpen && (
                 <UserCreateForm

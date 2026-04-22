@@ -3,7 +3,6 @@
 import { useActionState, useEffect } from "react";
 import { User } from "@dongle/types/user/user.d";
 import { FormField } from "@/components/atoms/form/form-field/form-field";
-import { FormSelect } from "@/components/atoms/form/form-select/form-select";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@dongle/ui/dialog";
 import { Button } from "@dongle/ui/button";
@@ -46,7 +45,6 @@ export default function UserEditForm({ user, isOpen, onClose, onSuccess }: UserE
                     <input type="hidden" name="userId" value={user.id} />
                     <input type="hidden" name="originalName" value={user.name} />
                     <input type="hidden" name="originalLoginId" value={user.login_id} />
-                    <input type="hidden" name="originalRole" value={user.role} />
                     <input type="hidden" name="originalPhone" value={user.phone} />
 
                     <FormField
@@ -76,20 +74,6 @@ export default function UserEditForm({ user, isOpen, onClose, onSuccess }: UserE
                         id="password"
                         placeholder="새 비밀번호를 입력하세요"
                         error={state.fieldErrors?.password}
-                    />
-
-                    <FormSelect
-                        label="역할"
-                        name="role"
-                        id="role"
-                        required
-                        error={state.fieldErrors?.role}
-                        defaultValue={user.role}
-                        placeholder="역할을 선택하세요"
-                        options={[
-                            { value: "admin", label: "관리자" },
-                            { value: "president", label: "회장" },
-                        ]}
                     />
 
                     <FormField

@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState, useTransition } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Users } from "lucide-react";
 import { Club } from "@dongle/types/club/club.d";
@@ -41,17 +41,14 @@ export default function FilterableClubList({
     const router = useRouter();
     const [inputValue, setInputValue] = useState("");
     const [searchKeyword, setSearchKeyword] = useState("");
-    const [isFiltering, startTransition] = useTransition();
 
     useEffect(() => {
         const timer = window.setTimeout(() => {
-            startTransition(() => {
-                setSearchKeyword(normalizeClubKeyword(inputValue));
-            });
+            setSearchKeyword(normalizeClubKeyword(inputValue));
         }, 300);
 
         return () => window.clearTimeout(timer);
-    }, [inputValue, startTransition]);
+    }, [inputValue]);
 
     const deferredKeyword = useDeferredValue(searchKeyword);
     const filteredClubs = useMemo(() => filterClubsByKeyword(clubs, deferredKeyword), [clubs, deferredKeyword]);
@@ -67,14 +64,12 @@ export default function FilterableClubList({
 
     return (
         <div className="flex flex-col gap-8">
-            <div className="flex flex-col gap-2">
-                <SearchInput value={inputValue} onChange={setInputValue} placeholder={searchPlaceholder} />
-                <p className="text-sm text-muted-foreground">
-                    {isFiltering
-                        ? "검색어를 반영하는 중입니다."
-                        : `${filteredClubs.length}개의 동아리가 검색되었습니다.`}
-                </p>
+            <div className="text-sm text-gray-600">
+                총 <span className="font-semibold text-blue-600">{clubs.length}</span>
+                개의 동아리
             </div>
+
+            <SearchInput value={inputValue} onChange={setInputValue} placeholder={searchPlaceholder} />
 
             {filteredClubs.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">

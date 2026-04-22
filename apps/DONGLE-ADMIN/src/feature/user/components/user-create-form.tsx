@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect } from "react";
 import { FormField } from "@/components/atoms/form/form-field/form-field";
-import { FormSelect } from "@/components/atoms/form/form-select/form-select";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@dongle/ui/dialog";
 import { Button } from "@dongle/ui/button";
@@ -24,7 +23,7 @@ export default function UserCreateForm({ isOpen, onClose, onSuccess }: UserCreat
 
     useEffect(() => {
         if (state.success) {
-            toast.success("사용자가 성공적으로 생성되었습니다.");
+            toast.success("관리자가 성공적으로 생성되었습니다.");
             onSuccess();
             onClose();
         }
@@ -37,7 +36,7 @@ export default function UserCreateForm({ isOpen, onClose, onSuccess }: UserCreat
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>사용자 생성</DialogTitle>
+                    <DialogTitle>관리자 생성</DialogTitle>
                 </DialogHeader>
                 <form action={formAction} className="space-y-4">
                     <FormField
@@ -68,19 +67,6 @@ export default function UserCreateForm({ isOpen, onClose, onSuccess }: UserCreat
                         required
                         placeholder="비밀번호를 입력하세요"
                         error={state.fieldErrors?.password}
-                    />
-
-                    <FormSelect
-                        label="역할"
-                        name="role"
-                        id="role"
-                        required
-                        error={state.fieldErrors?.role}
-                        placeholder="역할을 선택하세요"
-                        options={[
-                            { value: "admin", label: "관리자" },
-                            { value: "president", label: "회장" },
-                        ]}
                     />
 
                     <FormField
