@@ -48,11 +48,24 @@
 
 - 공백 loginId는 거부한다.
 - 비밀번호는 required 여부에 따라 빈 값 허용 규칙이 달라진다.
-- role은 허용된 값만 통과한다.
 - 전화번호는 올바른 휴대폰 형식만 통과한다.
+- 사용자 생성 폼은 역할을 입력받지 않고 관리자 계정으로 생성한다.
+- 사용자 수정 폼은 역할을 변경하지 않는다.
 
 관련 테스트:
 - [user-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/validation/user-form.validation.test.ts)
+- [user-create-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/action/user-create-form.action.test.ts)
+
+## Admin User Management
+
+### 검색 필터
+
+- 검색어는 trim 후 소문자 기준으로 비교된다.
+- 이름, 로그인 ID, 전화번호, 역할, 소속 동아리명이 검색 대상이다.
+- 검색 결과는 일관된 deterministic 로직으로 계산된다.
+
+관련 테스트:
+- [filterable-user-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/components/filterable-user-list.test.ts)
 
 ## Report Create / Update
 

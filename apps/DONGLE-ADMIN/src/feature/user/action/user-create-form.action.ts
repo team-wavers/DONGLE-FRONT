@@ -7,7 +7,6 @@ import {
     validateUserName,
     validateLoginId,
     validatePassword,
-    validateUserRole,
     validateUserPhone,
     type UserFormFieldErrors,
 } from "@/feature/user/validation/user-form.validation";
@@ -26,8 +25,8 @@ export async function userCreateFormAction(
     const name = (formData.get("name") as string)?.trim() ?? "";
     const login_id = (formData.get("login_id") as string)?.trim() ?? "";
     const password = (formData.get("password") as string) ?? "";
-    const role = (formData.get("role") as string) ?? "";
     const phone = (formData.get("phone") as string)?.trim() ?? "";
+    const role = "admin";
 
     const fieldErrors: UserFormFieldErrors = {};
     const nameError = validateUserName(name);
@@ -36,8 +35,6 @@ export async function userCreateFormAction(
     if (loginIdError) fieldErrors.login_id = loginIdError;
     const passwordError = validatePassword(password, true);
     if (passwordError) fieldErrors.password = passwordError;
-    const roleError = validateUserRole(role);
-    if (roleError) fieldErrors.role = roleError;
     const phoneError = validateUserPhone(phone);
     if (phoneError) fieldErrors.phone = phoneError;
 
@@ -52,14 +49,14 @@ export async function userCreateFormAction(
             name,
             login_id,
             password,
-            role: role as "admin" | "president",
+            role,
             phone,
         });
 
         if (!isSuccess) {
             return {
                 success: false,
-                error: error?.message ?? "사용자 생성에 실패했습니다. 다시 시도해주세요.",
+                error: error?.message ?? "관리자 생성에 실패했습니다. 다시 시도해주세요.",
             };
         }
 
@@ -67,13 +64,13 @@ export async function userCreateFormAction(
 
         return { success: true };
     } catch (err) {
-        captureServerException(err, "사용자 생성 중 오류", {
+        captureServerException(err, "관리자 생성 중 오류", {
             action: "userCreateFormAction",
             login_id,
             role,
         });
         const message =
-            err instanceof Error ? err.message : "사용자 생성 중 오류가 발생했습니다. 다시 시도해주세요.";
+            err instanceof Error ? err.message : "관리자 생성 중 오류가 발생했습니다. 다시 시도해주세요.";
         return {
             success: false,
             error: message,
