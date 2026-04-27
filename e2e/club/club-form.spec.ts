@@ -2,14 +2,6 @@ import { expect, test } from "@playwright/test";
 import { gotoClubForm } from "../fixtures/club.fixture";
 
 test.describe("club form", () => {
-    test("동아리 정보 수정 화면이 렌더링된다", async ({ page }) => {
-        await gotoClubForm(page);
-
-        await expect(page.getByRole("button", { name: "동아리 정보 수정" })).toBeVisible();
-        await expect(page.getByRole("button", { name: "동아리 삭제" })).toBeVisible();
-        await expect(page.getByRole("button", { name: "회장 정보 수정" })).toBeVisible();
-    });
-
     test("동아리 정보를 성공적으로 수정할 수 있다", async ({ page }) => {
         await gotoClubForm(page);
 

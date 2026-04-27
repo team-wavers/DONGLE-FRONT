@@ -7,7 +7,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@dongle/ui/button";
 import { Calendar } from "@dongle/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@dongle/ui/popover";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Label } from "@dongle/ui/label";
 
 export function FormDatePicker({
@@ -37,11 +37,13 @@ export function FormDatePicker({
 }) {
     const [date, setDate] = useState<Date | undefined>(value || defaultValue);
 
+    useEffect(() => {
+        setDate(value || defaultValue);
+    }, [defaultValue, value]);
+
     const handleDateSelect = (selectedDate: Date | undefined) => {
-        if (selectedDate) {
-            setDate(selectedDate);
-            onSelect?.(selectedDate);
-        }
+        setDate(selectedDate);
+        onSelect?.(selectedDate);
     };
 
     return (

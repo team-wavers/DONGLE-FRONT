@@ -13,6 +13,7 @@ interface SuccessData {
     tempId: string;
     tempPassword: string;
     clubName: string;
+    warningMessage?: string;
 }
 
 export default function RegisterSuccessPage() {
@@ -24,7 +25,7 @@ export default function RegisterSuccessPage() {
         const encodedData = searchParams.get("data");
         if (encodedData) {
             try {
-                const decodedData = JSON.parse(decodeURIComponent(encodedData));
+                const decodedData = JSON.parse(atob(encodedData)) as SuccessData;
                 setSuccessData(decodedData);
             } catch (error) {
                 console.error("데이터 디코딩 실패:", error);
@@ -79,6 +80,17 @@ export default function RegisterSuccessPage() {
                         </CardDescription>
                     </CardHeader>
                 </Card>
+
+                {successData.warningMessage ? (
+                    <Card className="border-amber-200 bg-amber-50/70">
+                        <CardHeader>
+                            <CardTitle className="text-lg text-amber-900">추가 확인이 필요합니다</CardTitle>
+                            <CardDescription className="text-amber-800">
+                                {successData.warningMessage}
+                            </CardDescription>
+                        </CardHeader>
+                    </Card>
+                ) : null}
 
                 {/* 임시 로그인 정보 */}
                 <Card>

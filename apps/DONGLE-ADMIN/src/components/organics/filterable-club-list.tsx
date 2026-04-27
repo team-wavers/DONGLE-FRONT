@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState, useTransition } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Users } from "lucide-react";
 import { Club } from "@dongle/types/club/club.d";
@@ -14,11 +14,11 @@ interface FilterableClubListProps {
     searchPlaceholder: string;
 }
 
-function normalizeKeyword(value: string) {
+export function normalizeClubKeyword(value: string) {
     return value.trim().toLowerCase();
 }
 
-function matchesClub(club: Club, keyword: string) {
+export function matchesClub(club: Club, keyword: string) {
     if (!keyword) {
         return true;
     }
@@ -26,6 +26,10 @@ function matchesClub(club: Club, keyword: string) {
     const searchableText = [club.name, club.category].join(" ").toLowerCase();
 
     return searchableText.includes(keyword);
+}
+
+export function filterClubsByKeyword(clubs: Club[], keyword: string) {
+    return clubs.filter((club) => matchesClub(club, keyword));
 }
 
 export default function FilterableClubList({
@@ -37,23 +41,17 @@ export default function FilterableClubList({
     const router = useRouter();
     const [inputValue, setInputValue] = useState("");
     const [searchKeyword, setSearchKeyword] = useState("");
-    const [isFiltering, startTransition] = useTransition();
 
     useEffect(() => {
         const timer = window.setTimeout(() => {
-            startTransition(() => {
-                setSearchKeyword(normalizeKeyword(inputValue));
-            });
+            setSearchKeyword(normalizeClubKeyword(inputValue));
         }, 300);
 
         return () => window.clearTimeout(timer);
-    }, [inputValue, startTransition]);
+    }, [inputValue]);
 
     const deferredKeyword = useDeferredValue(searchKeyword);
-    const filteredClubs = useMemo(
-        () => clubs.filter((club) => matchesClub(club, deferredKeyword)),
-        [clubs, deferredKeyword]
-    );
+    const filteredClubs = useMemo(() => filterClubsByKeyword(clubs, deferredKeyword), [clubs, deferredKeyword]);
 
     if (clubs.length === 0) {
         return (
@@ -66,14 +64,12 @@ export default function FilterableClubList({
 
     return (
         <div className="flex flex-col gap-8">
-            <div className="flex flex-col gap-2">
-                <SearchInput value={inputValue} onChange={setInputValue} placeholder={searchPlaceholder} />
-                <p className="text-sm text-muted-foreground">
-                    {isFiltering
-                        ? "검색어를 반영하는 중입니다."
-                        : `${filteredClubs.length}개의 동아리가 검색되었습니다.`}
-                </p>
+            <div className="text-sm text-gray-600">
+                총 <span className="font-semibold text-blue-600">{clubs.length}</span>
+                개의 동아리
             </div>
+
+            <SearchInput value={inputValue} onChange={setInputValue} placeholder={searchPlaceholder} />
 
             {filteredClubs.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">

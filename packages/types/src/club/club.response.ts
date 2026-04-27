@@ -42,7 +42,12 @@ export type ClubUpdateResponse = Response<Club>;
 
 export type ClubDeleteResponse = Response<null>;
 
-export type ClubIconImageResponse = Response<string>;
+export type ClubIconImageResponse = Response<
+    | string
+    | {
+          icon_url: string;
+      }
+>;
 
 //request
 export type ClubCreateRequest = CreateClubRequest;

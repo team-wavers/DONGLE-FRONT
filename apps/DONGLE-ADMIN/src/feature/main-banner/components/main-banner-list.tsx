@@ -3,23 +3,10 @@ import { Card, CardContent } from "@dongle/ui/card";
 import { Badge } from "@dongle/ui/badge";
 import Link from "next/link";
 import Image from "next/image";
+import { formatKoreanDate } from "@/lib/format/date";
 
 interface MainBannerListProps {
     banners: MainBanner[];
-}
-
-function formatDateTime(value: string): string {
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return new Intl.DateTimeFormat("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-    }).format(date);
 }
 
 export default function MainBannerList({ banners }: MainBannerListProps) {
@@ -46,9 +33,8 @@ export default function MainBannerList({ banners }: MainBannerListProps) {
                                     {banner.is_active ? "사용" : "미사용"}
                                 </Badge>
                                 <div>
-                                    노출 기간:{" "}
-                                    <span className="font-bold">{formatDateTime(banner.publish_start_at)}</span> ~{" "}
-                                    <span className="font-bold">{formatDateTime(banner.publish_end_at)}</span>
+                                    노출 기간: <span className="font-bold">{formatKoreanDate(banner.publish_start_at)}</span>{" "}
+                                    ~ <span className="font-bold">{formatKoreanDate(banner.publish_end_at)}</span>
                                 </div>
                             </div>
                         </CardContent>

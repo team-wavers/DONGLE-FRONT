@@ -109,6 +109,35 @@ function appendPreviewFiles(files: File[], setPreviews: React.Dispatch<React.Set
     });
 }
 
+function normalizeExistingUrl(value: string): string | null {
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+        return null;
+    }
+
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
+        return trimmed;
+    }
+
+    try {
+        const parsed = JSON.parse(trimmed) as {
+            icon_url?: unknown;
+            image_url?: unknown;
+            url?: unknown;
+        };
+        const candidate = parsed.icon_url ?? parsed.image_url ?? parsed.url;
+
+        if (typeof candidate === "string" && candidate.trim()) {
+            return candidate.trim();
+        }
+    } catch {
+        return null;
+    }
+
+    return null;
+}
+
 function FileListItem({
     label,
     subLabel,
@@ -260,7 +289,10 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         const shouldShowPreview = fileType === "image" && showPreview;
         const isSingleThumbnail = presentation === "single-thumbnail";
         const acceptValue = fileType === "image" ? IMAGE_ACCEPT : "*/*";
-        const baseExistingUrls = React.useMemo(() => defaultValue || [], [defaultUrlKey, defaultValue]);
+        const baseExistingUrls = React.useMemo(
+            () => (defaultValue ?? []).map(normalizeExistingUrl).filter((url): url is string => Boolean(url)),
+            [defaultUrlKey, defaultValue]
+        );
         const filteredExistingUrls = React.useMemo(
             () => baseExistingUrls.filter((url) => !removedUrls.includes(url)),
             [baseExistingUrls, removedUrls]

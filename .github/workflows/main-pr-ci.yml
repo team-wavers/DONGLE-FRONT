@@ -13,7 +13,6 @@ env:
   NODE_VERSION: 20
   PNPM_VERSION: 10.28.2
   API_URL: https://api.example.com/v1
-  NEXT_PUBLIC_S3_URL: s3.ap-northeast-2.amazonaws.com
   NEXT_TELEMETRY_DISABLED: "1"
 
 jobs:
@@ -39,8 +38,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type check
-        run: pnpm type
+      - name: Verify fast
+        run: pnpm verify:fast
 
       - name: Build
         run: pnpm build

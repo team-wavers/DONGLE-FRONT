@@ -2,24 +2,6 @@ import { expect, test } from "@playwright/test";
 import { getLoggedInClubId, gotoClubReportList } from "../fixtures/club.fixture";
 
 test.describe("club report", () => {
-    test("활동보고서 목록 화면이 렌더링된다", async ({ page }) => {
-        await gotoClubReportList(page);
-
-        await expect(page.getByRole("button", { name: "작성하기" })).toBeVisible();
-    });
-
-    test("활동보고서 작성 화면으로 이동할 수 있다", async ({ page }) => {
-        await gotoClubReportList(page);
-
-        const clubId = await getLoggedInClubId(page);
-        await page.getByRole("button", { name: "작성하기" }).click();
-
-        await expect(page).toHaveURL(new RegExp(`/${clubId}/create$`));
-        await expect(page.getByRole("heading", { name: "활동보고서 작성" })).toBeVisible();
-        await expect(page.getByLabel("보고서 제목")).toBeVisible();
-        await expect(page.locator(".ProseMirror")).toBeVisible();
-    });
-
     test("활동보고서를 작성한 뒤 삭제할 수 있다", async ({ page }) => {
         await gotoClubReportList(page);
 

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { User as UserIcon, Phone, Calendar, Edit, Trash2 } from "lucide-react";
 import UserEditForm from "@/feature/user/components/user-edit-form";
 import { deleteUserAction } from "@/feature/user/action/user-form.action";
+import { formatKoreanDate } from "@/lib/format/date";
 import { toast } from "sonner";
 
 interface UserCardProps {
@@ -104,7 +105,7 @@ export default function UserCard({ user }: UserCardProps) {
                             )}
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <Calendar className="w-4 h-4" />
-                                <span>가입일: {new Date(user.created_at).toLocaleDateString("ko-KR")}</span>
+                                <span>가입일: {formatKoreanDate(user.created_at)}</span>
                             </div>
                         </div>
                     </div>

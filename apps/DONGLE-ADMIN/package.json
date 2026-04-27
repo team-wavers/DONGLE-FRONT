@@ -19,12 +19,14 @@
         "lint": "next lint",
         "storybook": "storybook dev -p 6006",
         "storybook:build": "storybook build",
+        "test": "vitest run --project admin",
         "type": "tsc --noEmit",
         "mock": "tsx src/mocks/server.ts",
         "mock:dev": "tsx watch src/mocks/server.ts"
     },
     "dependencies": {
         "@dongle/api": "workspace:*",
+        "@dongle/content": "workspace:*",
         "@dongle/rich-text": "workspace:*",
         "@dongle/service": "workspace:*",
         "@dongle/types": "workspace:*",

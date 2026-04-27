@@ -11,7 +11,7 @@ function getClubCredentials() {
     return { username, password };
 }
 
-function getClubIdFromPath(pathname: string) {
+export function getClubIdFromPath(pathname: string) {
     const match = pathname.match(/^\/(\d+)\//);
     return match?.[1];
 }

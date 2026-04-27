@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, formatDateByLocale } from "@dongle/ui";
 import { RichTextViewer } from "@dongle/rich-text";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@dongle/ui/dialog";
+import { Skeleton } from "@dongle/ui/skeleton";
+import { formatDateByLocale } from "@dongle/ui/utils";
 
 type ClubReportDetailViewModel = {
     id: number;
@@ -17,6 +19,7 @@ type ClubReportDetailViewModel = {
 interface ClubReportDetailModalProps {
     report: ClubReportDetailViewModel | null;
     open: boolean;
+    isLoading?: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
@@ -25,7 +28,12 @@ const styles = {
         "absolute top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70 flex items-center justify-center disabled:opacity-40",
 } as const;
 
-export default function ClubReportDetailModal({ report, open, onOpenChange }: ClubReportDetailModalProps) {
+export default function ClubReportDetailModal({
+    report,
+    open,
+    isLoading = false,
+    onOpenChange,
+}: ClubReportDetailModalProps) {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
     const selectedImages = report?.image_urls ?? [];
@@ -44,7 +52,36 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="w-full max-w-[90vw] sm:max-w-2xl max-h-[90vh] p-0 gap-0 overflow-hidden">
-                {report && (
+                {isLoading ? (
+                    <section className="p-4 md:p-5 min-h-0 max-h-[90vh] overflow-y-auto space-y-4">
+                        <div className="flex flex-col gap-4 pt-4">
+                            <Skeleton className="aspect-[16/10] w-full rounded-xl" />
+
+                            <div className="flex gap-2 overflow-x-auto pb-1">
+                                <Skeleton className="h-14 w-20 shrink-0 rounded-md" />
+                                <Skeleton className="h-14 w-20 shrink-0 rounded-md" />
+                                <Skeleton className="h-14 w-20 shrink-0 rounded-md" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Skeleton className="h-8 w-2/3 rounded-md" />
+                            <Skeleton className="h-4 w-28 rounded-md" />
+                        </div>
+
+                        <div className="space-y-3 py-4">
+                            <Skeleton className="h-4 w-full rounded-md" />
+                            <Skeleton className="h-4 w-full rounded-md" />
+                            <Skeleton className="h-4 w-5/6 rounded-md" />
+                            <Skeleton className="h-4 w-full rounded-md" />
+                            <Skeleton className="h-4 w-4/6 rounded-md" />
+                        </div>
+
+                        <div className="pt-2">
+                            <Skeleton className="h-10 w-full rounded-md" />
+                        </div>
+                    </section>
+                ) : report ? (
                     <section className="p-4 md:p-5 min-h-0 max-h-[90vh] overflow-y-auto space-y-4">
                         <DialogTitle className="sr-only">{report.title}</DialogTitle>
                         <DialogDescription className="sr-only">
@@ -120,7 +157,7 @@ export default function ClubReportDetailModal({ report, open, onOpenChange }: Cl
                             </DialogClose>
                         </div>
                     </section>
-                )}
+                ) : null}
             </DialogContent>
         </Dialog>
     );

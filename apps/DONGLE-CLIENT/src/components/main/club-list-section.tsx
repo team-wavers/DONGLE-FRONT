@@ -1,6 +1,6 @@
 "use client";
 
-import { ClubInfoCard } from "@dongle/ui";
+import { ClubInfoCard } from "@dongle/ui/cards/club-info-card";
 import Link from "next/link";
 
 type ClubListItemViewModel = {

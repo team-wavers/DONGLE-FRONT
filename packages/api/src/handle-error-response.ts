@@ -31,11 +31,11 @@ function summarizeRequestPayload(requestPayload: unknown) {
 }
 
 function extractErrorMessage(errorData: unknown, response: Response): string {
-    if (response.status === 401) {
-        return "권한이 없거나 로그인 세션이 만료되었습니다.";
-    }
-
     if (!errorData || typeof errorData !== "object") {
+        if (response.status === 401) {
+            return "권한이 없거나 로그인 세션이 만료되었습니다.";
+        }
+
         return `HTTP ${response.status}: ${response.statusText}`;
     }
 
@@ -54,6 +54,10 @@ function extractErrorMessage(errorData: unknown, response: Response): string {
         if (typeof candidate === "string" && candidate.trim()) {
             return candidate;
         }
+    }
+
+    if (response.status === 401) {
+        return "권한이 없거나 로그인 세션이 만료되었습니다.";
     }
 
     return `HTTP ${response.status}: ${response.statusText}`;

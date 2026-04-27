@@ -2,16 +2,18 @@
 
 import {
   createClubReportService,
-  uploadClubReportImageService,
 } from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
+import { validateActivityReportInput } from "@/feature/report/validation/activity-report.validation";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { uploadReportImages } from "./upload-report-images";
 
 // 서버 액션 타입 정의
 export interface ActivityReportActionState {
   success?: boolean;
   error?: string;
+  sessionExpired?: boolean;
   fieldErrors?: {
     title?: string;
     content?: string;
@@ -30,29 +32,12 @@ export async function activityReportAction(
   const clubId = formData.get("clubId") as string;
   const images = formData.getAll("images") as File[];
 
-  // 클라이언트 사이드 검증
-  const fieldErrors: {
-    title?: string;
-    content?: string;
-    reportDate?: string;
-    images?: string;
-  } = {};
+  const { fieldErrors, isValid } = validateActivityReportInput({
+    title,
+    content,
+  });
 
-  if (!title) {
-    fieldErrors.title = "제목을 입력해주세요";
-  } else if (title.length < 2) {
-    fieldErrors.title = "제목은 최소 2자 이상이어야 합니다";
-  } else if (title.length > 100) {
-    fieldErrors.title = "제목은 최대 100자 이하여야 합니다";
-  }
-
-  if (!content) {
-    fieldErrors.content = "내용을 입력해주세요";
-  } else if (content.length < 10) {
-    fieldErrors.content = "내용은 최소 10자 이상이어야 합니다";
-  }
-
-  if (Object.keys(fieldErrors).length > 0) {
+  if (!isValid) {
     return {
       fieldErrors,
     };
@@ -61,30 +46,21 @@ export async function activityReportAction(
   try {
     await requireServerActionAccessToken();
 
-    const imageUrls: string[] = [];
+    let imageUrls: string[] = [];
 
-    if (images && images.length > 0) {
-      for (const image of images) {
-        if (image.size > 0) {
-          try {
-            const { result, isSuccess } = await uploadClubReportImageService(
-              Number(clubId),
-              image
-            );
-            if (isSuccess && result) {
-              imageUrls.push(result);
-            }
-          } catch (error) {
-            captureServerException(error, "활동보고서 이미지 업로드 실패", {
-              action: "activityReportAction",
-              clubId,
-            });
-            return {
-              error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
-            };
-          }
-        }
-      }
+    try {
+      imageUrls = await uploadReportImages({
+        clubId,
+        images,
+      });
+    } catch (error) {
+      captureServerException(error, "활동보고서 이미지 업로드 실패", {
+        action: "activityReportAction",
+        clubId,
+      });
+      return {
+        error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
+      };
     }
 
     const response = await createClubReportService(Number(clubId), {
@@ -101,6 +77,13 @@ export async function activityReportAction(
       return { error: "활동보고서 생성에 실패했습니다. 다시 시도해주세요." };
     }
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return {
+        error: "로그인 시간이 만료되었습니다. 다시 로그인해주세요.",
+        sessionExpired: true,
+      };
+    }
+
     captureServerException(error, "활동보고서 생성 실패", {
       action: "activityReportAction",
       clubId,

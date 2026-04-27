@@ -11,13 +11,28 @@ import { Club } from "@dongle/types/club/club.d";
 
 interface ClubIntroductionProps {
   club?: Club;
+  values?: {
+    description: string;
+    mainActivities: string;
+    tags: string;
+  };
+  onDescriptionChange?: (value: string) => void;
+  onMainActivitiesChange?: (value: string) => void;
+  onTagsChange?: (value: string) => void;
   fieldErrors?: {
     description?: string;
     main_activities?: string;
   };
 }
 
-export function ClubIntroduction({ club, fieldErrors }: ClubIntroductionProps) {
+export function ClubIntroduction({
+  club,
+  values,
+  onDescriptionChange,
+  onMainActivitiesChange,
+  onTagsChange,
+  fieldErrors,
+}: ClubIntroductionProps) {
   return (
     <Card>
       <CardHeader>
@@ -40,7 +55,9 @@ export function ClubIntroduction({ club, fieldErrors }: ClubIntroductionProps) {
             name="description"
             rows={4}
             placeholder="동아리에 대한 자세한 설명을 입력해주세요."
-            defaultValue={club?.description}
+            defaultValue={values ? undefined : club?.description}
+            value={values?.description}
+            onChange={(event) => onDescriptionChange?.(event.target.value)}
             required
             error={fieldErrors?.description}
           />
@@ -56,7 +73,9 @@ export function ClubIntroduction({ club, fieldErrors }: ClubIntroductionProps) {
             name="main_activities"
             rows={3}
             placeholder="동아리에서 주로 하는 활동을 소개해주세요."
-            defaultValue={club?.main_activities}
+            defaultValue={values ? undefined : club?.main_activities}
+            value={values?.mainActivities}
+            onChange={(event) => onMainActivitiesChange?.(event.target.value)}
             required
             error={fieldErrors?.main_activities}
           />
@@ -71,7 +90,9 @@ export function ClubIntroduction({ club, fieldErrors }: ClubIntroductionProps) {
               name="tags"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               placeholder="태그를 입력하세요 (예: 개발, 디자인)"
-              defaultValue={club?.tags.join(", ")}
+              defaultValue={values ? undefined : club?.tags.join(", ")}
+              value={values?.tags}
+              onChange={(event) => onTagsChange?.(event.target.value)}
             />
             <p className="text-sm text-gray-500">
               여러 태그는 쉼표(,)로 구분해주세요

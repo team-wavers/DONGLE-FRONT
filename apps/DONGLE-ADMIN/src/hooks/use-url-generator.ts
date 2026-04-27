@@ -10,14 +10,17 @@ interface GenerateUrlState {
     registerUrl?: string;
 }
 
-// 키값 추출 후 현재 관리자 origin 기준으로 등록 URL 생성
-const transformUrl = (originalUrl: string): string => {
+export const transformRegisterUrl = (originalUrl: string, origin?: string): string => {
     try {
         const url = new URL(originalUrl);
         const key = url.searchParams.get("key");
 
         if (!key) {
             return originalUrl; // 키가 없으면 원본 URL 반환
+        }
+
+        if (origin) {
+            return `${origin}/club-register/${key}`;
         }
 
         if (typeof window === "undefined") {
@@ -49,7 +52,7 @@ export function useUrlGenerator() {
                 }
 
                 // 키값 추출하여 원하는 도메인으로 변경
-                const transformedUrl = transformUrl(response.result);
+                const transformedUrl = transformRegisterUrl(response.result);
 
                 const newState = { success: true, registerUrl: transformedUrl };
                 setState(newState);

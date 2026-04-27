@@ -8,7 +8,6 @@ import {
     validateUserName,
     validateLoginId,
     validatePassword,
-    validateUserRole,
     validateUserPhone,
     type UserFormFieldErrors,
 } from "@/feature/user/validation/user-form.validation";
@@ -28,11 +27,9 @@ export async function userEditFormAction(
     const name = (formData.get("name") as string) ?? "";
     const login_id = (formData.get("login_id") as string) ?? "";
     const password = (formData.get("password") as string) ?? "";
-    const role = (formData.get("role") as string) ?? "";
     const phone = (formData.get("phone") as string) ?? "";
     const originalName = formData.get("originalName") as string;
     const originalLoginId = formData.get("originalLoginId") as string;
-    const originalRole = formData.get("originalRole") as string;
     const originalPhone = formData.get("originalPhone") as string;
 
     if (!userId) {
@@ -49,8 +46,6 @@ export async function userEditFormAction(
     if (loginIdError) fieldErrors.login_id = loginIdError;
     const passwordError = validatePassword(password, false);
     if (passwordError) fieldErrors.password = passwordError;
-    const roleError = validateUserRole(role);
-    if (roleError) fieldErrors.role = roleError;
     const phoneError = validateUserPhone(phone);
     if (phoneError) fieldErrors.phone = phoneError;
 
@@ -74,11 +69,6 @@ export async function userEditFormAction(
         // 로그인 ID가 변경된 경우만 추가
         if (login_id !== originalLoginId) {
             updateData.login_id = login_id;
-        }
-
-        // 역할이 변경된 경우만 추가
-        if (role !== originalRole) {
-            updateData.role = role as "admin" | "president";
         }
 
         // 전화번호가 변경된 경우만 추가

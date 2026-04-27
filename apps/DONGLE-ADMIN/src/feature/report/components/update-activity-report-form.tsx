@@ -10,6 +10,7 @@ import { Button } from "@dongle/ui/button";
 import { RichTextViewer } from "@dongle/rich-text";
 import { RichTextEditor } from "@/components/atoms/form/rich-text-editor/rich-text-editor";
 import { FileUpload } from "@/components/atoms/form/file-upload/file-upload";
+import { formatKoreanDate } from "@/lib/format/date";
 
 export interface UpdateActivityReportFormProps {
     report: ClubReport;
@@ -69,7 +70,7 @@ export default function UpdateActivityReportForm({ report, reportId }: UpdateAct
 
                 {/* 작성일 */}
                 <div className="flex flex-col gap-2 text-sm text-gray-500">
-                    <p>작성일: {new Date(report.createdAt).toLocaleDateString("ko-KR")}</p>
+                    <p>작성일: {formatKoreanDate(report.createdAt)}</p>
                 </div>
 
                 {/* 내용 */}
