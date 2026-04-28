@@ -30,6 +30,7 @@ export interface RichTextEditorProps {
     id: string;
     name: string;
     clubId?: string;
+    enableImageUpload?: boolean;
     label?: string;
     required?: boolean;
     error?: string;
@@ -68,6 +69,7 @@ export function RichTextEditor({
     id,
     name,
     clubId,
+    enableImageUpload = true,
     label,
     required,
     error,
@@ -280,13 +282,17 @@ export function RichTextEditor({
                   onClick: handleOpenLinkPopover,
                   isActive: editor.isActive("link"),
               },
-              {
-                  key: "image",
-                  icon: <ImageIcon className="h-4 w-4" />,
-                  label: isUploadingImage ? "이미지 업로드 중" : "이미지",
-                  onClick: handleInsertImage,
-                  disabled: isUploadingImage || !clubId,
-              },
+              ...(enableImageUpload
+                  ? [
+                        {
+                            key: "image",
+                            icon: <ImageIcon className="h-4 w-4" />,
+                            label: isUploadingImage ? "이미지 업로드 중" : "이미지",
+                            onClick: handleInsertImage,
+                            disabled: isUploadingImage || !clubId,
+                        },
+                    ]
+                  : []),
               {
                   key: "undo",
                   icon: <Undo2 className="h-4 w-4" />,
@@ -375,7 +381,7 @@ export function RichTextEditor({
             </div>
 
             {description && !error && <p className="text-sm text-muted-foreground">{description}</p>}
-            {!description && !error && clubId && (
+            {!description && !error && enableImageUpload && clubId && (
                 <p className="text-sm text-muted-foreground">
                     툴바의 이미지 버튼으로 이미지를 업로드해 본문에 삽입할 수 있습니다.
                 </p>

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 import { clubRegisterFormAction } from "@/feature/club/action/club-form.action";
+import { hasMeaningfulRichText } from "@/feature/club/validation/club-form.validation";
 
 // 폼 스키마 정의
 const clubRegisterSchema = z.object({
@@ -14,8 +15,8 @@ const clubRegisterSchema = z.object({
   category: z.string().min(1, "분과를 선택해주세요"),
   recruitmentStatus: z.string().min(1, "모집여부를 선택해주세요"),
   location: z.string().min(1, "동아리 방 정보를 입력해주세요"),
-  description: z.string().min(1, "동아리 설명을 입력해주세요"),
-  main_activities: z.string().min(1, "주요 활동을 입력해주세요"),
+  description: z.string().refine(hasMeaningfulRichText, { message: "동아리 설명을 입력해주세요" }),
+  main_activities: z.string().refine(hasMeaningfulRichText, { message: "주요 활동을 입력해주세요" }),
   presidentName: z.string().min(1, "회장 이름을 입력해주세요"),
   presidentContact: z
     .string()
