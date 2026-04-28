@@ -1,15 +1,17 @@
-import { UseFormRegister, FieldErrors } from "react-hook-form";
-import { FormTextarea } from "@/components/atoms/form/form-textarea/form-textarea";
+import { UseFormRegister, UseFormSetValue, UseFormWatch, FieldErrors } from "react-hook-form";
+import { RichTextEditor } from "@/components/atoms/form/rich-text-editor/rich-text-editor";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@dongle/ui/card";
 import { Tag } from "lucide-react";
 import { ClubRegisterFormData } from "@/feature/club/hooks/use-club-register-form";
 
 interface ClubIntroductionHookFormProps {
     register: UseFormRegister<ClubRegisterFormData>;
+    setValue: UseFormSetValue<ClubRegisterFormData>;
+    watch: UseFormWatch<ClubRegisterFormData>;
     errors: FieldErrors<ClubRegisterFormData>;
 }
 
-export function ClubIntroductionHookForm({ register, errors }: ClubIntroductionHookFormProps) {
+export function ClubIntroductionHookForm({ register, setValue, watch, errors }: ClubIntroductionHookFormProps) {
     return (
         <Card>
             <CardHeader>
@@ -21,25 +23,35 @@ export function ClubIntroductionHookForm({ register, errors }: ClubIntroductionH
             </CardHeader>
             <CardContent className="space-y-4">
                 {/* 동아리 설명 */}
-                <FormTextarea
+                <input type="hidden" {...register("description")} />
+                <RichTextEditor
                     label="동아리 설명"
                     id="description"
-                    rows={8}
+                    name="description"
                     placeholder="동아리에 대한 자세한 설명을 입력해주세요."
+                    value={watch("description")}
+                    onChange={(value) => setValue("description", value, { shouldDirty: true, shouldValidate: true })}
+                    enableImageUpload={false}
+                    description="굵게, 기울임, 제목, 목록, 링크 서식을 사용할 수 있습니다."
                     required
                     error={errors.description?.message}
-                    {...register("description")}
                 />
 
                 {/* 주요 활동 */}
-                <FormTextarea
+                <input type="hidden" {...register("main_activities")} />
+                <RichTextEditor
                     label="주요 활동"
                     id="main_activities"
-                    rows={8}
+                    name="main_activities"
                     placeholder="동아리에서 주로 하는 활동을 소개해주세요."
+                    value={watch("main_activities")}
+                    onChange={(value) =>
+                        setValue("main_activities", value, { shouldDirty: true, shouldValidate: true })
+                    }
+                    enableImageUpload={false}
+                    description="동아리의 핵심 활동을 보기 쉽게 정리해보세요."
                     required
                     error={errors.main_activities?.message}
-                    {...register("main_activities")}
                 />
 
                 {/* 태그 */}

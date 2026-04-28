@@ -34,7 +34,7 @@ export default function ClubRegisterHookForm({ registrationKey }: ClubRegisterHo
                 errors={errors}
             />
 
-            <ClubIntroductionHookForm register={register} errors={errors} />
+            <ClubIntroductionHookForm register={register} setValue={setValue} watch={watch} errors={errors} />
 
             <ClubMemberManagementHookForm register={register} errors={errors} />
 

@@ -31,6 +31,14 @@ export interface ClubFormData {
     presidentContact: string;
 }
 
+function stripRichTextMarkup(value: string): string {
+    return value.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim();
+}
+
+export function hasMeaningfulRichText(value: string): boolean {
+    return stripRichTextMarkup(value).length > 0;
+}
+
 export function isValidPhoneNumber(phoneNumber: string): boolean {
     const cleaned = phoneNumber.replace(/\s/g, "");
     const phoneRegex = /^01[0-9]-?\d{3,4}-?\d{4}$/;
@@ -82,11 +90,11 @@ export function validateClubForm(
         fieldErrors.recruitmentStatus = "모집여부를 선택해주세요";
     }
 
-    if (!formData.description) {
+    if (!hasMeaningfulRichText(formData.description)) {
         fieldErrors.description = "동아리 설명을 입력해주세요";
     }
 
-    if (!formData.main_activities) {
+    if (!hasMeaningfulRichText(formData.main_activities)) {
         fieldErrors.main_activities = "주요 활동을 입력해주세요";
     }
 

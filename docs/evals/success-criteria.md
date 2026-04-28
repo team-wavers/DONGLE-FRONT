@@ -39,6 +39,10 @@
 
 - 일부 호출에서는 회장 정보 검증을 끌 수 있어야 한다.
 
+### 소개/주요 활동 rich text 검증
+
+- 동아리 설명과 주요 활동은 rich text 마크업만 있는 빈 값으로 저장될 수 없다.
+
 관련 테스트:
 - [club-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/validation/club-form.validation.test.ts)
 
