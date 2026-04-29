@@ -23,6 +23,9 @@ export default function ClubMainClient({ clubs, bannerImageUrls }: ClubMainClien
         setSearchQuery,
         activeStatus,
         setActiveStatus,
+        activeCategory,
+        setActiveCategory,
+        categoryOptions,
         filteredClubs,
         summaryText,
         emptyState,
@@ -36,6 +39,9 @@ export default function ClubMainClient({ clubs, bannerImageUrls }: ClubMainClien
                 onSearchQueryChange={setSearchQuery}
                 activeStatus={activeStatus}
                 onStatusChange={setActiveStatus}
+                activeCategory={activeCategory}
+                categoryOptions={categoryOptions}
+                onCategoryChange={setActiveCategory}
             />
             <ClubListSection clubs={filteredClubs} summaryText={summaryText} emptyStateMessage={emptyState.message} />
         </section>

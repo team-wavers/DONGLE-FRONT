@@ -3,13 +3,16 @@
 import { Input } from "@dongle/ui/input";
 import { Search } from "lucide-react";
 import ClubFilterChips from "@/components/main/club-filter-chips";
-import type { ClubFilterStatus } from "@/hooks/use-club-filters";
+import type { ClubCategoryFilter, ClubFilterStatus } from "@/hooks/use-club-filters";
 
 interface ClubSearchSectionProps {
     searchQuery: string;
     onSearchQueryChange: (query: string) => void;
     activeStatus: ClubFilterStatus;
     onStatusChange: (status: ClubFilterStatus) => void;
+    activeCategory: ClubCategoryFilter;
+    categoryOptions: string[];
+    onCategoryChange: (category: ClubCategoryFilter) => void;
 }
 
 export default function ClubSearchSection({
@@ -17,6 +20,9 @@ export default function ClubSearchSection({
     onSearchQueryChange,
     activeStatus,
     onStatusChange,
+    activeCategory,
+    categoryOptions,
+    onCategoryChange,
 }: ClubSearchSectionProps) {
     return (
         <div id="club-search-section" className="flex flex-col gap-4 scroll-mt-24">
@@ -30,7 +36,13 @@ export default function ClubSearchSection({
                     className="relative h-14 rounded-xl border-zinc-200/80 bg-transparent pl-16 text-lg font-semibold text-zinc-700 placeholder:text-zinc-400"
                 />
             </div>
-            <ClubFilterChips activeStatus={activeStatus} onStatusChange={onStatusChange} />
+            <ClubFilterChips
+                activeStatus={activeStatus}
+                onStatusChange={onStatusChange}
+                activeCategory={activeCategory}
+                categoryOptions={categoryOptions}
+                onCategoryChange={onCategoryChange}
+            />
         </div>
     );
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { RecruitmentStatus } from "@dongle/ui/badges/recruitment-status-badge";
 import { getClubSearchEmptyState } from "@/lib/club-search-empty-state";
+import type { RecruitmentStatus } from "@dongle/ui/badges/recruitment-status-badge";
+import { useMemo, useState } from "react";
 
 type ClubFilterItem = {
     id: number;
@@ -12,6 +12,7 @@ type ClubFilterItem = {
 };
 
 export type ClubFilterStatus = "all" | RecruitmentStatus;
+export type ClubCategoryFilter = "all" | string;
 
 const toRecruitmentStatus = (isRecruiting: boolean): RecruitmentStatus => (isRecruiting ? "recruiting" : "closed");
 
@@ -21,26 +22,34 @@ export function normalizeClubSearchQuery(searchQuery: string) {
     return searchQuery.trim().toLowerCase();
 }
 
-export function filterClubs(clubs: ClubFilterItem[], searchQuery: string, activeStatus: ClubFilterStatus) {
+export function getClubCategoryOptions(clubs: ClubFilterItem[]) {
+    return Array.from(new Set(clubs.map((club) => club.category))).sort((left, right) =>
+        left.localeCompare(right, "ko")
+    );
+}
+
+export function filterClubs(
+    clubs: ClubFilterItem[],
+    searchQuery: string,
+    activeStatus: ClubFilterStatus,
+    activeCategory: ClubCategoryFilter
+) {
     const normalizedQuery = normalizeClubSearchQuery(searchQuery);
 
     return clubs.filter((club) => {
         const byStatus = activeStatus === "all" || toRecruitmentStatus(club.is_recruiting) === activeStatus;
+        const byCategory = activeCategory === "all" || club.category === activeCategory;
 
         const bySearch =
             normalizedQuery.length === 0 ||
             club.name.toLowerCase().includes(normalizedQuery) ||
             club.category.toLowerCase().includes(normalizedQuery);
 
-        return byStatus && bySearch;
+        return byStatus && byCategory && bySearch;
     });
 }
 
-export function getClubSummaryText(
-    activeStatus: ClubFilterStatus,
-    totalCount: number,
-    recruitingCount: number
-) {
+export function getClubSummaryText(activeStatus: ClubFilterStatus, totalCount: number, recruitingCount: number) {
     const closedCount = totalCount - recruitingCount;
 
     if (activeStatus === "recruiting") {
@@ -57,12 +66,17 @@ export function getClubSummaryText(
 export function useClubFilters(clubs: ClubFilterItem[]) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeStatus, setActiveStatus] = useState<ClubFilterStatus>("all");
+    const [activeCategory, setActiveCategory] = useState<ClubCategoryFilter>("all");
 
-    const filteredClubs = useMemo(() => filterClubs(clubs, searchQuery, activeStatus), [activeStatus, clubs, searchQuery]);
+    const categoryOptions = useMemo(() => getClubCategoryOptions(clubs), [clubs]);
+
+    const filteredClubs = useMemo(
+        () => filterClubs(clubs, searchQuery, activeStatus, activeCategory),
+        [activeCategory, activeStatus, clubs, searchQuery]
+    );
 
     const totalCount = clubs.length;
     const recruitingCount = clubs.filter((club) => club.is_recruiting).length;
-    const visibleCount = filteredClubs.length;
     const summaryText = useMemo(
         () => getClubSummaryText(activeStatus, totalCount, recruitingCount),
         [activeStatus, recruitingCount, totalCount]
@@ -77,10 +91,11 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
         setSearchQuery,
         activeStatus,
         setActiveStatus,
+        activeCategory,
+        setActiveCategory,
+        categoryOptions,
         filteredClubs,
         summaryText,
-        totalCount,
-        visibleCount,
         emptyState,
     };
 }
