@@ -23,6 +23,7 @@
 | admin auth returnTo | [normalize-internal-return-to.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/normalize-internal-return-to.test.ts) | code-graded | helper |
 | session draft | [use-session-storage-draft.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-session-storage-draft.test.ts) | code-graded | helper |
 | social url | [normalize-social-url.test.ts](../../apps/DONGLE-CLIENT/src/lib/normalize-social-url.test.ts) | code-graded | shared helper |
+| shared normalization | [string-normalization.test.ts](../../apps/DONGLE-ADMIN/src/feature/shared/normalization/string-normalization.test.ts) | code-graded | trim/nullable/phone normalization helper |
 | client report route | [get-club-report-route-status.test.ts](../../apps/DONGLE-CLIENT/src/lib/get-club-report-route-status.test.ts) | code-graded | API route status mapping |
 | client search | [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts) | code-graded | filtering / summary |
 | club fixture | [club.fixture.test.ts](../../e2e/fixtures/club.fixture.test.ts) | code-graded | fixture util |

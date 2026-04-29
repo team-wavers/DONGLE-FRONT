@@ -1,4 +1,5 @@
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
+import { isValidMobilePhoneNumber } from "@/feature/shared/normalization/string-normalization";
 
 export interface ClubFormFieldErrors {
     clubName?: string;
@@ -40,10 +41,7 @@ export function hasMeaningfulRichText(value: string): boolean {
 }
 
 export function isValidPhoneNumber(phoneNumber: string): boolean {
-    const cleaned = phoneNumber.replace(/\s/g, "");
-    const phoneRegex = /^01[0-9]-?\d{3,4}-?\d{4}$/;
-
-    return phoneRegex.test(cleaned);
+    return isValidMobilePhoneNumber(phoneNumber);
 }
 
 export function normalizeRecruitmentStatus(status?: string | null): string {
