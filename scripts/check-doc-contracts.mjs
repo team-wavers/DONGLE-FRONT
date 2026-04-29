@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { execSync } from "node:child_process";
+
 const rootDir = process.cwd();
 const workspacePathPrefix = "/Users/bigsheep/Desktop/projects/DONGLE-FRONT";
 
@@ -37,6 +39,19 @@ const markdownFilesToValidate = [
 ];
 
 const errors = [];
+const warnings = [];
+
+const inventoryDocPath = "docs/evals/test-inventory.md";
+const successCriteriaDocPath = "docs/evals/success-criteria.md";
+const knownGapsDocPath = "docs/evals/known-gaps.md";
+const guidanceDocPaths = [successCriteriaDocPath, inventoryDocPath, knownGapsDocPath];
+
+const trackedTestFileAllowPatterns = [
+    /^apps\/DONGLE-ADMIN\/src\/.+\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/,
+    /^apps\/DONGLE-CLIENT\/src\/.+\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/,
+    /^packages\/.+\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/,
+    /^e2e\/.+\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/,
+];
 
 function readFile(relativePath) {
     return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
@@ -116,6 +131,67 @@ for (const relativePath of markdownFilesToValidate) {
     validateMarkdownLinks(relativePath);
 }
 
+validateTestInventorySyncRule();
+
+
+function getGitStatusEntries() {
+    const output = execSync("git status --porcelain", { encoding: "utf8" }).trim();
+
+    if (!output) {
+        return [];
+    }
+
+    return output
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+            const normalized = line.replace(/^\?\?\s+/, "A ").replace(/^([ MARCUD])([ MARCUD])\s+/, "$1$2 ");
+            const status = normalized.slice(0, 2).trim();
+            const filePath = normalized.slice(3).trim();
+
+            return { status, filePath };
+        });
+}
+
+function isTestFilePath(filePath) {
+    return trackedTestFileAllowPatterns.some((pattern) => pattern.test(filePath));
+}
+
+function validateTestInventorySyncRule() {
+    const entries = getGitStatusEntries();
+    const changedPaths = new Set(entries.map((entry) => entry.filePath));
+    const addedOrDeletedTests = entries.filter((entry) =>
+        ["A", "D"].includes(entry.status) && /\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/.test(entry.filePath),
+    );
+
+    const trackedTestChanges = addedOrDeletedTests.filter((entry) => isTestFilePath(entry.filePath));
+    const untrackedPatternTestChanges = addedOrDeletedTests.filter((entry) => !isTestFilePath(entry.filePath));
+
+    if (untrackedPatternTestChanges.length > 0) {
+        warnings.push(
+            `허용 패턴 밖 테스트 파일 변경 감지: ${untrackedPatternTestChanges
+                .map((entry) => `${entry.status} ${entry.filePath}`)
+                .join(", ")} (필요 시 패턴 추가 검토)`,
+        );
+    }
+
+    if (trackedTestChanges.length === 0) {
+        return;
+    }
+
+    if (!changedPaths.has(inventoryDocPath)) {
+        errors.push(
+            [
+                "테스트 파일 추가/삭제가 감지되었습니다.",
+                `- 변경된 테스트: ${trackedTestChanges.map((entry) => `${entry.status} ${entry.filePath}`).join(", ")}`,
+                `- ${inventoryDocPath} 갱신 여부를 확인하세요.`,
+                `- 필요 시 함께 검토할 문서: ${successCriteriaDocPath}, ${knownGapsDocPath}`,
+            ].join("\n"),
+        );
+    }
+}
+
 if (errors.length > 0) {
     console.error("문서 계약 검증 실패:");
 
@@ -124,6 +200,14 @@ if (errors.length > 0) {
     }
 
     process.exit(1);
+}
+
+if (warnings.length > 0) {
+    console.warn("문서 계약 경고:");
+
+    for (const warning of warnings) {
+        console.warn(`- ${warning}`);
+    }
 }
 
 console.log("문서 계약 검증 통과");
