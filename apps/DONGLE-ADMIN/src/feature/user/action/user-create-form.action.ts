@@ -3,6 +3,7 @@
 import { createUserService } from "@dongle/service/user/user.service";
 import { revalidateTag } from "next/cache";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
+import { trimToEmpty } from "@/feature/shared/normalization/string-normalization";
 import {
     validateUserName,
     validateLoginId,
@@ -22,10 +23,10 @@ export async function userCreateFormAction(
     _prevState: UserCreateActionState,
     formData: FormData
 ): Promise<UserCreateActionState> {
-    const name = (formData.get("name") as string)?.trim() ?? "";
-    const login_id = (formData.get("login_id") as string)?.trim() ?? "";
+    const name = trimToEmpty(formData.get("name") as string);
+    const login_id = trimToEmpty(formData.get("login_id") as string);
     const password = (formData.get("password") as string) ?? "";
-    const phone = (formData.get("phone") as string)?.trim() ?? "";
+    const phone = trimToEmpty(formData.get("phone") as string);
     const role = "admin";
 
     const fieldErrors: UserFormFieldErrors = {};

@@ -17,6 +17,7 @@ import {
     type ClubFormFieldErrors,
 } from "@/feature/club/validation/club-form.validation";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
+import { trimToEmpty, trimToNull } from "@/feature/shared/normalization/string-normalization";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { normalizeSocialUrl } from "@dongle/ui/utils";
 
@@ -65,7 +66,7 @@ function getFirstFieldErrorMessage(fieldErrors: ClubActionState["fieldErrors"], 
 }
 
 function getTrimmedString(formData: FormData, key: string): string {
-    return String(formData.get(key) || "").trim();
+    return trimToEmpty(formData.get(key));
 }
 
 function parseStringArrayField(formData: FormData, key: string): string[] {
@@ -79,8 +80,8 @@ function parseStringArrayField(formData: FormData, key: string): string[] {
 
 function normalizeClubSnsPayload(instagram: string, youtube: string) {
     return {
-        instagram: normalizeSocialUrl("instagram", instagram) ?? instagram.trim(),
-        youtube: normalizeSocialUrl("youtube", youtube) ?? youtube.trim(),
+        instagram: normalizeSocialUrl("instagram", instagram) ?? trimToEmpty(instagram),
+        youtube: normalizeSocialUrl("youtube", youtube) ?? trimToEmpty(youtube),
     };
 }
 
@@ -89,11 +90,11 @@ function extractClubFormData(formData: FormData): ClubFormData {
     const rawTags = formData
         .getAll("tags")
         .map((tag) => String(tag))
-        .filter((tag) => tag.trim().length > 0);
+        .filter((tag) => trimToEmpty(tag).length > 0);
 
     const parsedTags = rawTags
         .flatMap((tag) => tag.split(","))
-        .map((tag) => tag.trim())
+        .map((tag) => trimToEmpty(tag))
         .filter((tag) => tag.length > 0);
 
     return {
@@ -180,8 +181,8 @@ export async function clubFormAction(prevState: ClubActionState, formData: FormD
     clubPayload.is_recruiting = extractedData.recruitmentStatus === RECRUITMENT_STATUS.RECRUITING;
     // 모집기간은 모집중일 때만 유지하고, 아니면 명시적으로 제거한다.
     if (clubPayload.is_recruiting) {
-        clubPayload.recruit_start = extractedData.recruitmentStartDate?.trim() || null;
-        clubPayload.recruit_end = extractedData.recruitmentEndDate?.trim() || null;
+        clubPayload.recruit_start = trimToNull(extractedData.recruitmentStartDate);
+        clubPayload.recruit_end = trimToNull(extractedData.recruitmentEndDate);
     } else {
         clubPayload.recruit_start = null;
         clubPayload.recruit_end = null;

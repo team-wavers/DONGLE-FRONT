@@ -2,6 +2,8 @@
  * 사용자 생성/수정 폼 공통 검증
  */
 
+import { isValidMobilePhoneNumber, trimToEmpty } from "@/feature/shared/normalization/string-normalization";
+
 export interface UserFormFieldErrors {
     name?: string;
     login_id?: string;
@@ -18,30 +20,28 @@ export const USER_FORM_MESSAGES = {
 } as const;
 
 export function isValidPhoneNumber(phoneNumber: string): boolean {
-    const cleaned = phoneNumber.replace(/\s/g, "");
-    const phoneRegex = /^01[0-9]-?\d{3,4}-?\d{4}$/;
-    return phoneRegex.test(cleaned);
+    return isValidMobilePhoneNumber(phoneNumber);
 }
 
 export function validateUserName(name: string): string | undefined {
-    if (!name || name.trim() === "") return USER_FORM_MESSAGES.nameRequired;
+    if (!trimToEmpty(name)) return USER_FORM_MESSAGES.nameRequired;
     return undefined;
 }
 
 export function validateLoginId(loginId: string): string | undefined {
-    const trimmed = (loginId ?? "").trim();
+    const trimmed = trimToEmpty(loginId);
     if (!trimmed) return USER_FORM_MESSAGES.loginIdRequired;
     return undefined;
 }
 
 export function validatePassword(password: string, required: boolean): string | undefined {
-    const p = (password ?? "").trim();
+    const p = trimToEmpty(password);
     if (!p) return required ? USER_FORM_MESSAGES.passwordRequired : undefined;
     return undefined;
 }
 
 export function validateUserPhone(phone: string): string | undefined {
-    const trimmed = (phone ?? "").trim();
+    const trimmed = trimToEmpty(phone);
     if (!trimmed) return USER_FORM_MESSAGES.phoneRequired;
     if (!isValidPhoneNumber(trimmed)) return USER_FORM_MESSAGES.phoneInvalid;
     return undefined;
