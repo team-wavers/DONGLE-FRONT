@@ -2,8 +2,12 @@ import type { LoginActionState } from "@dongle/types/auth/auth";
 
 export type LoginFieldErrors = { username?: string; password?: string };
 
-export function normalizeLoginInput(rawValue: FormDataEntryValue | null): string {
+export function normalizeUsernameInput(rawValue: FormDataEntryValue | null): string {
     return typeof rawValue === "string" ? rawValue.trim() : "";
+}
+
+export function preservePasswordInput(rawValue: FormDataEntryValue | null): string {
+    return typeof rawValue === "string" ? rawValue : "";
 }
 
 export function validateLoginFields(username: string, password: string): LoginFieldErrors {

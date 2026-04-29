@@ -8,12 +8,12 @@ import { getTokenExpiresIn, decodeJwtToken } from "@dongle/api/utils/jwt.util";
 
 import { cookies } from "next/headers";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
-import { mapLoginActionError, normalizeLoginInput, toFieldErrorState, validateLoginFields } from "@/feature/auth/utils/login-form-policy";
+import { mapLoginActionError, normalizeUsernameInput, preservePasswordInput, toFieldErrorState, validateLoginFields } from "@/feature/auth/utils/login-form-policy";
 
 // 서버 액션 (실제로는 별도 파일에 있을 수 있음)
 export async function loginFormAction(prevState: LoginActionState, formData: FormData): Promise<LoginActionState> {
-    const username = normalizeLoginInput(formData.get("username"));
-    const password = normalizeLoginInput(formData.get("password"));
+    const username = normalizeUsernameInput(formData.get("username"));
+    const password = preservePasswordInput(formData.get("password"));
 
     const fieldErrors = validateLoginFields(username, password);
 

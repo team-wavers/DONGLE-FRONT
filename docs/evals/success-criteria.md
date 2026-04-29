@@ -119,8 +119,9 @@
 
 ### 로그인 입력/오류 분기 정책
 
-- username/password 입력은 런타임 의존성 없이 문자열로 정규화된다.
-- 정규화된 username/password가 빈 값이면 필드 오류를 반환한다.
+- username 입력은 trim 정규화를 적용한다.
+- password 입력은 공백 포함 원문을 보존한다.
+- 정규화된 username 또는 빈 password는 필드 오류를 반환한다.
 - action 예외 분기는 Error message 유지와 기본 에러 fallback 규칙을 따른다.
 
 관련 테스트:

@@ -1,10 +1,15 @@
 import { describe, expect, test } from "vitest";
-import { mapLoginActionError, normalizeLoginInput, validateLoginFields } from "./login-form-policy";
+import {
+    mapLoginActionError,
+    normalizeUsernameInput,
+    preservePasswordInput,
+    validateLoginFields,
+} from "./login-form-policy";
 
 describe("login-form-policy", () => {
-    test("빈 값은 trim 이후 필드 오류를 반환한다", () => {
-        const username = normalizeLoginInput("   ");
-        const password = normalizeLoginInput("");
+    test("username은 trim 이후 빈 값이면 필드 오류를 반환한다", () => {
+        const username = normalizeUsernameInput("   ");
+        const password = preservePasswordInput("");
 
         expect(validateLoginFields(username, password)).toEqual({
             username: "아이디를 입력해주세요",
@@ -12,8 +17,13 @@ describe("login-form-policy", () => {
         });
     });
 
+    test("password는 앞뒤 공백을 포함한 원문을 유지한다", () => {
+        expect(preservePasswordInput("  pass with spaces  ")).toBe("  pass with spaces  ");
+    });
+
     test("문자열이 아닌 입력은 빈 문자열로 정규화한다", () => {
-        expect(normalizeLoginInput(null)).toBe("");
+        expect(normalizeUsernameInput(null)).toBe("");
+        expect(preservePasswordInput(null)).toBe("");
     });
 
     test("Error 객체는 message를 유지해 action 에러로 변환한다", () => {
