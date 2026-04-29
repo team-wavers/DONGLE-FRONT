@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import {
+    hasMeaningfulRichText,
     isValidPhoneNumber,
     normalizeRecruitmentStatus,
     validateClubForm,
@@ -35,6 +36,12 @@ test("isValidPhoneNumber는 공백과 하이픈이 섞인 휴대폰 번호를 �
     expect(isValidPhoneNumber("010 1234 5678")).toBe(true);
     expect(isValidPhoneNumber("010-1234-5678")).toBe(true);
     expect(isValidPhoneNumber("02-123-4567")).toBe(false);
+});
+
+test("hasMeaningfulRichText는 마크업만 있는 빈 에디터 값을 거부한다", () => {
+    expect(hasMeaningfulRichText("<p></p>")).toBe(false);
+    expect(hasMeaningfulRichText("<p><br></p>")).toBe(false);
+    expect(hasMeaningfulRichText("<p>동아리 소개</p>")).toBe(true);
 });
 
 test("validateClubForm은 모집중일 때 모집 기간을 필수로 검증한다", () => {
@@ -74,4 +81,17 @@ test("validateClubForm은 모집 종료일이 시작일보다 이르면 실패�
 
     expect(result.isValid).toBe(false);
     expect(result.fieldErrors.recruitmentEndDate).toBe("모집 마감일은 모집 시작일보다 늦어야 합니다");
+});
+
+test("validateClubForm은 빈 rich text 소개와 주요 활동을 거부한다", () => {
+    const result = validateClubForm(
+        createFormData({
+            description: "<p></p>",
+            main_activities: "<p><br></p>",
+        })
+    );
+
+    expect(result.isValid).toBe(false);
+    expect(result.fieldErrors.description).toBe("동아리 설명을 입력해주세요");
+    expect(result.fieldErrors.main_activities).toBe("주요 활동을 입력해주세요");
 });

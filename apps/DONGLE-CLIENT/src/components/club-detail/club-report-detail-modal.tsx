@@ -38,6 +38,8 @@ export default function ClubReportDetailModal({
 
     const selectedImages = report?.image_urls ?? [];
     const hasImages = selectedImages.length > 0;
+    const dialogTitle = report?.title ?? (isLoading ? "활동보고서 불러오는 중" : "활동보고서 상세");
+    const dialogDescription = report ? `작성일 ${formatDateByLocale(report.createdAt)}` : "활동보고서 상세 정보를 표시합니다.";
 
     const goPrevImage = () => {
         if (!hasImages) return;
@@ -52,6 +54,8 @@ export default function ClubReportDetailModal({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="w-full max-w-[90vw] sm:max-w-2xl max-h-[90vh] p-0 gap-0 overflow-hidden">
+                <DialogTitle className="sr-only">{dialogTitle}</DialogTitle>
+                <DialogDescription className="sr-only">{dialogDescription}</DialogDescription>
                 {isLoading ? (
                     <section className="p-4 md:p-5 min-h-0 max-h-[90vh] overflow-y-auto space-y-4">
                         <div className="flex flex-col gap-4 pt-4">
@@ -83,11 +87,6 @@ export default function ClubReportDetailModal({
                     </section>
                 ) : report ? (
                     <section className="p-4 md:p-5 min-h-0 max-h-[90vh] overflow-y-auto space-y-4">
-                        <DialogTitle className="sr-only">{report.title}</DialogTitle>
-                        <DialogDescription className="sr-only">
-                            작성일 {formatDateByLocale(report.createdAt)}
-                        </DialogDescription>
-
                         {hasImages && (
                             <div className="flex flex-col gap-4 pt-4">
                                 <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-zinc-100">

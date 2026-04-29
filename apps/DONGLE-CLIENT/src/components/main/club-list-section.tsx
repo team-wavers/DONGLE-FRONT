@@ -13,15 +13,16 @@ type ClubListItemViewModel = {
 interface ClubListSectionProps {
     clubs: ClubListItemViewModel[];
     summaryText: string;
+    emptyStateMessage: string | null;
 }
 
-export default function ClubListSection({ clubs, summaryText }: ClubListSectionProps) {
+export default function ClubListSection({ clubs, summaryText, emptyStateMessage }: ClubListSectionProps) {
     return (
         <div className="space-y-4">
             <p className="font-semibold text-zinc-400 ml-2">{summaryText}</p>
-            {clubs.length === 0 ? (
+            {emptyStateMessage ? (
                 <div className="rounded-2xl border border-zinc-200 bg-white px-6 py-10 text-center text-zinc-400">
-                    검색 결과가 없습니다.
+                    {emptyStateMessage}
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">

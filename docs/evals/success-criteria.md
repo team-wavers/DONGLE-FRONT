@@ -39,6 +39,10 @@
 
 - 일부 호출에서는 회장 정보 검증을 끌 수 있어야 한다.
 
+### 소개/주요 활동 rich text 검증
+
+- 동아리 설명과 주요 활동은 rich text 마크업만 있는 빈 값으로 저장될 수 없다.
+
 관련 테스트:
 - [club-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/validation/club-form.validation.test.ts)
 
@@ -81,9 +85,19 @@
 - 삭제되지 않은 기존 이미지와 새 업로드 이미지를 올바르게 합친다.
 - JSON 배열 문자열 입력은 안전하게 파싱한다.
 
+### action 에러 분기 규약
+
+- 인증 만료는 `sessionExpired: true`와 form error를 함께 반환한다.
+- 이미지 업로드 실패는 retry 가능한 form error와 retry hint를 반환한다.
+- 서비스 실패(4xx/5xx 포함)는 action 종류(생성/수정)에 맞는 form error를 반환한다.
+- 예외 throw는 공통 exception form error 규약으로 매핑한다.
+
 관련 테스트:
 - [activity-report.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/activity-report.validation.test.ts)
 - [report-update-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/report-update-payload.test.ts)
+- [report-action-error-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/report-action-error-policy.test.ts)
+- [activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/activity-report-form.action.test.ts)
+- [update-activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/update-activity-report-form.action.test.ts)
 
 ## Admin URL Generation
 
@@ -118,8 +132,15 @@
 
 - 전체, 모집중, 모집마감 상태별 요약 문구가 일관되게 계산된다.
 
+### Empty-state 계산
+
+- 검색 결과가 존재하면 empty-state는 `not-empty`와 `null` message를 반환한다.
+- 검색어가 있거나 전체 필터에서 결과가 비면 `no-result`와 기본 안내 문구를 반환한다.
+- 모집중/모집마감 필터에서 해당 상태 데이터가 원천적으로 없으면 각각 `no-open-recruitment`, `no-closed-recruitment` 상태코드를 반환한다.
+
 관련 테스트:
 - [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts)
+- [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts)
 
 ## Client Report Detail API
 

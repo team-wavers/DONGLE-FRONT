@@ -28,6 +28,7 @@ export default function ClubMainClient({ clubs, bannerImageUrls }: ClubMainClien
         categoryOptions,
         filteredClubs,
         summaryText,
+        emptyState,
     } = useClubFilters(clubs);
 
     return (
@@ -42,7 +43,7 @@ export default function ClubMainClient({ clubs, bannerImageUrls }: ClubMainClien
                 categoryOptions={categoryOptions}
                 onCategoryChange={setActiveCategory}
             />
-            <ClubListSection clubs={filteredClubs} summaryText={summaryText} />
+            <ClubListSection clubs={filteredClubs} summaryText={summaryText} emptyStateMessage={emptyState.message} />
         </section>
     );
 }

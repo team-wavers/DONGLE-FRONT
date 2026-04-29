@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { getClubSearchEmptyState } from "@/lib/club-search-empty-state";
 import type { RecruitmentStatus } from "@dongle/ui/badges/recruitment-status-badge";
+import { useMemo, useState } from "react";
 
 type ClubFilterItem = {
     id: number;
@@ -22,7 +23,9 @@ export function normalizeClubSearchQuery(searchQuery: string) {
 }
 
 export function getClubCategoryOptions(clubs: ClubFilterItem[]) {
-    return Array.from(new Set(clubs.map((club) => club.category))).sort((left, right) => left.localeCompare(right, "ko"));
+    return Array.from(new Set(clubs.map((club) => club.category))).sort((left, right) =>
+        left.localeCompare(right, "ko")
+    );
 }
 
 export function filterClubs(
@@ -46,11 +49,7 @@ export function filterClubs(
     });
 }
 
-export function getClubSummaryText(
-    activeStatus: ClubFilterStatus,
-    totalCount: number,
-    recruitingCount: number
-) {
+export function getClubSummaryText(activeStatus: ClubFilterStatus, totalCount: number, recruitingCount: number) {
     const closedCount = totalCount - recruitingCount;
 
     if (activeStatus === "recruiting") {
@@ -81,6 +80,10 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
     const summaryText = useMemo(
         () => getClubSummaryText(activeStatus, totalCount, recruitingCount),
         [activeStatus, recruitingCount, totalCount]
+    );
+    const emptyState = useMemo(
+        () => getClubSearchEmptyState({ clubs, filteredClubs, searchQuery, activeStatus }),
+        [activeStatus, clubs, filteredClubs, searchQuery]
     );
 
     return {

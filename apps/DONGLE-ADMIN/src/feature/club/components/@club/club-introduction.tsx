@@ -1,4 +1,4 @@
-import { FormTextarea } from "@/components/atoms/form/form-textarea/form-textarea";
+import { RichTextEditor } from "@/components/atoms/form/rich-text-editor/rich-text-editor";
 import {
   Card,
   CardContent,
@@ -47,17 +47,16 @@ export function ClubIntroduction({
       <CardContent className="space-y-4">
         {/* 동아리 설명 */}
         <div className="space-y-2">
-          <label className="text-base font-bold">
-            동아리 설명 <span className="text-red-500">*</span>
-          </label>
-          <FormTextarea
+          <RichTextEditor
             id="description"
             name="description"
-            rows={4}
+            label="동아리 설명"
             placeholder="동아리에 대한 자세한 설명을 입력해주세요."
             defaultValue={values ? undefined : club?.description}
             value={values?.description}
-            onChange={(event) => onDescriptionChange?.(event.target.value)}
+            onChange={onDescriptionChange}
+            enableImageUpload={false}
+            description="굵게, 기울임, 제목, 목록, 링크 서식을 사용할 수 있습니다."
             required
             error={fieldErrors?.description}
           />
@@ -65,17 +64,16 @@ export function ClubIntroduction({
 
         {/* 주요 활동 */}
         <div className="space-y-2">
-          <label className="text-base font-bold">
-            주요 활동 <span className="text-red-500">*</span>
-          </label>
-          <FormTextarea
+          <RichTextEditor
             id="main_activities"
             name="main_activities"
-            rows={3}
+            label="주요 활동"
             placeholder="동아리에서 주로 하는 활동을 소개해주세요."
             defaultValue={values ? undefined : club?.main_activities}
             value={values?.mainActivities}
-            onChange={(event) => onMainActivitiesChange?.(event.target.value)}
+            onChange={onMainActivitiesChange}
+            enableImageUpload={false}
+            description="동아리의 핵심 활동을 보기 쉽게 정리해보세요."
             required
             error={fieldErrors?.main_activities}
           />
