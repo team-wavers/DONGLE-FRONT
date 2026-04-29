@@ -44,8 +44,6 @@ const warnings = [];
 const inventoryDocPath = "docs/evals/test-inventory.md";
 const successCriteriaDocPath = "docs/evals/success-criteria.md";
 const knownGapsDocPath = "docs/evals/known-gaps.md";
-const guidanceDocPaths = [successCriteriaDocPath, inventoryDocPath, knownGapsDocPath];
-
 const trackedTestFileAllowPatterns = [
     /^apps\/DONGLE-ADMIN\/src\/.+\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/,
     /^apps\/DONGLE-CLIENT\/src\/.+\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/,
@@ -135,20 +133,16 @@ validateTestInventorySyncRule();
 
 
 function getGitStatusEntries() {
-    const output = execSync("git status --porcelain", { encoding: "utf8" }).trim();
-
-    if (!output) {
-        return [];
-    }
+    const output = execSync("git status --porcelain", { encoding: "utf8" });
 
     return output
         .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean)
+        .filter((line) => line.length >= 4)
         .map((line) => {
-            const normalized = line.replace(/^\?\?\s+/, "A ").replace(/^([ MARCUD])([ MARCUD])\s+/, "$1$2 ");
-            const status = normalized.slice(0, 2).trim();
-            const filePath = normalized.slice(3).trim();
+            const rawStatus = line.slice(0, 2);
+            const status = rawStatus === "??" ? "A" : rawStatus;
+            const rawPath = line.slice(3);
+            const filePath = rawPath.includes(" -> ") ? rawPath.split(" -> ").at(-1) : rawPath;
 
             return { status, filePath };
         });
@@ -162,7 +156,7 @@ function validateTestInventorySyncRule() {
     const entries = getGitStatusEntries();
     const changedPaths = new Set(entries.map((entry) => entry.filePath));
     const addedOrDeletedTests = entries.filter((entry) =>
-        ["A", "D"].includes(entry.status) && /\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/.test(entry.filePath),
+        (entry.status.includes("A") || entry.status.includes("D")) && /\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/.test(entry.filePath),
     );
 
     const trackedTestChanges = addedOrDeletedTests.filter((entry) => isTestFilePath(entry.filePath));
