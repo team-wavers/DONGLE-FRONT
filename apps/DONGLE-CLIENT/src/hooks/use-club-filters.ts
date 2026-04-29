@@ -96,5 +96,6 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
         categoryOptions,
         filteredClubs,
         summaryText,
+        emptyState,
     };
 }
