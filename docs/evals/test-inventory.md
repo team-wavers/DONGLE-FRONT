@@ -19,6 +19,9 @@
 | admin user management | [filterable-user-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/components/filterable-user-list.test.ts) | code-graded | 검색 필터 로직 |
 | report input | [activity-report.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/activity-report.validation.test.ts) | code-graded | validation |
 | report payload | [report-update-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/report-update-payload.test.ts) | code-graded | action-composition helper |
+| report action error policy | [report-action-error-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/report-action-error-policy.test.ts) | code-graded | error branch policy helper |
+| report create action | [activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/activity-report-form.action.test.ts) | code-graded | upload/service branch mapping |
+| report update action | [update-activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/update-activity-report-form.action.test.ts) | code-graded | auth/service branch mapping |
 | admin register url | [use-url-generator.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-url-generator.test.ts) | code-graded | helper |
 | admin auth returnTo | [normalize-internal-return-to.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/normalize-internal-return-to.test.ts) | code-graded | helper |
 | session draft | [use-session-storage-draft.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-session-storage-draft.test.ts) | code-graded | helper |
