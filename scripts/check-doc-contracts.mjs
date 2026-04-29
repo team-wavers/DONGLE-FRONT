@@ -133,19 +133,30 @@ validateTestInventorySyncRule();
 
 
 function getGitStatusEntries() {
-    const output = execSync("git status --porcelain", { encoding: "utf8" });
+    const output = execSync("git status --porcelain=v1 -z", { encoding: "utf8" });
+    const tokens = output.split("\0").filter(Boolean);
+    const entries = [];
 
-    return output
-        .split("\n")
-        .filter((line) => line.length >= 4)
-        .map((line) => {
-            const rawStatus = line.slice(0, 2);
-            const status = rawStatus === "??" ? "A" : rawStatus;
-            const rawPath = line.slice(3);
-            const filePath = rawPath.includes(" -> ") ? rawPath.split(" -> ").at(-1) : rawPath;
+    for (let index = 0; index < tokens.length; index += 1) {
+        const token = tokens[index];
 
-            return { status, filePath };
-        });
+        if (token.length < 4) {
+            continue;
+        }
+
+        const rawStatus = token.slice(0, 2);
+        const status = rawStatus === "??" ? "A" : rawStatus;
+        let filePath = token.slice(3);
+
+        if ((rawStatus[0] === "R" || rawStatus[0] === "C") && index + 1 < tokens.length) {
+            filePath = tokens[index + 1];
+            index += 1;
+        }
+
+        entries.push({ status, filePath });
+    }
+
+    return entries;
 }
 
 function isTestFilePath(filePath) {
