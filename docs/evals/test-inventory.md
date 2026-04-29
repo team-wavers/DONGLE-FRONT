@@ -24,6 +24,7 @@
 | report update action | [update-activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/update-activity-report-form.action.test.ts) | code-graded | auth/service branch mapping |
 | admin register url | [use-url-generator.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-url-generator.test.ts) | code-graded | helper |
 | admin auth returnTo | [normalize-internal-return-to.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/normalize-internal-return-to.test.ts) | code-graded | helper |
+| admin auth login policy | [login-form-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/login-form-policy.test.ts) | code-graded | input normalization / error branch helper |
 | session draft | [use-session-storage-draft.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-session-storage-draft.test.ts) | code-graded | helper |
 | social url | [normalize-social-url.test.ts](../../apps/DONGLE-CLIENT/src/lib/normalize-social-url.test.ts) | code-graded | shared helper |
 | shared normalization | [string-normalization.test.ts](../../apps/DONGLE-ADMIN/src/feature/shared/normalization/string-normalization.test.ts) | code-graded | trim/nullable/phone normalization helper |

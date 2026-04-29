@@ -113,11 +113,20 @@
 
 ### 로그인 후 내부 복귀 경로 검증
 
-- `returnTo`는 내부 경로만 허용한다.
+- `returnTo`는 trim/URL decode 이후 내부 경로만 허용한다.
 - protocol-relative URL(`//...`)과 외부 URL은 허용하지 않는다.
+- 인코딩된 protocol-relative 우회 문자열(`%2F%2F...`)도 허용하지 않는다.
+
+### 로그인 입력/오류 분기 정책
+
+- username 입력은 trim 정규화를 적용한다.
+- password 입력은 공백 포함 원문을 보존한다.
+- 정규화된 username 또는 빈 password는 필드 오류를 반환한다.
+- action 예외 분기는 Error message 유지와 기본 에러 fallback 규칙을 따른다.
 
 관련 테스트:
 - [normalize-internal-return-to.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/normalize-internal-return-to.test.ts)
+- [login-form-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/login-form-policy.test.ts)
 
 ## Client Club Search
 
