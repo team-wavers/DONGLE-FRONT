@@ -72,6 +72,17 @@
 
 - [known-gaps.md](known-gaps.md)
 
+### 테스트 파일 추가/삭제
+
+- [test-inventory.md](test-inventory.md)
+- 성공 기준 영향이 있으면 [success-criteria.md](success-criteria.md)
+- 테스트로 옮기지 못한 근거가 생기면 [known-gaps.md](known-gaps.md)
+
+예시:
+- `apps/DONGLE-ADMIN/src/feature/foo/foo.validation.test.ts`를 추가했다면 인벤토리 표에 파일/검증방식/비고를 추가한다.
+- 기존 E2E를 제거하고 `test`로 전환했다면 인벤토리에서 E2E 잔존 범위를 갱신하고, 필요 시 성공 기준 링크를 최신화한다.
+- 인증/라우팅 의존으로 `test` 전환이 불가능해 제외했다면 공백 사유를 `known-gaps.md`에 1줄로 남긴다.
+
 ### 우선순위 / 보류 판단 변경
 
 - [roadmap.md](roadmap.md)
