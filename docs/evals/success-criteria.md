@@ -121,8 +121,15 @@
 
 - 전체, 모집중, 모집마감 상태별 요약 문구가 일관되게 계산된다.
 
+### Empty-state 계산
+
+- 검색 결과가 존재하면 empty-state는 `not-empty`와 `null` message를 반환한다.
+- 검색어가 있거나 전체 필터에서 결과가 비면 `no-result`와 기본 안내 문구를 반환한다.
+- 모집중/모집마감 필터에서 해당 상태 데이터가 원천적으로 없으면 각각 `no-open-recruitment`, `no-closed-recruitment` 상태코드를 반환한다.
+
 관련 테스트:
 - [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts)
+- [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts)
 
 ## Client Report Detail API
 

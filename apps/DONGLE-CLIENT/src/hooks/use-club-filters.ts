@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { RecruitmentStatus } from "@dongle/ui/badges/recruitment-status-badge";
+import { getClubSearchEmptyState } from "@/lib/club-search-empty-state";
 
 type ClubFilterItem = {
     id: number;
@@ -66,6 +67,10 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
         () => getClubSummaryText(activeStatus, totalCount, recruitingCount),
         [activeStatus, recruitingCount, totalCount]
     );
+    const emptyState = useMemo(
+        () => getClubSearchEmptyState({ clubs, filteredClubs, searchQuery, activeStatus }),
+        [activeStatus, clubs, filteredClubs, searchQuery]
+    );
 
     return {
         searchQuery,
@@ -76,5 +81,6 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
         summaryText,
         totalCount,
         visibleCount,
+        emptyState,
     };
 }
