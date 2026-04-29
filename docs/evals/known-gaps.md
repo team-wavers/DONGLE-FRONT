@@ -16,10 +16,6 @@
 
 ## 우선순위 높은 공백
 
-- report action 본체의 에러 분기
-  - 인증 만료
-  - 이미지 업로드 실패
-  - 서비스 실패 응답 처리
 - admin auth / club auth의 입력 검증과 redirect 판단 로직
 - client 메인 화면의 empty-state 분기에서 UI 외부로 추출 가능한 순수 로직
 - form/action 주변의 문자열 정규화와 payload mapping helper

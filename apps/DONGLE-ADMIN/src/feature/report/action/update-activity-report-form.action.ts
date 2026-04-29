@@ -1,6 +1,5 @@
 "use server";
 
-import { updateClubReportService } from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
 import { validateActivityReportInput } from "@/feature/report/validation/activity-report.validation";
 import {
@@ -10,13 +9,17 @@ import {
 } from "@/feature/report/validation/report-update-payload";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
-import { uploadReportImages } from "./upload-report-images";
+import { reportActionNetwork } from "./report-action-network";
+import { buildReportActionError, isUnauthorizedError, type ReportActionErrorResult } from "./report-action-error-policy";
 
 // 서버 액션 타입 정의
 export interface UpdateActivityReportActionState {
     success?: boolean;
-    error?: string;
-    sessionExpired?: boolean;
+    error?: ReportActionErrorResult["error"];
+    sessionExpired?: ReportActionErrorResult["sessionExpired"];
+    errorType?: ReportActionErrorResult["errorType"];
+    retryable?: ReportActionErrorResult["retryable"];
+    retryHint?: ReportActionErrorResult["retryHint"];
     fieldErrors?: {
         title?: string;
         content?: string;
@@ -70,7 +73,7 @@ export async function updateActivityReportAction(
         let uploadedImageUrls: string[] = [];
 
         try {
-            uploadedImageUrls = await uploadReportImages({
+            uploadedImageUrls = await reportActionNetwork.uploadImages({
                 clubId,
                 images,
             });
@@ -80,9 +83,7 @@ export async function updateActivityReportAction(
                 clubId,
                 reportId,
             });
-            return {
-                error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
-            };
+            return buildReportActionError({ branch: "upload", actionLabel: "update" });
         }
 
         const imageUrls = mergeReportImageUrls(existingUrls, removedUrls, uploadedImageUrls);
@@ -102,11 +103,9 @@ export async function updateActivityReportAction(
             };
         }
 
-        const { result, isSuccess } = await updateClubReportService(Number(clubId), Number(reportId), updatePayload);
+        const { result, isSuccess } = await reportActionNetwork.updateReport(Number(clubId), Number(reportId), updatePayload);
         if (!isSuccess || !result) {
-            return {
-                error: "보고서 수정에 실패했습니다. 다시 시도해주세요.",
-            };
+            return buildReportActionError({ branch: "service", actionLabel: "update" });
         }
 
         revalidateTag(`report-${reportId}`);
@@ -115,11 +114,8 @@ export async function updateActivityReportAction(
             success: true,
         };
     } catch (error) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return {
-                error: "로그인 시간이 만료되었습니다. 다시 로그인해주세요.",
-                sessionExpired: true,
-            };
+        if (isUnauthorizedError(error)) {
+            return buildReportActionError({ branch: "auth", actionLabel: "update" });
         }
 
         captureServerException(error, "보고서 수정 실패", {
@@ -127,8 +123,6 @@ export async function updateActivityReportAction(
             clubId,
             reportId,
         });
-        return {
-            error: "보고서 수정에 실패했습니다. 다시 시도해주세요.",
-        };
+        return buildReportActionError({ branch: "exception", actionLabel: "update" });
     }
 }

@@ -85,9 +85,19 @@
 - 삭제되지 않은 기존 이미지와 새 업로드 이미지를 올바르게 합친다.
 - JSON 배열 문자열 입력은 안전하게 파싱한다.
 
+### action 에러 분기 규약
+
+- 인증 만료는 `sessionExpired: true`와 form error를 함께 반환한다.
+- 이미지 업로드 실패는 retry 가능한 form error와 retry hint를 반환한다.
+- 서비스 실패(4xx/5xx 포함)는 action 종류(생성/수정)에 맞는 form error를 반환한다.
+- 예외 throw는 공통 exception form error 규약으로 매핑한다.
+
 관련 테스트:
 - [activity-report.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/activity-report.validation.test.ts)
 - [report-update-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/report-update-payload.test.ts)
+- [report-action-error-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/report-action-error-policy.test.ts)
+- [activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/activity-report-form.action.test.ts)
+- [update-activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/update-activity-report-form.action.test.ts)
 
 ## Admin URL Generation
 
