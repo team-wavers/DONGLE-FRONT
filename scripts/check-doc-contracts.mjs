@@ -159,19 +159,71 @@ function getGitStatusEntries() {
     return entries;
 }
 
+function parseNameStatusZ(output) {
+    const tokens = output.split("\0").filter(Boolean);
+    const entries = [];
+
+    for (let index = 0; index < tokens.length; index += 1) {
+        const statusToken = tokens[index];
+        const statusCode = statusToken[0];
+
+        if (index + 1 >= tokens.length) {
+            break;
+        }
+
+        let filePath = tokens[index + 1];
+        index += 1;
+
+        if ((statusCode === "R" || statusCode === "C") && index + 1 < tokens.length) {
+            filePath = tokens[index + 1];
+            index += 1;
+        }
+
+        entries.push({ status: statusCode, filePath });
+    }
+
+    return entries;
+}
+
+function getDiffEntriesForCurrentContext() {
+    const baseRef = process.env.GITHUB_BASE_REF;
+
+    if (baseRef) {
+        const ciBaseRef = `origin/${baseRef}`;
+
+        try {
+            const output = execSync(`git diff --name-status -z --find-renames ${ciBaseRef}...HEAD`, { encoding: "utf8" });
+
+            return parseNameStatusZ(output);
+        } catch {
+            warnings.push(`CI 기준 브랜치 diff 계산 실패: ${ciBaseRef}...HEAD (fallback 사용)`);
+        }
+    }
+
+    try {
+        const output = execSync("git diff --name-status -z --find-renames HEAD~1...HEAD", { encoding: "utf8" });
+
+        return parseNameStatusZ(output);
+    } catch {
+        return [];
+    }
+}
+
 function isTestFilePath(filePath) {
     return trackedTestFileAllowPatterns.some((pattern) => pattern.test(filePath));
 }
 
 function validateTestInventorySyncRule() {
-    const entries = getGitStatusEntries();
-    const changedPaths = new Set(entries.map((entry) => entry.filePath));
-    const addedOrDeletedTests = entries.filter((entry) =>
-        (entry.status.includes("A") || entry.status.includes("D")) && /\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/.test(entry.filePath),
+    const statusEntries = getGitStatusEntries();
+    const diffEntries = getDiffEntriesForCurrentContext();
+    const allEntries = [...statusEntries, ...diffEntries];
+    const changedPaths = new Set(allEntries.map((entry) => entry.filePath));
+    const changedTestEntries = allEntries.filter((entry) =>
+        ["A", "D", "R"].includes(entry.status) && /\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/.test(entry.filePath),
     );
 
-    const trackedTestChanges = addedOrDeletedTests.filter((entry) => isTestFilePath(entry.filePath));
-    const untrackedPatternTestChanges = addedOrDeletedTests.filter((entry) => !isTestFilePath(entry.filePath));
+    const trackedTestChanges = changedTestEntries.filter((entry) => isTestFilePath(entry.filePath));
+    const untrackedPatternTestChanges = changedTestEntries.filter((entry) => !isTestFilePath(entry.filePath));
 
     if (untrackedPatternTestChanges.length > 0) {
         warnings.push(
