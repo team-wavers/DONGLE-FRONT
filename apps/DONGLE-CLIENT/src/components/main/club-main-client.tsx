@@ -25,6 +25,7 @@ export default function ClubMainClient({ clubs, bannerImageUrls }: ClubMainClien
         setActiveStatus,
         filteredClubs,
         summaryText,
+        emptyState,
     } = useClubFilters(clubs);
 
     return (
@@ -36,7 +37,7 @@ export default function ClubMainClient({ clubs, bannerImageUrls }: ClubMainClien
                 activeStatus={activeStatus}
                 onStatusChange={setActiveStatus}
             />
-            <ClubListSection clubs={filteredClubs} summaryText={summaryText} />
+            <ClubListSection clubs={filteredClubs} summaryText={summaryText} emptyStateMessage={emptyState.message} />
         </section>
     );
 }

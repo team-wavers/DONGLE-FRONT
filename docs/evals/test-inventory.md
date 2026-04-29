@@ -26,6 +26,7 @@
 | shared normalization | [string-normalization.test.ts](../../apps/DONGLE-ADMIN/src/feature/shared/normalization/string-normalization.test.ts) | code-graded | trim/nullable/phone normalization helper |
 | client report route | [get-club-report-route-status.test.ts](../../apps/DONGLE-CLIENT/src/lib/get-club-report-route-status.test.ts) | code-graded | API route status mapping |
 | client search | [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts) | code-graded | filtering / summary |
+| client search empty-state | [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts) | code-graded | filter/query/data 조합별 empty-state code/message |
 | club fixture | [club.fixture.test.ts](../../e2e/fixtures/club.fixture.test.ts) | code-graded | fixture util |
 | rich text | [sanitize-rich-text-html.test.ts](../../packages/rich-text/src/sanitize-rich-text-html.test.ts) | code-graded | normalization |
 | date util | [date.test.ts](../../apps/DONGLE-ADMIN/src/lib/format/date.test.ts) | code-graded | formatter |
