@@ -8,21 +8,17 @@ import { getTokenExpiresIn, decodeJwtToken } from "@dongle/api/utils/jwt.util";
 
 import { cookies } from "next/headers";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { mapLoginActionError, normalizeLoginInput, toFieldErrorState, validateLoginFields } from "@/feature/auth/utils/login-form-policy";
 
 // 서버 액션 (실제로는 별도 파일에 있을 수 있음)
 export async function loginFormAction(prevState: LoginActionState, formData: FormData): Promise<LoginActionState> {
-    const username = formData.get("username") as string;
-    const password = formData.get("password") as string;
+    const username = normalizeLoginInput(formData.get("username"));
+    const password = normalizeLoginInput(formData.get("password"));
 
-    // 클라이언트 사이드 검증
-    const fieldErrors: { username?: string; password?: string } = {};
-    if (!username) fieldErrors.username = "아이디를 입력해주세요";
-    if (!password) fieldErrors.password = "비밀번호를 입력해주세요";
+    const fieldErrors = validateLoginFields(username, password);
 
     if (Object.keys(fieldErrors).length > 0) {
-        return {
-            fieldErrors,
-        };
+        return toFieldErrorState(fieldErrors);
     }
 
     // 로그인 처리
@@ -73,15 +69,6 @@ export async function loginFormAction(prevState: LoginActionState, formData: For
         captureServerException(error, "로그인 처리 중 오류", {
             action: "loginFormAction",
         });
-        if (error instanceof Error) {
-            return {
-                success: false,
-                error: error.message,
-            };
-        }
-        return {
-            success: false,
-            error: "로그인 처리 중 오류가 발생했습니다.",
-        };
+        return mapLoginActionError(error);
     }
 }
