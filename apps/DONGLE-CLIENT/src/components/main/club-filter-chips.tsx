@@ -3,6 +3,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@dongle/ui/select";
 import { cn } from "@dongle/ui/utils";
 import type { ClubCategoryFilter, ClubFilterStatus } from "@/hooks/use-club-filters";
+import { getCategoryStyle } from "@/components/main/category-style";
 
 interface ClubFilterChipsProps {
     activeStatus: ClubFilterStatus;
@@ -57,18 +58,38 @@ export default function ClubFilterChips({
                 <div className="text-xs font-semibold text-zinc-400">분과</div>
                 <div className="flex gap-2">
                     <Select value={activeCategory} onValueChange={(value) => onCategoryChange(value)}>
+                        {(() => {
+                            const activeCategoryStyle = activeCategory === "all" ? null : getCategoryStyle(activeCategory);
+                            const ActiveCategoryIcon = activeCategoryStyle?.icon;
+
+                            return (
                         <SelectTrigger
                             aria-label="분과 필터"
                             className="h-12 w-full rounded-xl border-zinc-200/80 bg-zinc-50 px-5 py-0 text-left text-sm font-semibold leading-none text-zinc-700 shadow-none data-[size=default]:h-12 md:h-11 md:data-[size=default]:h-11">
-                            <span className="truncate">{activeCategory === "all" ? "전체 분과" : activeCategory}</span>
+                            <span className="inline-flex min-w-0 items-center gap-1.5 truncate">
+                                {ActiveCategoryIcon ? <ActiveCategoryIcon className="size-4 shrink-0" /> : null}
+                                <span className="truncate">{activeCategory === "all" ? "전체 분과" : activeCategory}</span>
+                            </span>
                         </SelectTrigger>
+                            );
+                        })()}
                         <SelectContent className="border-zinc-200 bg-white">
                             <SelectItem value="all">전체 분과</SelectItem>
-                            {categoryOptions.map((category) => (
-                                <SelectItem key={category} value={category}>
-                                    {category}
-                                </SelectItem>
-                            ))}
+                            {categoryOptions.map((category) => {
+                                const categoryStyle = getCategoryStyle(category);
+                                const CategoryIcon = categoryStyle.icon;
+
+                                return (
+                                    <SelectItem key={category} value={category}>
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <span className={cn("inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs", categoryStyle.tone)}>
+                                                <CategoryIcon className="size-3" />
+                                                {category}
+                                            </span>
+                                        </span>
+                                    </SelectItem>
+                                );
+                            })}
                         </SelectContent>
                     </Select>
                     {hasActiveFilter ? (
