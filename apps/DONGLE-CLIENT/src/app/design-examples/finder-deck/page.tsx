@@ -1,7 +1,35 @@
-import { GalleryHorizontal, ListFilter, Search, SlidersHorizontal } from "lucide-react";
+import { BookOpen, Dumbbell, GalleryHorizontal, HandHeart, ListFilter, Mic2, Palette, Search, SlidersHorizontal } from "lucide-react";
 import { BannerCarouselMock } from "../_components/banner-carousel-mock";
 import { ExampleShell, RecruitingPill } from "../_components/example-shell";
 import { categorySummaries, exampleClubs } from "../_components/example-data";
+
+const categoryStyleMap = {
+    체육분과: {
+        icon: Dumbbell,
+        tone: "bg-emerald-50 text-emerald-700 border-emerald-100",
+        badge: "bg-emerald-500 text-white",
+    },
+    음악분과: {
+        icon: Mic2,
+        tone: "bg-sky-50 text-sky-700 border-sky-100",
+        badge: "bg-sky-500 text-white",
+    },
+    문예분과: {
+        icon: Palette,
+        tone: "bg-rose-50 text-rose-700 border-rose-100",
+        badge: "bg-rose-500 text-white",
+    },
+    봉사분과: {
+        icon: HandHeart,
+        tone: "bg-teal-50 text-teal-700 border-teal-100",
+        badge: "bg-teal-500 text-white",
+    },
+    학술분과: {
+        icon: BookOpen,
+        tone: "bg-amber-50 text-amber-800 border-amber-100",
+        badge: "bg-amber-500 text-white",
+    },
+} as const;
 
 export default function FinderDeckDesignExamplePage() {
     return (
@@ -44,11 +72,19 @@ export default function FinderDeckDesignExamplePage() {
                             <div>
                                 <p className="mb-2 text-sm font-bold text-zinc-400">분과</p>
                                 <div className="flex flex-wrap gap-2">
-                                    {categorySummaries.slice(0, 4).map((category) => (
-                                        <span key={category.name} className={`rounded-md border px-2.5 py-1.5 text-xs font-bold ${category.tone}`}>
-                                            {category.name}
-                                        </span>
-                                    ))}
+                                    {categorySummaries.slice(0, 4).map((category) => {
+                                        const categoryStyle = categoryStyleMap[category.name as keyof typeof categoryStyleMap];
+                                        const CategoryIcon = categoryStyle?.icon;
+
+                                        return (
+                                            <span
+                                                key={category.name}
+                                                className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-bold ${categoryStyle?.tone ?? category.tone}`}>
+                                                {CategoryIcon ? <CategoryIcon className="size-3.5" /> : null}
+                                                {category.name}
+                                            </span>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -68,6 +104,8 @@ export default function FinderDeckDesignExamplePage() {
                         <div className="grid gap-3">
                             {exampleClubs.slice(0, 5).map((club) => {
                                 const Icon = club.icon;
+                                const categoryStyle = categoryStyleMap[club.category as keyof typeof categoryStyleMap];
+                                const CategoryIcon = categoryStyle?.icon;
 
                                 return (
                                     <article key={club.id} className="flex items-center gap-4 rounded-lg border border-zinc-200 bg-white p-4">
@@ -76,7 +114,19 @@ export default function FinderDeckDesignExamplePage() {
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <h3 className="truncate font-bold text-zinc-950">{club.name}</h3>
-                                            <p className="truncate text-sm font-semibold text-zinc-500">{club.description}</p>
+                                            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                                                {CategoryIcon ? (
+                                                    <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold ${categoryStyle.badge}`}>
+                                                        <CategoryIcon className="size-3" />
+                                                        {club.category}
+                                                    </span>
+                                                ) : null}
+                                                {club.tags.map((tag) => (
+                                                    <span key={`${club.id}-${tag}`} className="rounded-md bg-zinc-100 px-2 py-1 text-xs font-bold text-zinc-600">
+                                                        #{tag}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         </div>
                                         <RecruitingPill isRecruiting={club.isRecruiting} />
                                     </article>
