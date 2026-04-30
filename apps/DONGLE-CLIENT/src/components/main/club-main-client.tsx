@@ -10,6 +10,7 @@ type ClubListItemViewModel = {
     name: string;
     category: string;
     is_recruiting: boolean;
+    tags?: string[];
 };
 
 interface ClubMainClientProps {

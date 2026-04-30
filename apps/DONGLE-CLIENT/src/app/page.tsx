@@ -20,6 +20,7 @@ async function HomePageContent() {
                   name: club.name,
                   category: club.category,
                   is_recruiting: club.is_recruiting,
+                  tags: club.tags,
               }))
             : [];
     const bannerImageUrls =

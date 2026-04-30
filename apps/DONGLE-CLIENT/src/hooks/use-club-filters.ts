@@ -9,6 +9,7 @@ type ClubFilterItem = {
     name: string;
     category: string;
     is_recruiting: boolean;
+    tags?: string[];
 };
 
 export type ClubFilterStatus = "all" | RecruitmentStatus;
