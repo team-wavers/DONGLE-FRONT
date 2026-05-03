@@ -8,7 +8,6 @@ import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-bad
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
 import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
-import { formatClubKeywordTags } from "@/lib/format-club-keyword-tags";
 import { ArrowLeft, CalendarDays, Instagram, MapPin, Phone, UserRound, Youtube } from "lucide-react";
 import { Skeleton } from "@dongle/ui/skeleton";
 
@@ -156,7 +155,6 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
     const hasSocialLinks = Boolean(instagramUrl || youtubeUrl);
     const categoryPresentation = getClubCategoryPresentation(club.category);
     const FallbackIcon = categoryPresentation.icon;
-    const keywordTags = formatClubKeywordTags(club.tags);
     const recruitPeriod =
         club.recruit_start && club.recruit_end ? formatDateRange(club.recruit_start, club.recruit_end) : "미정";
     const infoItems = [
@@ -197,9 +195,9 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                     <RecruitmentStatusBadge isRecruiting={club.is_recruiting} size="lg" />
                 </div>
 
-                {keywordTags.length > 0 && (
+                {club.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                        {keywordTags.map((tag: string, index: number) => (
+                        {club.tags.map((tag: string, index: number) => (
                             <span
                                 key={`${tag}-${index}`}
                                 className={`rounded-md border px-3 py-2 text-sm font-bold ${categoryPresentation.labelClassName}`}>

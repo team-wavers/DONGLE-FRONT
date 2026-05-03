@@ -165,18 +165,6 @@
 관련 테스트:
 - [get-club-report-route-status.test.ts](../../apps/DONGLE-CLIENT/src/lib/get-club-report-route-status.test.ts)
 
-## Client Club Detail
-
-### 키워드 태그 표시
-
-- 일반 태그는 `#` prefix를 붙여 표시한다.
-- 이미 `#`가 붙은 태그는 prefix를 중복하지 않는다.
-- 하나의 문자열에 여러 `#` 키워드가 들어온 기존 데이터는 개별 키워드로 나누어 표시한다.
-- 빈 태그 값은 표시하지 않는다.
-
-관련 테스트:
-- [format-club-keyword-tags.test.ts](../../apps/DONGLE-CLIENT/src/lib/format-club-keyword-tags.test.ts)
-
 ## Shared Utilities
 
 ### Club Fixture Path Parsing
