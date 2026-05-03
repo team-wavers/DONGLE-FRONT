@@ -19,6 +19,10 @@
         "@types/react-dom": "^19"
     },
     "dependencies": {
+        "@tiptap/core": "^3.20.1",
+        "@tiptap/extension-image": "^3.20.1",
+        "@tiptap/extension-link": "^3.20.1",
+        "@tiptap/starter-kit": "^3.20.1",
         "isomorphic-dompurify": "^3.3.0"
     }
 }
