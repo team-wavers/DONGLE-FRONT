@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@dongle/ui/input";
+import { cn } from "@dongle/ui/utils";
 import { Search } from "lucide-react";
 import ClubFilterChips from "@/components/main/club-filter-chips";
 import type { ClubCategoryFilter, ClubFilterStatus } from "@/hooks/use-club-filters";
@@ -25,15 +26,18 @@ export default function ClubSearchSection({
     onCategoryChange,
 }: ClubSearchSectionProps) {
     return (
-        <div id="club-search-section" className="flex flex-col gap-4 scroll-mt-24">
+        <aside id="club-search-section" className="scroll-mt-24 rounded-lg border border-zinc-200 bg-white p-4">
+            <div className="mb-2 text-sm font-bold text-zinc-400">검색</div>
             <div className="group relative">
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white to-zinc-50 shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition-all duration-200 group-focus-within:shadow-[0_12px_34px_rgba(59,130,246,0.10)]" />
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 size-6 text-zinc-400 transition-colors group-focus-within:text-zinc-500" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-zinc-400 transition-colors group-focus-within:text-zinc-500" />
                 <Input
                     value={searchQuery}
                     onChange={(event) => onSearchQueryChange(event.target.value)}
                     placeholder="동아리명, 분과를 입력해 보세요"
-                    className="relative h-14 rounded-xl border-zinc-200/80 bg-transparent pl-16 text-lg font-semibold text-zinc-700 placeholder:text-zinc-400"
+                    className={cn(
+                        "h-11 rounded-md border-zinc-200 bg-zinc-50 pl-11 text-sm font-semibold text-zinc-700 shadow-none",
+                        "placeholder:text-zinc-400 focus-visible:bg-white"
+                    )}
                 />
             </div>
             <ClubFilterChips
@@ -43,6 +47,6 @@ export default function ClubSearchSection({
                 categoryOptions={categoryOptions}
                 onCategoryChange={onCategoryChange}
             />
-        </div>
+        </aside>
     );
 }

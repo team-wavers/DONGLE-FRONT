@@ -8,6 +8,7 @@ type ClubFilterItem = {
     id: number;
     name: string;
     category: string;
+    tags: string[];
     is_recruiting: boolean;
 };
 
@@ -49,18 +50,50 @@ export function filterClubs(
     });
 }
 
-export function getClubSummaryText(activeStatus: ClubFilterStatus, totalCount: number, recruitingCount: number) {
-    const closedCount = totalCount - recruitingCount;
+type ClubSummaryParams = {
+    activeStatus: ClubFilterStatus;
+    activeCategory: ClubCategoryFilter;
+    searchQuery: string;
+    totalCount: number;
+    totalRecruitingCount: number;
+    filteredCount: number;
+    filteredRecruitingCount: number;
+};
+
+export function getClubSummaryText({
+    activeStatus,
+    activeCategory,
+    searchQuery,
+    totalCount,
+    totalRecruitingCount,
+    filteredCount,
+    filteredRecruitingCount,
+}: ClubSummaryParams) {
+    const totalClosedCount = totalCount - totalRecruitingCount;
+    const hasSearchQuery = normalizeClubSearchQuery(searchQuery).length > 0;
+    const hasCategoryFilter = activeCategory !== "all";
 
     if (activeStatus === "recruiting") {
-        return `총 ${totalCount}개의 동아리 · 모집중 ${recruitingCount}개`;
+        const label = hasSearchQuery ? "검색 결과" : hasCategoryFilter ? activeCategory : "모집중";
+
+        return `${label} ${filteredCount}개 · 전체 모집중 ${totalRecruitingCount}개`;
     }
 
     if (activeStatus === "closed") {
-        return `총 ${totalCount}개의 동아리 · 모집마감 ${closedCount}개`;
+        const label = hasSearchQuery ? "검색 결과" : hasCategoryFilter ? activeCategory : "모집마감";
+
+        return `${label} ${filteredCount}개 · 전체 모집마감 ${totalClosedCount}개`;
     }
 
-    return `총 ${totalCount}개의 동아리가 있습니다.`;
+    if (hasSearchQuery) {
+        return `검색 결과 ${filteredCount}개 · 모집중 ${filteredRecruitingCount}개`;
+    }
+
+    if (hasCategoryFilter) {
+        return `${activeCategory} ${filteredCount}개 · 모집중 ${filteredRecruitingCount}개`;
+    }
+
+    return `총 ${totalCount}개 · 모집중 ${totalRecruitingCount}개 · 모집마감 ${totalClosedCount}개`;
 }
 
 export function useClubFilters(clubs: ClubFilterItem[]) {
@@ -76,10 +109,29 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
     );
 
     const totalCount = clubs.length;
-    const recruitingCount = clubs.filter((club) => club.is_recruiting).length;
+    const totalRecruitingCount = clubs.filter((club) => club.is_recruiting).length;
+    const filteredCount = filteredClubs.length;
+    const filteredRecruitingCount = filteredClubs.filter((club) => club.is_recruiting).length;
     const summaryText = useMemo(
-        () => getClubSummaryText(activeStatus, totalCount, recruitingCount),
-        [activeStatus, recruitingCount, totalCount]
+        () =>
+            getClubSummaryText({
+                activeStatus,
+                activeCategory,
+                searchQuery,
+                totalCount,
+                totalRecruitingCount,
+                filteredCount,
+                filteredRecruitingCount,
+            }),
+        [
+            activeCategory,
+            activeStatus,
+            filteredCount,
+            filteredRecruitingCount,
+            searchQuery,
+            totalCount,
+            totalRecruitingCount,
+        ]
     );
     const emptyState = useMemo(
         () => getClubSearchEmptyState({ clubs, filteredClubs, searchQuery, activeStatus }),

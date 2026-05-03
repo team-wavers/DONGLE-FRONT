@@ -1,7 +1,7 @@
 "use client";
 
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@dongle/ui/select";
 import { cn } from "@dongle/ui/utils";
+import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
 import type { ClubCategoryFilter, ClubFilterStatus } from "@/hooks/use-club-filters";
 
 interface ClubFilterChipsProps {
@@ -28,10 +28,10 @@ export default function ClubFilterChips({
     const hasActiveFilter = activeStatus !== "all" || activeCategory !== "all";
 
     return (
-        <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_360px]">
-            <div className="space-y-1.5">
-                <div className="text-xs font-semibold text-zinc-400">모집여부</div>
-                <div className="grid h-12 min-w-0 grid-cols-3 gap-1 rounded-xl border border-zinc-200/80 bg-zinc-50 p-1 md:h-11">
+        <div className="mt-5 space-y-5">
+            <div>
+                <div className="mb-2 text-sm font-bold text-zinc-400">모집여부</div>
+                <div className="grid h-11 min-w-0 grid-cols-3 gap-1 rounded-md bg-zinc-100 p-1">
                     {filterOptions.map((option) => {
                         const isActive = activeStatus === option.value;
 
@@ -41,7 +41,7 @@ export default function ClubFilterChips({
                                 type="button"
                                 onClick={() => onStatusChange(option.value)}
                                 className={cn(
-                                    "h-full rounded-[10px] px-3 py-0 text-sm font-semibold leading-none transition-colors whitespace-nowrap",
+                                    "h-full rounded-md px-2 py-0 text-sm font-bold leading-none transition-colors whitespace-nowrap",
                                     isActive ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-500 hover:bg-white hover:text-zinc-700"
                                 )}
                                 aria-label={`모집여부: ${option.label}`}
@@ -53,24 +53,30 @@ export default function ClubFilterChips({
                 </div>
             </div>
 
-            <div className="space-y-1.5">
-                <div className="text-xs font-semibold text-zinc-400">분과</div>
-                <div className="flex gap-2">
-                    <Select value={activeCategory} onValueChange={(value) => onCategoryChange(value)}>
-                        <SelectTrigger
-                            aria-label="분과 필터"
-                            className="h-12 w-full rounded-xl border-zinc-200/80 bg-zinc-50 px-5 py-0 text-left text-sm font-semibold leading-none text-zinc-700 shadow-none data-[size=default]:h-12 md:h-11 md:data-[size=default]:h-11">
-                            <span className="truncate">{activeCategory === "all" ? "전체 분과" : activeCategory}</span>
-                        </SelectTrigger>
-                        <SelectContent className="border-zinc-200 bg-white">
-                            <SelectItem value="all">전체 분과</SelectItem>
-                            {categoryOptions.map((category) => (
-                                <SelectItem key={category} value={category}>
-                                    {category}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+            <div>
+                <div className="mb-2 text-sm font-bold text-zinc-400">분과</div>
+                <div className="flex flex-wrap gap-2">
+                    {categoryOptions.map((category) => {
+                        const presentation = getClubCategoryPresentation(category);
+                        const Icon = presentation.icon;
+                        const isActive = activeCategory === category;
+
+                        return (
+                            <button
+                                key={category}
+                                type="button"
+                                onClick={() => onCategoryChange(category)}
+                                className={cn(
+                                    "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-bold transition-colors",
+                                    presentation.labelClassName,
+                                    isActive ? "ring-2 ring-zinc-900/80 ring-offset-1" : "hover:border-zinc-300"
+                                )}
+                                aria-pressed={isActive}>
+                                <Icon className="size-3.5" aria-hidden="true" />
+                                {category}
+                            </button>
+                        );
+                    })}
                     {hasActiveFilter ? (
                         <button
                             type="button"
@@ -78,7 +84,7 @@ export default function ClubFilterChips({
                                 onStatusChange("all");
                                 onCategoryChange("all");
                             }}
-                            className="h-12 shrink-0 rounded-xl border border-zinc-200/80 bg-white px-3 text-sm font-semibold text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-800 md:h-11">
+                            className="rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-bold text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-800">
                             초기화
                         </button>
                     ) : null}

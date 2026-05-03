@@ -139,7 +139,10 @@
 
 ### 요약 문구
 
-- 전체, 모집중, 모집마감 상태별 요약 문구가 일관되게 계산된다.
+- 전체 상태에서는 총 동아리, 모집중, 모집마감 개수를 함께 보여준다.
+- 검색어가 있으면 검색 결과 수와 그중 모집중 개수를 보여준다.
+- 분과 필터가 있으면 해당 분과 결과 수와 그중 모집중 개수를 보여준다.
+- 모집중/모집마감 상태 필터에서는 현재 결과 수와 전체 상태별 개수를 함께 보여준다.
 
 ### Empty-state 계산
 
@@ -161,6 +164,18 @@
 
 관련 테스트:
 - [get-club-report-route-status.test.ts](../../apps/DONGLE-CLIENT/src/lib/get-club-report-route-status.test.ts)
+
+## Client Club Detail
+
+### 키워드 태그 표시
+
+- 일반 태그는 `#` prefix를 붙여 표시한다.
+- 이미 `#`가 붙은 태그는 prefix를 중복하지 않는다.
+- 하나의 문자열에 여러 `#` 키워드가 들어온 기존 데이터는 개별 키워드로 나누어 표시한다.
+- 빈 태그 값은 표시하지 않는다.
+
+관련 테스트:
+- [format-club-keyword-tags.test.ts](../../apps/DONGLE-CLIENT/src/lib/format-club-keyword-tags.test.ts)
 
 ## Shared Utilities
 
