@@ -144,6 +144,7 @@ export function ClubBasicInfo({
                     maxSize={5}
                     maxFiles={1}
                     selectionMode="replace"
+                    presentation="club-icon"
                     error={fieldErrors?.icon}
                     onUrlRemove={onIconUrlRemove}
                     onReplaceExistingUrls={onReplaceExistingIconUrls}

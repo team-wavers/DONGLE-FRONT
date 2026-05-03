@@ -2,7 +2,7 @@
  * 사용자 생성/수정 폼 공통 검증
  */
 
-import { isValidMobilePhoneNumber, trimToEmpty } from "@/feature/shared/normalization/string-normalization";
+import { isValidMobilePhoneNumber, trimToEmpty } from "@dongle/utils";
 
 export interface UserFormFieldErrors {
     name?: string;

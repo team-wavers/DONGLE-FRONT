@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { User as UserIcon, Phone, Calendar, Edit, Trash2 } from "lucide-react";
 import UserEditForm from "@/feature/user/components/user-edit-form";
 import { deleteUserAction } from "@/feature/user/action/user-form.action";
+import { formatMobilePhoneNumber } from "@dongle/utils";
 import { formatKoreanDate } from "@/lib/format/date";
 import { toast } from "sonner";
 
@@ -93,7 +94,7 @@ export default function UserCard({ user }: UserCardProps) {
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <Phone className="w-4 h-4" />
-                                <span>{user.phone}</span>
+                                <span>{formatMobilePhoneNumber(user.phone)}</span>
                             </div>
                         </div>
                         <div className="space-y-2">

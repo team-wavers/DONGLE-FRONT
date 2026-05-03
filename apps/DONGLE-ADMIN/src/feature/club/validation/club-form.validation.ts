@@ -1,5 +1,5 @@
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
-import { isValidMobilePhoneNumber } from "@/feature/shared/normalization/string-normalization";
+import { isValidMobilePhoneNumber } from "@dongle/utils";
 
 export interface ClubFormFieldErrors {
     clubName?: string;

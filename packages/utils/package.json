@@ -1,0 +1,13 @@
+{
+    "name": "@dongle/utils",
+    "version": "0.0.0",
+    "private": true,
+    "types": "src/index.ts",
+    "exports": {
+        ".": "./src/index.ts",
+        "./*": "./src/*"
+    },
+    "scripts": {
+        "type": "tsc --noEmit"
+    }
+}

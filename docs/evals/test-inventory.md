@@ -27,7 +27,7 @@
 | admin auth login policy | [login-form-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/login-form-policy.test.ts) | code-graded | input normalization / error branch helper |
 | session draft | [use-session-storage-draft.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-session-storage-draft.test.ts) | code-graded | helper |
 | social url | [normalize-social-url.test.ts](../../apps/DONGLE-CLIENT/src/lib/normalize-social-url.test.ts) | code-graded | shared helper |
-| shared normalization | [string-normalization.test.ts](../../apps/DONGLE-ADMIN/src/feature/shared/normalization/string-normalization.test.ts) | code-graded | trim/nullable/phone normalization helper |
+| shared normalization | [string.test.ts](../../packages/utils/src/string.test.ts), [phone.test.ts](../../packages/utils/src/phone.test.ts) | code-graded | trim/nullable/phone normalization and phone display formatting helper |
 | client report route | [get-club-report-route-status.test.ts](../../apps/DONGLE-CLIENT/src/lib/get-club-report-route-status.test.ts) | code-graded | API route status mapping |
 | client search | [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts) | code-graded | filtering / summary |
 | client search empty-state | [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts) | code-graded | filter/query/data 조합별 empty-state code/message |
