@@ -4,7 +4,7 @@ import { patchUserService } from "@dongle/service/user/user.service";
 import { UpdateUserRequest } from "@dongle/types/user/user.d";
 import { revalidateTag } from "next/cache";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
-import { trimToEmpty } from "@/feature/shared/normalization/string-normalization";
+import { trimToEmpty } from "@dongle/utils";
 import {
     validateUserName,
     validateLoginId,

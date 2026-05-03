@@ -11,6 +11,8 @@
             "@dongle/rich-text/*": ["./packages/rich-text/src/*"],
             "@dongle/content": ["./packages/content/src/index.ts"],
             "@dongle/content/*": ["./packages/content/src/*"],
+            "@dongle/utils": ["./packages/utils/src/index.ts"],
+            "@dongle/utils/*": ["./packages/utils/src/*"],
             "@dongle/ui": ["./packages/ui/src/index.ts"],
             "@dongle/ui/*": ["./packages/ui/src/*"],
         },

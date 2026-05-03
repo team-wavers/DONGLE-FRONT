@@ -17,7 +17,7 @@ import {
     type ClubFormFieldErrors,
 } from "@/feature/club/validation/club-form.validation";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
-import { trimToEmpty, trimToNull } from "@/feature/shared/normalization/string-normalization";
+import { trimToEmpty, trimToNull } from "@dongle/utils";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { normalizeSocialUrl } from "@dongle/ui/utils";
 

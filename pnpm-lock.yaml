@@ -48,6 +48,9 @@ importers:
       '@dongle/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@dongle/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.71.1(react@19.2.4))
@@ -433,6 +436,8 @@ importers:
         version: link:../types
 
   packages/types: {}
+
+  packages/utils: {}
 
   packages/ui:
     dependencies:

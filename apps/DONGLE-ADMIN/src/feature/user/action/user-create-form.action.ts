@@ -3,7 +3,7 @@
 import { createUserService } from "@dongle/service/user/user.service";
 import { revalidateTag } from "next/cache";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
-import { trimToEmpty } from "@/feature/shared/normalization/string-normalization";
+import { trimToEmpty } from "@dongle/utils";
 import {
     validateUserName,
     validateLoginId,

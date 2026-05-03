@@ -188,6 +188,25 @@
 관련 테스트:
 - [date.test.ts](../../apps/DONGLE-ADMIN/src/lib/format/date.test.ts)
 
+### String Normalization
+
+- `trimToEmpty`는 문자열 입력의 앞뒤 공백을 제거한다.
+- `trimToEmpty`는 nullish 값과 비문자열 입력을 빈 문자열로 정규화한다.
+- `trimToNull`은 공백 문자열을 `null`로 정규화한다.
+
+관련 테스트:
+- [string.test.ts](../../packages/utils/src/string.test.ts)
+
+### Phone Number Formatting
+
+- 10자리 휴대폰 번호는 `000-000-0000` 형식으로 표시한다.
+- 11자리 휴대폰 번호는 `000-0000-0000` 형식으로 표시한다.
+- 공백이나 하이픈이 섞여 있어도 표시 형식은 동일해야 한다.
+- 휴대폰 번호로 포맷할 수 없는 값은 원본 표시를 유지한다.
+
+관련 테스트:
+- [phone.test.ts](../../packages/utils/src/phone.test.ts)
+
 ### Session Draft Clear Rule
 
 - draft는 저장 성공으로 막 전이된 시점에만 제거된다.
