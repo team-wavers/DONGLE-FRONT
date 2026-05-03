@@ -34,7 +34,7 @@ export interface FileUploadProps {
     name?: string; // 폼 제출을 위한 name 속성
     selectionMode?: "append" | "replace";
     removedUrlsFieldName?: string;
-    presentation?: "default" | "single-thumbnail";
+    presentation?: "default" | "single-thumbnail" | "club-icon";
 }
 
 function makeRemovedFieldName(name?: string, removedUrlsFieldName?: string) {
@@ -225,16 +225,30 @@ function NewPreviewSection({ previews, onRemove }: { previews: string[]; onRemov
     );
 }
 
-function SingleThumbnailPreview({ previewUrl, onRemove }: { previewUrl: string; onRemove: () => void }) {
+function SingleThumbnailPreview({
+    previewUrl,
+    onRemove,
+    presentation,
+}: {
+    previewUrl: string;
+    onRemove: () => void;
+    presentation: "single-thumbnail" | "club-icon";
+}) {
+    const isClubIcon = presentation === "club-icon";
+
     return (
         <div className="space-y-2">
-            <p className="text-sm font-medium text-zinc-700">썸네일 미리보기</p>
-            <div className="relative h-40 w-40 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50">
+            <p className="text-sm font-medium text-zinc-700">{isClubIcon ? "아이콘 미리보기" : "썸네일 미리보기"}</p>
+            <div
+                className={cn(
+                    "relative overflow-hidden border border-zinc-200 bg-zinc-50",
+                    isClubIcon ? "h-16 w-16 rounded-full" : "h-40 w-40 rounded-xl"
+                )}>
                 <Image
                     src={previewUrl}
-                    alt="썸네일 미리보기"
-                    width={320}
-                    height={320}
+                    alt={isClubIcon ? "아이콘 미리보기" : "썸네일 미리보기"}
+                    width={isClubIcon ? 64 : 320}
+                    height={isClubIcon ? 64 : 320}
                     className="h-full w-full object-cover"
                 />
                 <Button
@@ -242,8 +256,11 @@ function SingleThumbnailPreview({ previewUrl, onRemove }: { previewUrl: string; 
                     variant="destructive"
                     size="sm"
                     onClick={onRemove}
-                    className="absolute right-3 top-3 h-8 w-8 rounded-full p-0">
-                    <X className="h-4 w-4" />
+                    className={cn(
+                        "absolute rounded-full p-0",
+                        isClubIcon ? "-right-1 -top-1 h-5 w-5" : "right-3 top-3 h-8 w-8"
+                    )}>
+                    <X className={isClubIcon ? "h-3 w-3" : "h-4 w-4"} />
                 </Button>
             </div>
         </div>
@@ -287,7 +304,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         const generatedId = useId();
         const fieldId = id || `file-${generatedId}`;
         const shouldShowPreview = fileType === "image" && showPreview;
-        const isSingleThumbnail = presentation === "single-thumbnail";
+        const isSingleThumbnail = presentation === "single-thumbnail" || presentation === "club-icon";
         const acceptValue = fileType === "image" ? IMAGE_ACCEPT : "*/*";
         const baseExistingUrls = React.useMemo(
             () => (defaultValue ?? []).map(normalizeExistingUrl).filter((url): url is string => Boolean(url)),
@@ -489,6 +506,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
                     {isSingleThumbnail && shouldShowPreview && singleThumbnailPreviewUrl && (
                         <SingleThumbnailPreview
                             previewUrl={singleThumbnailPreviewUrl}
+                            presentation={presentation}
                             onRemove={() => {
                                 if (previews.length > 0) {
                                     removeFile(0);
