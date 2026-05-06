@@ -26,7 +26,9 @@ export default function ClubSearchSection({
     onCategoryChange,
 }: ClubSearchSectionProps) {
     return (
-        <aside id="club-search-section" className="scroll-mt-24 rounded-lg border border-zinc-200 bg-white p-4">
+        <aside
+            id="club-search-section"
+            className="sticky top-20 z-[5] max-h-[calc(100dvh-5rem)] self-start overflow-y-auto scroll-mt-24 rounded-lg border border-zinc-200 bg-white p-4">
             <div className="mb-2 text-sm font-bold text-zinc-400">검색</div>
             <div className="group relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-zinc-400 transition-colors group-focus-within:text-zinc-500" />
