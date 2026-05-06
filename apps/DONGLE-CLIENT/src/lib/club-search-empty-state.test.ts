@@ -3,8 +3,8 @@ import type { ClubFilterItem } from "@/hooks/use-club-filters";
 import { getClubSearchEmptyState } from "./club-search-empty-state";
 
 const mixedClubs: ClubFilterItem[] = [
-    { id: 1, name: "D-Maker", category: "학술", is_recruiting: true },
-    { id: 2, name: "Cinema", category: "문화", is_recruiting: false },
+    { id: 1, name: "D-Maker", category: "학술", tags: ["개발"], is_recruiting: true },
+    { id: 2, name: "Cinema", category: "문화", tags: ["영화"], is_recruiting: false },
 ];
 
 describe("getClubSearchEmptyState", () => {
@@ -43,7 +43,7 @@ describe("getClubSearchEmptyState", () => {
 
     test("모집중 필터에서 모집중 데이터가 전혀 없으면 no-open-recruitment를 반환한다", () => {
         const result = getClubSearchEmptyState({
-            clubs: [{ id: 2, name: "Cinema", category: "문화", is_recruiting: false }],
+            clubs: [{ id: 2, name: "Cinema", category: "문화", tags: ["영화"], is_recruiting: false }],
             filteredClubs: [],
             searchQuery: "",
             activeStatus: "recruiting",
@@ -57,7 +57,7 @@ describe("getClubSearchEmptyState", () => {
 
     test("모집마감 필터에서 모집마감 데이터가 전혀 없으면 no-closed-recruitment를 반환한다", () => {
         const result = getClubSearchEmptyState({
-            clubs: [{ id: 1, name: "D-Maker", category: "학술", is_recruiting: true }],
+            clubs: [{ id: 1, name: "D-Maker", category: "학술", tags: ["개발"], is_recruiting: true }],
             filteredClubs: [],
             searchQuery: "",
             activeStatus: "closed",

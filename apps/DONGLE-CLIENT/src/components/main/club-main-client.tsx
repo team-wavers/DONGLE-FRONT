@@ -9,6 +9,7 @@ type ClubListItemViewModel = {
     id: number;
     name: string;
     category: string;
+    tags: string[];
     is_recruiting: boolean;
 };
 
@@ -32,18 +33,20 @@ export default function ClubMainClient({ clubs, bannerImageUrls }: ClubMainClien
     } = useClubFilters(clubs);
 
     return (
-        <section className="py-8 md:py-12 space-y-8">
+        <section className="space-y-6 py-6 md:py-10">
             <ClubMainHeroBannerCarousel imageUrls={bannerImageUrls} />
-            <ClubSearchSection
-                searchQuery={searchQuery}
-                onSearchQueryChange={setSearchQuery}
-                activeStatus={activeStatus}
-                onStatusChange={setActiveStatus}
-                activeCategory={activeCategory}
-                categoryOptions={categoryOptions}
-                onCategoryChange={setActiveCategory}
-            />
-            <ClubListSection clubs={filteredClubs} summaryText={summaryText} emptyStateMessage={emptyState.message} />
+            <section className="grid gap-4 md:grid-cols-[280px_minmax(0,1fr)]">
+                <ClubSearchSection
+                    searchQuery={searchQuery}
+                    onSearchQueryChange={setSearchQuery}
+                    activeStatus={activeStatus}
+                    onStatusChange={setActiveStatus}
+                    activeCategory={activeCategory}
+                    categoryOptions={categoryOptions}
+                    onCategoryChange={setActiveCategory}
+                />
+                <ClubListSection clubs={filteredClubs} summaryText={summaryText} emptyStateMessage={emptyState.message} />
+            </section>
         </section>
     );
 }

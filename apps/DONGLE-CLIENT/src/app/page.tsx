@@ -19,6 +19,7 @@ async function HomePageContent() {
                   id: club.id,
                   name: club.name,
                   category: club.category,
+                  tags: club.tags,
                   is_recruiting: club.is_recruiting,
               }))
             : [];
