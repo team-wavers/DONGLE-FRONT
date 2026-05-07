@@ -128,10 +128,9 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
                 </Link>
             </div>
 
-            <header className="grid gap-6 border-b border-zinc-200 pb-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+            <header className="grid gap-6 border-b border-zinc-200 py-4 lg:grid-cols-[minmax(0,1fr)_280px]">
                 <div className="min-w-0">
-                    <div className="space-y-3">
-                        <p className="text-sm font-bold text-zinc-400">활동보고서 #{report.id}</p>
+                    <div className="flex flex-col gap-4">
                         <h1 className="break-words text-4xl font-black leading-tight tracking-normal text-zinc-950 md:text-5xl">
                             {report.title}
                         </h1>
