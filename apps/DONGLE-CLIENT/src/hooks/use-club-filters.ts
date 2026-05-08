@@ -2,7 +2,8 @@
 
 import { getClubSearchEmptyState } from "@/lib/club-search-empty-state";
 import type { RecruitmentStatus } from "@dongle/ui/badges/recruitment-status-badge";
-import { useMemo, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
 
 type ClubFilterItem = {
     id: number;
@@ -16,11 +17,68 @@ export type ClubFilterStatus = "all" | RecruitmentStatus;
 export type ClubCategoryFilter = "all" | string;
 
 const toRecruitmentStatus = (isRecruiting: boolean): RecruitmentStatus => (isRecruiting ? "recruiting" : "closed");
+const clubFilterStatusValues = ["all", "recruiting", "closed"] as const satisfies readonly ClubFilterStatus[];
+const clubFilterSearchParamKeys = {
+    searchQuery: "q",
+    activeStatus: "status",
+    activeCategory: "category",
+} as const;
+
+type SearchParamReader = {
+    get: (name: string) => string | null;
+};
+
+type ClubFilterSearchParams = {
+    searchQuery: string;
+    activeStatus: ClubFilterStatus;
+    activeCategory: ClubCategoryFilter;
+};
 
 export type { ClubFilterItem };
 
 export function normalizeClubSearchQuery(searchQuery: string) {
     return searchQuery.trim().toLowerCase();
+}
+
+function toClubFilterStatus(value: string | null): ClubFilterStatus {
+    return clubFilterStatusValues.includes(value as ClubFilterStatus) ? (value as ClubFilterStatus) : "all";
+}
+
+export function parseClubFilterSearchParams(searchParams: SearchParamReader): ClubFilterSearchParams {
+    return {
+        searchQuery: searchParams.get(clubFilterSearchParamKeys.searchQuery)?.trim() ?? "",
+        activeStatus: toClubFilterStatus(searchParams.get(clubFilterSearchParamKeys.activeStatus)),
+        activeCategory: searchParams.get(clubFilterSearchParamKeys.activeCategory)?.trim() || "all",
+    };
+}
+
+export function buildClubFilterSearchParams(
+    filters: ClubFilterSearchParams,
+    baseSearchParams: URLSearchParams = new URLSearchParams()
+) {
+    const nextSearchParams = new URLSearchParams(baseSearchParams);
+    const searchQuery = filters.searchQuery.trim();
+    const activeCategory = filters.activeCategory.trim();
+
+    if (searchQuery.length > 0) {
+        nextSearchParams.set(clubFilterSearchParamKeys.searchQuery, searchQuery);
+    } else {
+        nextSearchParams.delete(clubFilterSearchParamKeys.searchQuery);
+    }
+
+    if (filters.activeStatus !== "all") {
+        nextSearchParams.set(clubFilterSearchParamKeys.activeStatus, filters.activeStatus);
+    } else {
+        nextSearchParams.delete(clubFilterSearchParamKeys.activeStatus);
+    }
+
+    if (activeCategory.length > 0 && activeCategory !== "all") {
+        nextSearchParams.set(clubFilterSearchParamKeys.activeCategory, activeCategory);
+    } else {
+        nextSearchParams.delete(clubFilterSearchParamKeys.activeCategory);
+    }
+
+    return nextSearchParams;
 }
 
 export function getClubCategoryOptions(clubs: ClubFilterItem[]) {
@@ -97,9 +155,36 @@ export function getClubSummaryText({
 }
 
 export function useClubFilters(clubs: ClubFilterItem[]) {
-    const [searchQuery, setSearchQuery] = useState("");
-    const [activeStatus, setActiveStatus] = useState<ClubFilterStatus>("all");
-    const [activeCategory, setActiveCategory] = useState<ClubCategoryFilter>("all");
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const { searchQuery, activeStatus, activeCategory } = useMemo(
+        () => parseClubFilterSearchParams(searchParams),
+        [searchParams]
+    );
+    const updateFilterSearchParams = useCallback(
+        (nextFilters: Partial<ClubFilterSearchParams>) => {
+            const nextSearchParams = buildClubFilterSearchParams(
+                { searchQuery, activeStatus, activeCategory, ...nextFilters },
+                new URLSearchParams(searchParams.toString())
+            );
+            const queryString = nextSearchParams.toString();
+
+            window.history.replaceState(null, "", queryString ? `${pathname}?${queryString}` : pathname);
+        },
+        [activeCategory, activeStatus, pathname, searchParams, searchQuery]
+    );
+    const setSearchQuery = useCallback(
+        (query: string) => updateFilterSearchParams({ searchQuery: query }),
+        [updateFilterSearchParams]
+    );
+    const setActiveStatus = useCallback(
+        (status: ClubFilterStatus) => updateFilterSearchParams({ activeStatus: status }),
+        [updateFilterSearchParams]
+    );
+    const setActiveCategory = useCallback(
+        (category: ClubCategoryFilter) => updateFilterSearchParams({ activeCategory: category }),
+        [updateFilterSearchParams]
+    );
 
     const categoryOptions = useMemo(() => getClubCategoryOptions(clubs), [clubs]);
 

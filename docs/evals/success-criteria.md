@@ -150,6 +150,13 @@
 - 검색어가 있거나 전체 필터에서 결과가 비면 `no-result`와 기본 안내 문구를 반환한다.
 - 모집중/모집마감 필터에서 해당 상태 데이터가 원천적으로 없으면 각각 `no-open-recruitment`, `no-closed-recruitment` 상태코드를 반환한다.
 
+### 쿼리스트링 연동
+
+- 검색어, 모집 상태, 분과 필터는 URL query string으로 파싱/생성될 수 있어야 한다.
+- 빈 검색어와 기본 필터값은 query string에서 제거된다.
+- 잘못된 모집 상태 값은 전체 상태로 정규화된다.
+- 필터 query string 갱신 시 관련 없는 기존 query parameter는 유지된다.
+
 관련 테스트:
 - [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts)
 - [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts)
