@@ -1,8 +1,10 @@
 import { expect, test } from "vitest";
 import {
+    buildClubFilterSearchParams,
     filterClubs,
     getClubCategoryOptions,
     getClubSummaryText,
+    parseClubFilterSearchParams,
     type ClubFilterItem,
 } from "./use-club-filters";
 
@@ -78,4 +80,62 @@ test("getClubSummaryText는 활성 상태에 따라 다른 요약 문구를 만�
             filteredRecruitingCount: 0,
         })
     ).toBe("모집마감 1개 · 전체 모집마감 1개");
+});
+
+test("parseClubFilterSearchParams는 쿼리스트링에서 필터 상태를 파싱한다", () => {
+    const result = parseClubFilterSearchParams(new URLSearchParams("q=%20design%20&status=recruiting&category=%ED%95%99%EC%88%A0"));
+
+    expect(result).toEqual({
+        searchQuery: "design",
+        activeStatus: "recruiting",
+        activeCategory: "학술",
+    });
+});
+
+test("parseClubFilterSearchParams는 잘못된 status와 빈 값을 기본값으로 정규화한다", () => {
+    const result = parseClubFilterSearchParams(new URLSearchParams("q=%20%20&status=invalid&category=%20"));
+
+    expect(result).toEqual({
+        searchQuery: "",
+        activeStatus: "all",
+        activeCategory: "all",
+    });
+});
+
+test("buildClubFilterSearchParams는 기본 필터 값을 쿼리스트링에서 제거하고 기존 값을 보존한다", () => {
+    const result = buildClubFilterSearchParams(
+        {
+            searchQuery: "  ",
+            activeStatus: "all",
+            activeCategory: "all",
+        },
+        new URLSearchParams("q=design&status=closed&category=%ED%95%99%EC%88%A0&page=2")
+    );
+
+    expect(result.toString()).toBe("page=2");
+});
+
+test("buildClubFilterSearchParams는 활성 필터 값을 쿼리스트링에 반영한다", () => {
+    const result = buildClubFilterSearchParams({
+        searchQuery: " design ",
+        activeStatus: "recruiting",
+        activeCategory: "학술",
+    });
+
+    expect(result.get("q")).toBe("design");
+    expect(result.get("status")).toBe("recruiting");
+    expect(result.get("category")).toBe("학술");
+});
+
+test("buildClubFilterSearchParams는 모집 상태와 분과를 한 번에 초기화할 수 있다", () => {
+    const result = buildClubFilterSearchParams(
+        {
+            searchQuery: "design",
+            activeStatus: "all",
+            activeCategory: "all",
+        },
+        new URLSearchParams("q=design&status=recruiting&category=%ED%95%99%EC%88%A0")
+    );
+
+    expect(result.toString()).toBe("q=design");
 });

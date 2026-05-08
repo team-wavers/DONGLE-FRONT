@@ -1,5 +1,7 @@
 "use client";
 
+import ClubFilterChips from "@/components/main/club-filter-chips";
+import type { ClubCategoryFilter, ClubFilterStatus } from "@/hooks/use-club-filters";
 import { Button } from "@dongle/ui/button";
 import { Input } from "@dongle/ui/input";
 import {
@@ -14,8 +16,6 @@ import {
 } from "@dongle/ui/sheet";
 import { cn } from "@dongle/ui/utils";
 import { Search, SlidersHorizontal, X } from "lucide-react";
-import ClubFilterChips from "@/components/main/club-filter-chips";
-import type { ClubCategoryFilter, ClubFilterStatus } from "@/hooks/use-club-filters";
 
 interface ClubSearchSectionProps {
     searchQuery: string;
@@ -25,6 +25,7 @@ interface ClubSearchSectionProps {
     activeCategory: ClubCategoryFilter;
     categoryOptions: string[];
     onCategoryChange: (category: ClubCategoryFilter) => void;
+    onResetFilters: () => void;
 }
 
 export default function ClubSearchSection({
@@ -35,6 +36,7 @@ export default function ClubSearchSection({
     activeCategory,
     categoryOptions,
     onCategoryChange,
+    onResetFilters,
 }: ClubSearchSectionProps) {
     const hasActiveFilter = activeStatus !== "all" || activeCategory !== "all";
     const activeFilterCount = Number(activeStatus !== "all") + Number(activeCategory !== "all");
@@ -52,18 +54,23 @@ export default function ClubSearchSection({
                                 variant="outline"
                                 className={cn(
                                     "h-11 shrink-0 border-zinc-200 px-3 text-zinc-700 shadow-none md:hidden",
-                                    hasActiveFilter && "border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white"
+                                    hasActiveFilter &&
+                                        "border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white"
                                 )}
                                 aria-label={activeFilterCount > 0 ? `필터 ${activeFilterCount}개 적용됨` : "필터 열기"}>
                                 <SlidersHorizontal className="size-4" aria-hidden="true" />
                                 <span className="text-sm font-bold">필터</span>
-                                {activeFilterCount > 0 ? <span className="text-xs font-bold">{activeFilterCount}</span> : null}
+                                {activeFilterCount > 0 ? (
+                                    <span className="text-xs font-bold">{activeFilterCount}</span>
+                                ) : null}
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="bottom" className="max-h-[86dvh] rounded-t-2xl bg-white p-0">
                             <SheetHeader className="border-b border-zinc-100 px-5 py-4 text-left">
                                 <SheetTitle className="text-base font-bold text-zinc-900">필터</SheetTitle>
-                                <SheetDescription className="sr-only">동아리 모집여부와 분과 조건을 선택합니다.</SheetDescription>
+                                <SheetDescription className="sr-only">
+                                    동아리 모집여부와 분과 조건을 선택합니다.
+                                </SheetDescription>
                             </SheetHeader>
                             <div className="overflow-y-auto px-5 pb-2">
                                 <ClubFilterChips
@@ -72,11 +79,14 @@ export default function ClubSearchSection({
                                     activeCategory={activeCategory}
                                     categoryOptions={categoryOptions}
                                     onCategoryChange={onCategoryChange}
+                                    onResetFilters={onResetFilters}
                                 />
                             </div>
                             <SheetFooter className="border-t border-zinc-100 px-5 py-4">
                                 <SheetClose asChild>
-                                    <Button type="button" className="h-11 bg-zinc-900 text-sm font-bold text-white hover:bg-zinc-800">
+                                    <Button
+                                        type="button"
+                                        className="h-11 bg-zinc-900 text-sm font-bold text-white hover:bg-zinc-800">
                                         적용
                                     </Button>
                                 </SheetClose>
@@ -92,7 +102,9 @@ export default function ClubSearchSection({
                                 onClear={() => onStatusChange("all")}
                             />
                         ) : null}
-                        {activeCategory !== "all" ? <ActiveFilterChip label={activeCategory} onClear={() => onCategoryChange("all")} /> : null}
+                        {activeCategory !== "all" ? (
+                            <ActiveFilterChip label={activeCategory} onClear={() => onCategoryChange("all")} />
+                        ) : null}
                     </div>
                 ) : null}
                 <div className="hidden md:block">
@@ -102,6 +114,7 @@ export default function ClubSearchSection({
                         activeCategory={activeCategory}
                         categoryOptions={categoryOptions}
                         onCategoryChange={onCategoryChange}
+                        onResetFilters={onResetFilters}
                     />
                 </div>
             </div>

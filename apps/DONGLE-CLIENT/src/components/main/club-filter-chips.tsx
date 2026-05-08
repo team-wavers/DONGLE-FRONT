@@ -10,6 +10,7 @@ interface ClubFilterChipsProps {
     activeCategory: ClubCategoryFilter;
     categoryOptions: string[];
     onCategoryChange: (category: ClubCategoryFilter) => void;
+    onResetFilters: () => void;
 }
 
 const filterOptions: { value: ClubFilterStatus; label: string }[] = [
@@ -24,6 +25,7 @@ export default function ClubFilterChips({
     activeCategory,
     categoryOptions,
     onCategoryChange,
+    onResetFilters,
 }: ClubFilterChipsProps) {
     const hasActiveFilter = activeStatus !== "all" || activeCategory !== "all";
 
@@ -80,10 +82,7 @@ export default function ClubFilterChips({
                     {hasActiveFilter ? (
                         <button
                             type="button"
-                            onClick={() => {
-                                onStatusChange("all");
-                                onCategoryChange("all");
-                            }}
+                            onClick={onResetFilters}
                             className="rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-bold text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-800">
                             초기화
                         </button>
