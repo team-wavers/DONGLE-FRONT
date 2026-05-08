@@ -118,14 +118,6 @@ export default function ClubSearchSection({
                     />
                 </div>
             </div>
-            <ClubFilterChips
-                activeStatus={activeStatus}
-                onStatusChange={onStatusChange}
-                activeCategory={activeCategory}
-                categoryOptions={categoryOptions}
-                onCategoryChange={onCategoryChange}
-                onResetFilters={onResetFilters}
-            />
         </aside>
     );
 }
