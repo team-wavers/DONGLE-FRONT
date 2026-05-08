@@ -8,6 +8,7 @@ import { useClubFilters } from "@/hooks/use-club-filters";
 type ClubListItemViewModel = {
     id: number;
     name: string;
+    icon_url: string | null;
     category: string;
     tags: string[];
     is_recruiting: boolean;

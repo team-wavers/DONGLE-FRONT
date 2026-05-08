@@ -18,6 +18,7 @@ async function HomePageContent() {
             ? clubListResponse.result.map((club) => ({
                   id: club.id,
                   name: club.name,
+                  icon_url: club.icon_url,
                   category: club.category,
                   tags: club.tags,
                   is_recruiting: club.is_recruiting,
