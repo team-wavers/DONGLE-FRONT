@@ -156,6 +156,7 @@
 - 빈 검색어와 기본 필터값은 query string에서 제거된다.
 - 잘못된 모집 상태 값은 전체 상태로 정규화된다.
 - 필터 query string 갱신 시 관련 없는 기존 query parameter는 유지된다.
+- 필터 초기화는 모집 상태와 분과를 한 번의 query string 갱신으로 제거한다.
 
 관련 테스트:
 - [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts)

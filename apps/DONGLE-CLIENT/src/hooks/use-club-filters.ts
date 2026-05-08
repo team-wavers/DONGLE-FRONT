@@ -185,6 +185,10 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
         (category: ClubCategoryFilter) => updateFilterSearchParams({ activeCategory: category }),
         [updateFilterSearchParams]
     );
+    const resetActiveFilters = useCallback(
+        () => updateFilterSearchParams({ activeStatus: "all", activeCategory: "all" }),
+        [updateFilterSearchParams]
+    );
 
     const categoryOptions = useMemo(() => getClubCategoryOptions(clubs), [clubs]);
 
@@ -230,6 +234,7 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
         setActiveStatus,
         activeCategory,
         setActiveCategory,
+        resetActiveFilters,
         categoryOptions,
         filteredClubs,
         summaryText,

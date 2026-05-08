@@ -14,6 +14,7 @@ interface ClubSearchSectionProps {
     activeCategory: ClubCategoryFilter;
     categoryOptions: string[];
     onCategoryChange: (category: ClubCategoryFilter) => void;
+    onResetFilters: () => void;
 }
 
 export default function ClubSearchSection({
@@ -24,6 +25,7 @@ export default function ClubSearchSection({
     activeCategory,
     categoryOptions,
     onCategoryChange,
+    onResetFilters,
 }: ClubSearchSectionProps) {
     return (
         <aside
@@ -48,6 +50,7 @@ export default function ClubSearchSection({
                 activeCategory={activeCategory}
                 categoryOptions={categoryOptions}
                 onCategoryChange={onCategoryChange}
+                onResetFilters={onResetFilters}
             />
         </aside>
     );

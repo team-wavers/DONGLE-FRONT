@@ -26,6 +26,7 @@ export default function ClubMainClient({ clubs, bannerImageUrls }: ClubMainClien
         setActiveStatus,
         activeCategory,
         setActiveCategory,
+        resetActiveFilters,
         categoryOptions,
         filteredClubs,
         summaryText,
@@ -44,6 +45,7 @@ export default function ClubMainClient({ clubs, bannerImageUrls }: ClubMainClien
                     activeCategory={activeCategory}
                     categoryOptions={categoryOptions}
                     onCategoryChange={setActiveCategory}
+                    onResetFilters={resetActiveFilters}
                 />
                 <ClubListSection clubs={filteredClubs} summaryText={summaryText} emptyStateMessage={emptyState.message} />
             </section>
