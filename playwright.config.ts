@@ -53,10 +53,10 @@ const needsClientServer = shouldRunProject("client");
 const needsAdminServer = shouldRunProject("admin") || shouldRunProject("club");
 const clientCommand = isCI
     ? "pnpm --filter dongle-client build && pnpm --filter dongle-client start:e2e"
-    : "pnpm --filter dongle-client dev";
+    : "pnpm --filter dongle-client dev:e2e";
 const adminCommand = isCI
     ? "pnpm --filter dongle-admin build && pnpm --filter dongle-admin start:e2e"
-    : "pnpm --filter dongle-admin dev";
+    : "pnpm --filter dongle-admin dev:e2e";
 const clientTimeout = isCI ? 180_000 : 120_000;
 const adminTimeout = isCI ? 300_000 : 120_000;
 

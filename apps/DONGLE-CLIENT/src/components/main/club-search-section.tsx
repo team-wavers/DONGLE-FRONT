@@ -41,7 +41,8 @@ export default function ClubSearchSection({
 
     return (
         <aside id="club-search-section" className="scroll-mt-24">
-            <div className="space-y-3 md:hidden">
+            <div className="space-y-3 md:sticky md:top-20 md:z-[5] md:max-h-[calc(100dvh-5rem)] md:self-start md:overflow-y-auto md:rounded-lg md:border md:border-zinc-200 md:bg-white md:p-4">
+                <div className="hidden text-sm font-bold text-zinc-400 md:mb-2 md:block">검색</div>
                 <div className="flex min-w-0 gap-2">
                     <SearchInput searchQuery={searchQuery} onSearchQueryChange={onSearchQueryChange} />
                     <Sheet>
@@ -50,7 +51,7 @@ export default function ClubSearchSection({
                                 type="button"
                                 variant="outline"
                                 className={cn(
-                                    "h-11 shrink-0 border-zinc-200 px-3 text-zinc-700 shadow-none",
+                                    "h-11 shrink-0 border-zinc-200 px-3 text-zinc-700 shadow-none md:hidden",
                                     hasActiveFilter && "border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white"
                                 )}
                                 aria-label={activeFilterCount > 0 ? `필터 ${activeFilterCount}개 적용됨` : "필터 열기"}>
@@ -84,25 +85,25 @@ export default function ClubSearchSection({
                     </Sheet>
                 </div>
                 {hasActiveFilter ? (
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 md:hidden">
                         {activeStatus !== "all" ? (
-                            <ActiveFilterChip label={activeStatus === "recruiting" ? "모집중" : "모집마감"} onClear={() => onStatusChange("all")} />
+                            <ActiveFilterChip
+                                label={activeStatus === "recruiting" ? "모집중" : "모집마감"}
+                                onClear={() => onStatusChange("all")}
+                            />
                         ) : null}
                         {activeCategory !== "all" ? <ActiveFilterChip label={activeCategory} onClear={() => onCategoryChange("all")} /> : null}
                     </div>
                 ) : null}
-            </div>
-
-            <div className="hidden rounded-lg border border-zinc-200 bg-white p-4 md:sticky md:top-20 md:z-[5] md:block md:max-h-[calc(100dvh-5rem)] md:self-start md:overflow-y-auto">
-                <div className="mb-2 text-sm font-bold text-zinc-400">검색</div>
-                <SearchInput searchQuery={searchQuery} onSearchQueryChange={onSearchQueryChange} />
-                <ClubFilterChips
-                    activeStatus={activeStatus}
-                    onStatusChange={onStatusChange}
-                    activeCategory={activeCategory}
-                    categoryOptions={categoryOptions}
-                    onCategoryChange={onCategoryChange}
-                />
+                <div className="hidden md:block">
+                    <ClubFilterChips
+                        activeStatus={activeStatus}
+                        onStatusChange={onStatusChange}
+                        activeCategory={activeCategory}
+                        categoryOptions={categoryOptions}
+                        onCategoryChange={onCategoryChange}
+                    />
+                </div>
             </div>
         </aside>
     );
