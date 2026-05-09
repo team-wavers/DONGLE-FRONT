@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getClubReportListService, getClubService } from "@/lib/server/cached-services";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
 import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
+import ClubIconAvatar from "@/components/main/club-icon-avatar";
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
 import { ArrowLeft, CalendarDays, Instagram, MapPin, Phone, UserRound, Youtube } from "lucide-react";
 import { Skeleton } from "@dongle/ui/skeleton";
@@ -154,7 +154,6 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
     const youtubeUrl = normalizeSocialUrl("youtube", club.sns.youtube);
     const hasSocialLinks = Boolean(instagramUrl || youtubeUrl);
     const categoryPresentation = getClubCategoryPresentation(club.category);
-    const FallbackIcon = categoryPresentation.icon;
     const recruitPeriod =
         club.recruit_start && club.recruit_end ? formatDateRange(club.recruit_start, club.recruit_end) : "미정";
     const infoItems = [
@@ -169,20 +168,7 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
             <header className="flex flex-col gap-6">
                 <div className="flex flex-col gap-5 py-4 md:flex-row md:items-end md:justify-between">
                     <div className="flex min-w-0 items-center gap-4">
-                        {club.icon_url ? (
-                            <Image
-                                src={club.icon_url}
-                                alt={`${club.name} 아이콘`}
-                                width={80}
-                                height={80}
-                                className="size-20 shrink-0 rounded-lg border border-zinc-200 object-cover"
-                            />
-                        ) : (
-                            <div
-                                className={`flex size-20 shrink-0 items-center justify-center rounded-lg border ${categoryPresentation.iconClassName}`}>
-                                <FallbackIcon className="size-10" />
-                            </div>
-                        )}
+                        <ClubIconAvatar name={club.name} category={club.category} iconUrl={club.icon_url} size="lg" />
 
                         <div className="min-w-0">
                             <p className="text-sm font-bold text-zinc-400">{club.category}</p>
