@@ -11,6 +11,18 @@ interface MakeRequestParams {
     accessTokenOverride?: string;
 }
 
+export function shouldAttemptTokenRefresh({
+    status,
+    skipAuthRefresh,
+    hasRetried,
+}: {
+    status: number;
+    skipAuthRefresh?: boolean;
+    hasRetried: boolean;
+}) {
+    return status === 401 && !skipAuthRefresh && !hasRetried;
+}
+
 export async function makeRequest({
     url,
     method,
@@ -49,17 +61,24 @@ export async function makeRequest({
     };
 
     // 클라이언트에서는 credentials 사용, 서버에서는 사용하지 않음
+    const { skipAuthRefresh, ...requestOptions } = options ?? {};
+
     const fetchOptions: FetchOptions = {
         method,
         ...(body !== undefined && { body }),
         headers,
-        ...options,
+        ...requestOptions,
         ...(isClient && { credentials: "include" as RequestCredentials }),
     };
 
     const response = await fetch(`${baseUrl}${url}`, fetchOptions);
-    // 401 에러 시 토큰 갱신 시도 (클라이언트에서만)
-    if (response.status === 401) {
+    if (
+        shouldAttemptTokenRefresh({
+            status: response.status,
+            skipAuthRefresh,
+            hasRetried: accessTokenOverride !== undefined,
+        })
+    ) {
         const refreshResult = await refreshToken();
         if (refreshResult.success) {
             // 토큰 갱신 성공 시 원래 요청 재시도
