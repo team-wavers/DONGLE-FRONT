@@ -39,6 +39,10 @@
 
 - 일부 호출에서는 회장 정보 검증을 끌 수 있어야 한다.
 
+### 소개/주요 활동 rich text 검증
+
+- 동아리 설명과 주요 활동은 rich text 마크업만 있는 빈 값으로 저장될 수 없다.
+
 관련 테스트:
 - [club-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/validation/club-form.validation.test.ts)
 
@@ -81,9 +85,19 @@
 - 삭제되지 않은 기존 이미지와 새 업로드 이미지를 올바르게 합친다.
 - JSON 배열 문자열 입력은 안전하게 파싱한다.
 
+### action 에러 분기 규약
+
+- 인증 만료는 `sessionExpired: true`와 form error를 함께 반환한다.
+- 이미지 업로드 실패는 retry 가능한 form error와 retry hint를 반환한다.
+- 서비스 실패(4xx/5xx 포함)는 action 종류(생성/수정)에 맞는 form error를 반환한다.
+- 예외 throw는 공통 exception form error 규약으로 매핑한다.
+
 관련 테스트:
 - [activity-report.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/activity-report.validation.test.ts)
 - [report-update-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/report-update-payload.test.ts)
+- [report-action-error-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/report-action-error-policy.test.ts)
+- [activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/activity-report-form.action.test.ts)
+- [update-activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/update-activity-report-form.action.test.ts)
 
 ## Admin URL Generation
 
@@ -99,11 +113,20 @@
 
 ### 로그인 후 내부 복귀 경로 검증
 
-- `returnTo`는 내부 경로만 허용한다.
+- `returnTo`는 trim/URL decode 이후 내부 경로만 허용한다.
 - protocol-relative URL(`//...`)과 외부 URL은 허용하지 않는다.
+- 인코딩된 protocol-relative 우회 문자열(`%2F%2F...`)도 허용하지 않는다.
+
+### 로그인 입력/오류 분기 정책
+
+- username 입력은 trim 정규화를 적용한다.
+- password 입력은 공백 포함 원문을 보존한다.
+- 정규화된 username 또는 빈 password는 필드 오류를 반환한다.
+- action 예외 분기는 Error message 유지와 기본 에러 fallback 규칙을 따른다.
 
 관련 테스트:
 - [normalize-internal-return-to.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/normalize-internal-return-to.test.ts)
+- [login-form-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/login-form-policy.test.ts)
 
 ## Client Club Search
 
@@ -111,14 +134,33 @@
 
 - 검색어는 trim/lowercase 기준으로 정규화한다.
 - 이름과 분과를 동시에 검색한다.
-- 모집 상태 필터와 검색어 필터가 함께 적용된다.
+- 모집 상태 필터와 분과 필터, 검색어 필터가 함께 적용된다.
+- 분과 필터 옵션은 현재 목록의 분과 값으로부터 중복 없이 결정된다.
 
 ### 요약 문구
 
-- 전체, 모집중, 모집마감 상태별 요약 문구가 일관되게 계산된다.
+- 전체 상태에서는 총 동아리, 모집중, 모집마감 개수를 함께 보여준다.
+- 검색어가 있으면 검색 결과 수와 그중 모집중 개수를 보여준다.
+- 분과 필터가 있으면 해당 분과 결과 수와 그중 모집중 개수를 보여준다.
+- 모집중/모집마감 상태 필터에서는 현재 결과 수와 전체 상태별 개수를 함께 보여준다.
+
+### Empty-state 계산
+
+- 검색 결과가 존재하면 empty-state는 `not-empty`와 `null` message를 반환한다.
+- 검색어가 있거나 전체 필터에서 결과가 비면 `no-result`와 기본 안내 문구를 반환한다.
+- 모집중/모집마감 필터에서 해당 상태 데이터가 원천적으로 없으면 각각 `no-open-recruitment`, `no-closed-recruitment` 상태코드를 반환한다.
+
+### 쿼리스트링 연동
+
+- 검색어, 모집 상태, 분과 필터는 URL query string으로 파싱/생성될 수 있어야 한다.
+- 빈 검색어와 기본 필터값은 query string에서 제거된다.
+- 잘못된 모집 상태 값은 전체 상태로 정규화된다.
+- 필터 query string 갱신 시 관련 없는 기존 query parameter는 유지된다.
+- 필터 초기화는 모집 상태와 분과를 한 번의 query string 갱신으로 제거한다.
 
 관련 테스트:
 - [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts)
+- [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts)
 
 ## Client Report Detail API
 
@@ -156,6 +198,25 @@
 
 관련 테스트:
 - [date.test.ts](../../apps/DONGLE-ADMIN/src/lib/format/date.test.ts)
+
+### String Normalization
+
+- `trimToEmpty`는 문자열 입력의 앞뒤 공백을 제거한다.
+- `trimToEmpty`는 nullish 값과 비문자열 입력을 빈 문자열로 정규화한다.
+- `trimToNull`은 공백 문자열을 `null`로 정규화한다.
+
+관련 테스트:
+- [string.test.ts](../../packages/utils/src/string.test.ts)
+
+### Phone Number Formatting
+
+- 10자리 휴대폰 번호는 `000-000-0000` 형식으로 표시한다.
+- 11자리 휴대폰 번호는 `000-0000-0000` 형식으로 표시한다.
+- 공백이나 하이픈이 섞여 있어도 표시 형식은 동일해야 한다.
+- 휴대폰 번호로 포맷할 수 없는 값은 원본 표시를 유지한다.
+
+관련 테스트:
+- [phone.test.ts](../../packages/utils/src/phone.test.ts)
 
 ### Session Draft Clear Rule
 

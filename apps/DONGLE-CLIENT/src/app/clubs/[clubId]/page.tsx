@@ -1,14 +1,14 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getClubReportListService, getClubService } from "@/lib/server/cached-services";
-import { Badge } from "@dongle/ui/badge";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
 import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
-import { ArrowLeft } from "lucide-react";
+import ClubIconAvatar from "@/components/main/club-icon-avatar";
+import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
+import { ArrowLeft, CalendarDays, Instagram, MapPin, Phone, UserRound, Youtube } from "lucide-react";
 import { Skeleton } from "@dongle/ui/skeleton";
 
 interface ClubDetailPageProps {
@@ -21,6 +21,45 @@ const defaultOgImage = "/logo/logo-og.png";
 function buildClubDescription(description: string, mainActivities: string) {
     const rawDescription = description?.trim() || mainActivities?.trim() || "동아리 상세 정보를 확인해보세요.";
     return rawDescription.length > 140 ? `${rawDescription.slice(0, 137)}...` : rawDescription;
+}
+
+function ClubSocialLinks({
+    instagramUrl,
+    youtubeUrl,
+    className = "",
+}: {
+    instagramUrl: string | null;
+    youtubeUrl: string | null;
+    className?: string;
+}) {
+    if (!instagramUrl && !youtubeUrl) {
+        return null;
+    }
+
+    return (
+        <div className={`flex h-fit flex-wrap gap-2 ${className}`}>
+            {instagramUrl && (
+                <Link
+                    href={instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-700 hover:bg-zinc-50">
+                    <Instagram className="size-4 text-zinc-400" />
+                    instagram
+                </Link>
+            )}
+            {youtubeUrl && (
+                <Link
+                    href={youtubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-700 hover:bg-zinc-50">
+                    <Youtube className="size-4 text-zinc-400" />
+                    youtube
+                </Link>
+            )}
+        </div>
+    );
 }
 
 export async function generateMetadata({ params }: ClubDetailPageProps): Promise<Metadata> {
@@ -83,11 +122,6 @@ export async function generateMetadata({ params }: ClubDetailPageProps): Promise
     };
 }
 
-const styles = {
-    dt: "w-24 shrink-0 text-zinc-400 font-bold",
-    dd: "text-zinc-800 font-medium",
-} as const;
-
 async function ClubDetailContent({ clubId }: { clubId: string }) {
     const clubIdNumber = Number(clubId);
     if (Number.isNaN(clubIdNumber)) {
@@ -118,96 +152,75 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
     };
     const instagramUrl = normalizeSocialUrl("instagram", club.sns.instagram);
     const youtubeUrl = normalizeSocialUrl("youtube", club.sns.youtube);
+    const hasSocialLinks = Boolean(instagramUrl || youtubeUrl);
+    const categoryPresentation = getClubCategoryPresentation(club.category);
+    const recruitPeriod =
+        club.recruit_start && club.recruit_end ? formatDateRange(club.recruit_start, club.recruit_end) : "미정";
+    const infoItems = [
+        { icon: MapPin, label: "동아리방", value: club.location || "-" },
+        { icon: CalendarDays, label: "모집기간", value: recruitPeriod },
+        { icon: UserRound, label: "회장", value: club.president?.name || "-" },
+        { icon: Phone, label: "연락처", value: club.president?.phone || "-" },
+    ];
 
     return (
-        <section className="py-6 flex flex-col gap-12">
+        <section className="flex flex-col gap-8 py-6">
             <header className="flex flex-col gap-6">
-                <div className="py-4 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-4 min-w-0">
-                        {club.icon_url ? (
-                            <Image
-                                src={club.icon_url}
-                                alt={`${club.name} 아이콘`}
-                                width={64}
-                                height={64}
-                                className="h-16 w-16 rounded-full object-cover border border-zinc-200"
-                            />
-                        ) : null}
+                <div className="flex flex-col gap-5 py-4 md:flex-row md:items-end md:justify-between">
+                    <div className="flex min-w-0 items-center gap-4">
+                        <ClubIconAvatar name={club.name} category={club.category} iconUrl={club.icon_url} size="lg" />
 
                         <div className="min-w-0">
-                            <h1 className="text-3xl font-bold text-zinc-900 break-words">{club.name}</h1>
-                            <p className="mt-1 text-zinc-500 font-medium">{club.category}</p>
+                            <p className="text-sm font-bold text-zinc-400">{club.category}</p>
+                            <h1 className="mt-1 break-words text-4xl font-bold tracking-normal text-zinc-950 md:text-5xl">
+                                {club.name}
+                            </h1>
                         </div>
                     </div>
 
                     <RecruitmentStatusBadge isRecruiting={club.is_recruiting} size="lg" />
                 </div>
 
-                <dl className="grid grid-cols-1 gap-y-4 rounded-xl bg-zinc-50 p-5">
-                    <div className="flex gap-4">
-                        <dt className={styles.dt}>동아리방</dt>
-                        <dd className={styles.dd}>{club.location || "-"}</dd>
+                {club.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                        {club.tags.map((tag: string, index: number) => (
+                            <span
+                                key={`${tag}-${index}`}
+                                className={`rounded-md border px-3 py-2 text-sm font-bold ${categoryPresentation.labelClassName}`}>
+                                {tag}
+                            </span>
+                        ))}
                     </div>
-                    <div className="flex gap-4">
-                        <dt className={styles.dt}>회장 이름</dt>
-                        <dd className={styles.dd}>{club.president?.name || "-"}</dd>
-                    </div>
-                    <div className="flex gap-4">
-                        <dt className={styles.dt}>회장 연락처</dt>
-                        <dd className={styles.dd}>{club.president?.phone || "-"}</dd>
-                    </div>
-                    <div className="flex gap-4">
-                        <dt className={styles.dt}>모집기간</dt>
-                        <dd className={styles.dd}>
-                            {club.recruit_start && club.recruit_end
-                                ? formatDateRange(club.recruit_start, club.recruit_end)
-                                : "미정"}
-                        </dd>
-                    </div>
-                    {club.tags.length > 0 && (
-                        <div className="flex gap-4">
-                            <dt className={styles.dt}>태그</dt>
-                            <dd className="text-zinc-800 flex flex-wrap gap-2">
-                                {club.tags.map((tag: string, index: number) => (
-                                    <Badge
-                                        key={`${tag}-${index}`}
-                                        variant="outline"
-                                        className="text-zinc-700 px-3 py-1 bg-white font-semibold">
-                                        {tag}
-                                    </Badge>
-                                ))}
-                            </dd>
-                        </div>
-                    )}
-                    {(instagramUrl || youtubeUrl) && (
-                        <div className="flex gap-4">
-                            <dt className={styles.dt}>SNS</dt>
-                            <dd className="flex items-center gap-4 text-sm font-medium">
-                                {instagramUrl && (
-                                    <Link
-                                        href={instagramUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-zinc-700 underline underline-offset-4 hover:text-primary">
-                                        instagram
-                                    </Link>
-                                )}
-                                {youtubeUrl && (
-                                    <Link
-                                        href={youtubeUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-zinc-700 underline underline-offset-4 hover:text-primary">
-                                        youtube
-                                    </Link>
-                                )}
-                            </dd>
-                        </div>
-                    )}
-                </dl>
+                )}
             </header>
 
-            <ClubDetailTabs club={intro} clubId={clubId} reports={reports} />
+            <section className={hasSocialLinks ? "grid gap-5 md:grid-cols-[minmax(0,1fr)_280px]" : "grid gap-5"}>
+                <div className="space-y-5">
+                    <dl className="grid gap-3 sm:grid-cols-2">
+                        {infoItems.map((item) => {
+                            const Icon = item.icon;
+
+                            return (
+                                <div key={item.label} className="rounded-lg border border-zinc-200 bg-white p-4">
+                                    <Icon className="mb-3 size-5 text-zinc-400" />
+                                    <dt className="text-sm font-bold text-zinc-400">{item.label}</dt>
+                                    <dd className="mt-1 break-words font-bold text-zinc-950">{item.value}</dd>
+                                </div>
+                            );
+                        })}
+                    </dl>
+
+                    <ClubSocialLinks instagramUrl={instagramUrl} youtubeUrl={youtubeUrl} className="md:hidden" />
+
+                    <ClubDetailTabs club={intro} clubId={clubId} reports={reports} />
+                </div>
+
+                {hasSocialLinks && (
+                    <aside>
+                        <ClubSocialLinks instagramUrl={instagramUrl} youtubeUrl={youtubeUrl} className="hidden md:flex" />
+                    </aside>
+                )}
+            </section>
         </section>
     );
 }

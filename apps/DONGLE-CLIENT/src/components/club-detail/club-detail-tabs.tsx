@@ -24,7 +24,7 @@ interface ClubDetailTabsProps {
 
 const styles = {
     tabTrigger:
-        "h-11 rounded-none border-b-2 border-transparent text-base font-semibold data-[state=active]:text-primary data-[state=active]:border-b-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent",
+        "h-11 cursor-pointer rounded-none border-b-2 border-transparent text-base font-semibold text-zinc-500 transition-colors hover:text-zinc-800 focus-visible:text-zinc-800 data-[state=active]:border-b-zinc-950 data-[state=active]:bg-transparent data-[state=active]:text-zinc-950 data-[state=active]:shadow-none",
     tabContent: "pt-8",
 } as const;
 

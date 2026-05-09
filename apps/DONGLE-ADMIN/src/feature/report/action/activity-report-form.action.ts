@@ -1,19 +1,20 @@
 "use server";
 
-import {
-  createClubReportService,
-} from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
 import { validateActivityReportInput } from "@/feature/report/validation/activity-report.validation";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
-import { uploadReportImages } from "./upload-report-images";
+import { reportActionNetwork } from "./report-action-network";
+import { buildReportActionError, isUnauthorizedError, type ReportActionErrorResult } from "./report-action-error-policy";
 
 // 서버 액션 타입 정의
 export interface ActivityReportActionState {
   success?: boolean;
-  error?: string;
-  sessionExpired?: boolean;
+  error?: ReportActionErrorResult["error"];
+  sessionExpired?: ReportActionErrorResult["sessionExpired"];
+  errorType?: ReportActionErrorResult["errorType"];
+  retryable?: ReportActionErrorResult["retryable"];
+  retryHint?: ReportActionErrorResult["retryHint"];
   fieldErrors?: {
     title?: string;
     content?: string;
@@ -49,7 +50,7 @@ export async function activityReportAction(
     let imageUrls: string[] = [];
 
     try {
-      imageUrls = await uploadReportImages({
+      imageUrls = await reportActionNetwork.uploadImages({
         clubId,
         images,
       });
@@ -58,12 +59,10 @@ export async function activityReportAction(
         action: "activityReportAction",
         clubId,
       });
-      return {
-        error: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
-      };
+      return buildReportActionError({ branch: "upload", actionLabel: "create" });
     }
 
-    const response = await createClubReportService(Number(clubId), {
+    const response = await reportActionNetwork.createReport(Number(clubId), {
       title,
       content,
       image_urls: imageUrls,
@@ -74,22 +73,17 @@ export async function activityReportAction(
       revalidateTag("report");
       return { success: true };
     } else {
-      return { error: "활동보고서 생성에 실패했습니다. 다시 시도해주세요." };
+      return buildReportActionError({ branch: "service", actionLabel: "create" });
     }
   } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
-      return {
-        error: "로그인 시간이 만료되었습니다. 다시 로그인해주세요.",
-        sessionExpired: true,
-      };
+    if (isUnauthorizedError(error)) {
+      return buildReportActionError({ branch: "auth", actionLabel: "create" });
     }
 
     captureServerException(error, "활동보고서 생성 실패", {
       action: "activityReportAction",
       clubId,
     });
-    return {
-      error: "활동 보고서 등록에 실패했습니다. 다시 시도해주세요.",
-    };
+    return buildReportActionError({ branch: "exception", actionLabel: "create" });
   }
 }

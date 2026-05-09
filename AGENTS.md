@@ -3,6 +3,12 @@
 - 리뷰 요약, 지적 사항, 변경 제안은 모두 한국어로 작성한다.
 - 코드 식별자, 에러 메시지, 로그, 커밋 해시는 원문 그대로 유지한다.
 
+## Commit and PR
+- 커밋 메시지는 항상 한국어로 작성한다.
+- PR 제목과 PR 본문은 항상 한국어로 작성한다.
+- 코드 식별자, 파일 경로, 에러 메시지, 로그, 커밋 해시는 원문 그대로 유지한다.
+- PR 본문에는 변경 요약, 검증 결과, 남은 리스크를 한국어로 작성한다.
+
 ## Harness Contract
 - 시작 전에 [docs/evals/README.md](docs/evals/README.md), [docs/evals/success-criteria.md](docs/evals/success-criteria.md), [docs/evals/test-inventory.md](docs/evals/test-inventory.md), [docs/evals/known-gaps.md](docs/evals/known-gaps.md), [docs/evals/roadmap.md](docs/evals/roadmap.md) 를 먼저 확인한다.
 - 기본 검증 경로는 `type -> test`다.

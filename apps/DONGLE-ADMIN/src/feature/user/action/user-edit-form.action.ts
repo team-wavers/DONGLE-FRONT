@@ -4,6 +4,7 @@ import { patchUserService } from "@dongle/service/user/user.service";
 import { UpdateUserRequest } from "@dongle/types/user/user.d";
 import { revalidateTag } from "next/cache";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
+import { trimToEmpty } from "@dongle/utils";
 import {
     validateUserName,
     validateLoginId,
@@ -24,13 +25,13 @@ export async function userEditFormAction(
     formData: FormData
 ): Promise<UserEditActionState> {
     const userId = formData.get("userId") as string;
-    const name = (formData.get("name") as string) ?? "";
-    const login_id = (formData.get("login_id") as string) ?? "";
+    const name = trimToEmpty(formData.get("name") as string);
+    const login_id = trimToEmpty(formData.get("login_id") as string);
     const password = (formData.get("password") as string) ?? "";
-    const phone = (formData.get("phone") as string) ?? "";
-    const originalName = formData.get("originalName") as string;
-    const originalLoginId = formData.get("originalLoginId") as string;
-    const originalPhone = formData.get("originalPhone") as string;
+    const phone = trimToEmpty(formData.get("phone") as string);
+    const originalName = trimToEmpty(formData.get("originalName") as string);
+    const originalLoginId = trimToEmpty(formData.get("originalLoginId") as string);
+    const originalPhone = trimToEmpty(formData.get("originalPhone") as string);
 
     if (!userId) {
         return {

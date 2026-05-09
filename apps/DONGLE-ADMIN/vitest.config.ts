@@ -26,6 +26,8 @@ export default defineProject({
             { find: /^@dongle\/types\/(.*)$/, replacement: `${path.resolve(__dirname, "../../packages/types/src")}/$1` },
             { find: /^@dongle\/ui$/, replacement: path.resolve(__dirname, "../../packages/ui/src/index.ts") },
             { find: /^@dongle\/ui\/(.*)$/, replacement: `${path.resolve(__dirname, "../../packages/ui/src")}/$1` },
+            { find: /^@dongle\/utils$/, replacement: path.resolve(__dirname, "../../packages/utils/src/index.ts") },
+            { find: /^@dongle\/utils\/(.*)$/, replacement: `${path.resolve(__dirname, "../../packages/utils/src")}/$1` },
         ],
     },
 });

@@ -48,6 +48,9 @@ importers:
       '@dongle/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@dongle/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.71.1(react@19.2.4))
@@ -406,6 +409,18 @@ importers:
 
   packages/rich-text:
     dependencies:
+      '@tiptap/core':
+        specifier: ^3.20.1
+        version: 3.20.1(@tiptap/pm@3.20.1)
+      '@tiptap/extension-image':
+        specifier: ^3.20.1
+        version: 3.20.1(@tiptap/core@3.20.1(@tiptap/pm@3.20.1))
+      '@tiptap/extension-link':
+        specifier: ^3.20.1
+        version: 3.20.1(@tiptap/core@3.20.1(@tiptap/pm@3.20.1))(@tiptap/pm@3.20.1)
+      '@tiptap/starter-kit':
+        specifier: ^3.20.1
+        version: 3.20.1
       isomorphic-dompurify:
         specifier: ^3.3.0
         version: 3.3.0
@@ -433,6 +448,8 @@ importers:
         version: link:../types
 
   packages/types: {}
+
+  packages/utils: {}
 
   packages/ui:
     dependencies:
