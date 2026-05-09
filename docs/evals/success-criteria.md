@@ -175,6 +175,15 @@
 
 ## Shared Utilities
 
+### API Token Refresh Retry
+
+- 401 응답이면 일반 API 요청은 토큰 갱신 후 1회만 재시도한다.
+- `skipAuthRefresh` 요청은 401이어도 토큰 갱신 재시도 대상이 아니다.
+- 이미 토큰 갱신 후 재시도한 요청은 다시 토큰 갱신을 반복하지 않는다.
+
+관련 테스트:
+- [make-request.test.ts](../../packages/api/src/make-request.test.ts)
+
 ### Club Fixture Path Parsing
 
 - club path에서 `clubId`를 추출할 수 있어야 한다.

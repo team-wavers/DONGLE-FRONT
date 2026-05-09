@@ -11,4 +11,7 @@ export interface NextFetchConfig {
     };
 }
 
-export type FetchOptions = RequestInit & NextFetchConfig;
+export type FetchOptions = RequestInit &
+    NextFetchConfig & {
+        skipAuthRefresh?: boolean;
+    };
