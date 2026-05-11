@@ -166,14 +166,29 @@
 
 ### 상세 조회 상태코드 매핑
 
+- 활동보고서 단건 조회는 `/clubs/:id/reports/:reportId`를 캐시 없이 호출해야 한다.
 - 활동보고서 상세 조회 성공은 200으로 응답한다.
-- 목록에서 해당 report를 찾지 못한 경우만 404로 응답한다.
-- 목록 조회 자체 실패 등 upstream 실패는 5xx로 응답한다.
+- 해당 report를 찾지 못한 경우만 404로 응답한다.
+- 단건 조회 자체 실패 등 upstream 실패는 5xx로 응답한다.
 
 관련 테스트:
 - [get-club-report-route-status.test.ts](../../apps/DONGLE-CLIENT/src/lib/get-club-report-route-status.test.ts)
+- [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts)
 
 ## Shared Utilities
+
+### Main Banner Display
+
+- 사용자용 배너 목록 조회는 공개 엔드포인트인 `/main-banners`를 사용해야 한다.
+- 관리자용 배너 목록 조회는 관리자 엔드포인트인 `/main-banners/admin`을 사용해야 한다.
+- 관리자용 배너 단건 조회는 `/main-banners/admin/:id`를 캐시 없이 호출해야 한다.
+- 사용자 노출용 배너는 사용 중이고 이미지 URL이 있으며 노출 기간 내인 항목만 포함한다.
+- 배너 클릭 링크는 `http(s)` URL 또는 `/`로 시작하는 내부 경로만 허용한다.
+- 허용되지 않는 링크는 사용자 노출 데이터에서 `null`로 정규화한다.
+
+관련 테스트:
+- [get-display-banner-image-urls.test.ts](../../packages/service/src/main-banner/get-display-banner-image-urls.test.ts)
+- [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts)
 
 ### API Token Refresh Retry
 

@@ -32,13 +32,13 @@ describe("getClubReportRouteStatus", () => {
         ).toBe(404);
     });
 
-    it("목록 조회 실패는 502를 반환한다", () => {
+    it("상세 조회 실패는 502를 반환한다", () => {
         expect(
             getClubReportRouteStatus({
                 isSuccess: false,
                 error: {
                     message: "활동 보고서를 가져오는데 실패했습니다.",
-                    detail: "목록 API 호출 실패",
+                    detail: "upstream error",
                 },
             })
         ).toBe(502);

@@ -8,6 +8,7 @@ export default defineConfig({
             "./packages/rich-text/vitest.config.ts",
             "./packages/utils/vitest.config.ts",
             "./packages/api/vitest.config.ts",
+            "./packages/service/vitest.config.ts",
             "./e2e/vitest.config.ts",
         ],
     },
