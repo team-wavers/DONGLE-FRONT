@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getClubReportFromListService } from "@/lib/server/cached-services";
+import { getClubReportService } from "@/lib/server/cached-services";
 import ReportView from "@/components/molecules/layout/report-view/report-view";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
@@ -8,8 +8,7 @@ import DeleteReportButton from "@/feature/report/components/delete-report-button
 import { Skeleton } from "@dongle/ui/skeleton";
 
 async function ClubReportDetailContent({ clubId, reportId }: { clubId: string; reportId: string }) {
-    // 캐시된 목록에서 특정 보고서 찾기
-    const { result } = await getClubReportFromListService(Number(clubId), Number(reportId));
+    const { result } = await getClubReportService(Number(clubId), Number(reportId));
 
     if (!result) {
         return <div className="flex justify-center items-center py-16 text-zinc-500">활동 보고서가 없습니다.</div>;

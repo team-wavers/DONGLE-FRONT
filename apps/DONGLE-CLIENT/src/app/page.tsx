@@ -1,16 +1,32 @@
 import { Suspense } from "react";
 import {
-    getActiveMainBannerListService,
     getClubListService,
-    getDisplayBannerImageUrls,
+    getDisplayMainBannerItems,
+    getPublicMainBannerListService,
 } from "@/lib/server/cached-services";
 import ClubMainClient from "@/components/main/club-main-client";
 import { Skeleton } from "@dongle/ui/skeleton";
+import type { DisplayMainBannerItem } from "@dongle/service/main-banner/get-display-banner-image-urls";
+
+const MOCK_MAIN_BANNERS: DisplayMainBannerItem[] = [
+    {
+        imageUrl: "/logo/logo-og.png",
+        linkUrl: "/clubs",
+    },
+];
+
+function getDevelopmentFallbackBanners(banners: DisplayMainBannerItem[]) {
+    if (banners.length > 0 || process.env.NODE_ENV !== "development") {
+        return banners;
+    }
+
+    return MOCK_MAIN_BANNERS;
+}
 
 async function HomePageContent() {
     const [clubListResponse, mainBannerResponse] = await Promise.all([
         getClubListService(),
-        getActiveMainBannerListService(false),
+        getPublicMainBannerListService(false),
     ]);
 
     const clubs =
@@ -24,12 +40,12 @@ async function HomePageContent() {
                   is_recruiting: club.is_recruiting,
               }))
             : [];
-    const bannerImageUrls =
+    const banners =
         mainBannerResponse.isSuccess && mainBannerResponse.result
-            ? getDisplayBannerImageUrls(mainBannerResponse.result)
+            ? getDisplayMainBannerItems(mainBannerResponse.result)
             : [];
 
-    return <ClubMainClient clubs={clubs} bannerImageUrls={bannerImageUrls} />;
+    return <ClubMainClient clubs={clubs} banners={getDevelopmentFallbackBanners(banners)} />;
 }
 
 function HomePageFallback() {

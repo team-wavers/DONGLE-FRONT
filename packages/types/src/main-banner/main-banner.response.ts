@@ -3,6 +3,7 @@ import { Response } from "../response";
 
 export interface CreateMainBannerRequest {
     image_url: string;
+    link_url: string | null;
     publish_start_at: string;
     publish_end_at: string;
     is_active: boolean;
@@ -10,6 +11,7 @@ export interface CreateMainBannerRequest {
 
 export interface UpdateMainBannerRequest {
     image_url: string;
+    link_url: string | null;
     publish_start_at: string;
     publish_end_at: string;
     is_active: boolean;

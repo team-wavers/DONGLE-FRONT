@@ -5,14 +5,18 @@ import type { CarouselApi } from "@dongle/ui/carousel";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@dongle/ui/carousel";
 import { cn } from "@dongle/ui/utils";
 import Image from "next/image";
+import Link from "next/link";
+import type { DisplayMainBannerItem } from "@dongle/service/main-banner/get-display-banner-image-urls";
 
 interface ClubMainHeroBannerCarouselProps {
-    imageUrls: string[];
+    banners: DisplayMainBannerItem[];
 }
 
 const AUTO_SLIDE_INTERVAL_MS = 5000;
+const MAIN_BANNER_IMAGE_WIDTH = 1440;
+const MAIN_BANNER_IMAGE_HEIGHT = 480;
 
-export default function ClubMainHeroBannerCarousel({ imageUrls }: ClubMainHeroBannerCarouselProps) {
+export default function ClubMainHeroBannerCarousel({ banners }: ClubMainHeroBannerCarouselProps) {
     const [api, setApi] = useState<CarouselApi | null>(null);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
@@ -35,7 +39,7 @@ export default function ClubMainHeroBannerCarousel({ imageUrls }: ClubMainHeroBa
     }, [api]);
 
     useEffect(() => {
-        if (!api || imageUrls.length <= 1 || isPaused) return;
+        if (!api || banners.length <= 1 || isPaused) return;
 
         const timer = window.setInterval(() => {
             api.scrollNext();
@@ -44,9 +48,9 @@ export default function ClubMainHeroBannerCarousel({ imageUrls }: ClubMainHeroBa
         return () => {
             window.clearInterval(timer);
         };
-    }, [api, imageUrls.length, isPaused]);
+    }, [api, banners.length, isPaused]);
 
-    if (imageUrls.length === 0) {
+    if (banners.length === 0) {
         return null;
     }
 
@@ -54,37 +58,52 @@ export default function ClubMainHeroBannerCarousel({ imageUrls }: ClubMainHeroBa
         <section aria-label="메인 배너">
             <Carousel
                 setApi={setApi}
-                opts={{ loop: imageUrls.length > 1 }}
+                opts={{ loop: banners.length > 1 }}
                 className="w-full"
                 onMouseEnter={() => setIsPaused(true)}
                 onMouseLeave={() => setIsPaused(false)}
                 onFocusCapture={() => setIsPaused(true)}
                 onBlurCapture={() => setIsPaused(false)}>
                 <CarouselContent className="ml-0">
-                    {imageUrls.map((imageUrl, index) => (
-                        <CarouselItem key={`${imageUrl}-${index}`} className="pl-0">
+                    {banners.map((banner, index) => {
+                        const image = (
                             <div className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-50">
                                 <Image
-                                    width={1920}
-                                    height={480}
-                                    src={imageUrl}
+                                    width={MAIN_BANNER_IMAGE_WIDTH}
+                                    height={MAIN_BANNER_IMAGE_HEIGHT}
+                                    src={banner.imageUrl}
                                     alt={`메인 배너 ${index + 1}`}
-                                    className="w-full object-cover h-44 md:h-72"
+                                    className="aspect-[3/1] w-full object-cover"
+                                    sizes="(max-width: 1024px) calc(100vw - 48px), 976px"
                                     loading={index === 0 ? "eager" : "lazy"}
                                 />
                                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-900/45 via-zinc-900/10 to-transparent" />
                             </div>
-                        </CarouselItem>
-                    ))}
+                        );
+
+                        return (
+                            <CarouselItem key={`${banner.imageUrl}-${index}`} className="pl-0">
+                                {banner.linkUrl ? (
+                                    <Link
+                                        href={banner.linkUrl}
+                                        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2">
+                                        {image}
+                                    </Link>
+                                ) : (
+                                    image
+                                )}
+                            </CarouselItem>
+                        );
+                    })}
                 </CarouselContent>
 
-                {imageUrls.length > 1 ? (
+                {banners.length > 1 ? (
                     <>
                         <CarouselPrevious className="left-3 bg-white/90 shadow-sm hover:bg-white disabled:opacity-30" />
                         <CarouselNext className="right-3 bg-white/90 shadow-sm hover:bg-white disabled:opacity-30" />
                         <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-zinc-900/40 px-2 py-1 backdrop-blur-sm">
                             <div className="flex items-center gap-1.5">
-                                {imageUrls.map((_, index) => (
+                                {banners.map((_, index) => (
                                     <button
                                         key={`dot-${index}`}
                                         type="button"

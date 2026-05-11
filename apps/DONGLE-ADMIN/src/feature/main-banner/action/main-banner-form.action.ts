@@ -3,6 +3,7 @@
 import {
     createMainBannerService,
     deleteMainBannerService,
+    normalizeDisplayBannerLinkUrl,
     updateMainBannerService,
 } from "@dongle/service/main-banner/main-banner.service";
 import { revalidateTag } from "next/cache";
@@ -17,12 +18,14 @@ export interface MainBannerActionState {
         image?: string;
         publish_start_at?: string;
         publish_end_at?: string;
+        link_url?: string;
         is_active?: string;
         banner_id?: string;
     };
 }
 
 interface MainBannerFormValues {
+    link_url: string;
     publish_start_at: string;
     publish_end_at: string;
     is_active: boolean | null;
@@ -36,6 +39,11 @@ function normalizeDateTimeToApiFormat(value: string): string {
 
 function validateMainBannerForm(values: MainBannerFormValues): MainBannerActionState["fieldErrors"] {
     const fieldErrors: MainBannerActionState["fieldErrors"] = {};
+    const linkUrl = values.link_url.trim();
+
+    if (linkUrl && !normalizeDisplayBannerLinkUrl(linkUrl)) {
+        fieldErrors.link_url = "링크는 http(s) URL 또는 /로 시작하는 내부 경로만 입력할 수 있습니다.";
+    }
 
     if (!values.publish_start_at) {
         fieldErrors.publish_start_at = "게시 시작일시를 입력해주세요.";
@@ -67,6 +75,10 @@ function validateMainBannerForm(values: MainBannerFormValues): MainBannerActionS
     }
 
     return fieldErrors;
+}
+
+function normalizeLinkUrlForSubmit(value: string): string | null {
+    return normalizeDisplayBannerLinkUrl(value);
 }
 
 async function resolveImageUrlForSubmit(formData: FormData): Promise<{ imageUrl?: string; error?: string }> {
@@ -112,10 +124,12 @@ export async function createMainBannerAction(
 ): Promise<MainBannerActionState> {
     const publishStartAt = formData.get("publish_start_at") as string;
     const publishEndAt = formData.get("publish_end_at") as string;
+    const linkUrl = (formData.get("link_url") as string | null) ?? "";
     const isActiveRaw = formData.get("is_active") as string | null;
     const isActive = isActiveRaw === "true" ? true : isActiveRaw === "false" ? false : null;
 
     const values: MainBannerFormValues = {
+        link_url: linkUrl,
         publish_start_at: publishStartAt,
         publish_end_at: publishEndAt,
         is_active: isActive,
@@ -142,6 +156,7 @@ export async function createMainBannerAction(
 
         const response = await createMainBannerService({
             image_url: imageUrl,
+            link_url: normalizeLinkUrlForSubmit(values.link_url),
             publish_start_at: normalizeDateTimeToApiFormat(values.publish_start_at),
             publish_end_at: normalizeDateTimeToApiFormat(values.publish_end_at),
             is_active: values.is_active as boolean,
@@ -176,6 +191,7 @@ export async function updateMainBannerAction(
     const bannerId = formData.get("banner_id") as string;
     const publishStartAt = formData.get("publish_start_at") as string;
     const publishEndAt = formData.get("publish_end_at") as string;
+    const linkUrl = (formData.get("link_url") as string | null) ?? "";
     const isActiveRaw = formData.get("is_active") as string | null;
     const isActive = isActiveRaw === "true" ? true : isActiveRaw === "false" ? false : null;
 
@@ -189,6 +205,7 @@ export async function updateMainBannerAction(
     }
 
     const values: MainBannerFormValues = {
+        link_url: linkUrl,
         publish_start_at: publishStartAt,
         publish_end_at: publishEndAt,
         is_active: isActive,
@@ -215,6 +232,7 @@ export async function updateMainBannerAction(
 
         const response = await updateMainBannerService(Number(bannerId), {
             image_url: imageUrl,
+            link_url: normalizeLinkUrlForSubmit(values.link_url),
             publish_start_at: normalizeDateTimeToApiFormat(values.publish_start_at),
             publish_end_at: normalizeDateTimeToApiFormat(values.publish_end_at),
             is_active: values.is_active as boolean,

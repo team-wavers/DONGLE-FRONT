@@ -1,4 +1,4 @@
-import { getClubReportListService, getClubService } from "@/lib/server/cached-services";
+import { getClubReportListService, getClubReportService, getClubService } from "@/lib/server/cached-services";
 import { RichTextViewer } from "@dongle/rich-text";
 import type { ClubReport } from "@dongle/types/club/club.report";
 import { formatDateByLocale } from "@dongle/ui/utils";
@@ -50,12 +50,10 @@ export async function generateMetadata({ params }: ClubReportDetailPageProps): P
 
     const [clubResponse, reportsResponse] = await Promise.all([
         getClubService(parsedParams.clubIdNumber),
-        getClubReportListService(parsedParams.clubIdNumber),
+        getClubReportService(parsedParams.clubIdNumber, parsedParams.reportIdNumber),
     ]);
 
-    const report = reportsResponse.isSuccess
-        ? reportsResponse.result.find((item) => item.id === parsedParams.reportIdNumber)
-        : null;
+    const report = reportsResponse.isSuccess ? reportsResponse.result : null;
     const clubName = clubResponse.isSuccess && clubResponse.result ? clubResponse.result.name : "동아리";
 
     if (!report) {
@@ -91,17 +89,18 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
     }
 
     const { clubIdNumber, reportIdNumber } = parsedParams;
-    const [clubResponse, reportsResponse] = await Promise.all([
+    const [clubResponse, reportsResponse, reportResponse] = await Promise.all([
         getClubService(clubIdNumber),
         getClubReportListService(clubIdNumber),
+        getClubReportService(clubIdNumber, reportIdNumber),
     ]);
 
-    if (!clubResponse.isSuccess || !clubResponse.result || !reportsResponse.isSuccess) {
+    if (!clubResponse.isSuccess || !clubResponse.result || !reportsResponse.isSuccess || !reportResponse.isSuccess) {
         notFound();
     }
 
     const club = clubResponse.result;
-    const report = reportsResponse.result.find((item) => item.id === reportIdNumber);
+    const report = reportResponse.result;
 
     if (!report) {
         notFound();
