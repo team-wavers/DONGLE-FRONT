@@ -36,6 +36,11 @@ export default function MainBannerList({ banners }: MainBannerListProps) {
                                     노출 기간: <span className="font-bold">{formatKoreanDate(banner.publish_start_at)}</span>{" "}
                                     ~ <span className="font-bold">{formatKoreanDate(banner.publish_end_at)}</span>
                                 </div>
+                                {banner.link_url ? (
+                                    <div className="min-w-0 truncate">
+                                        링크: <span className="font-bold">{banner.link_url}</span>
+                                    </div>
+                                ) : null}
                             </div>
                         </CardContent>
                     </Card>

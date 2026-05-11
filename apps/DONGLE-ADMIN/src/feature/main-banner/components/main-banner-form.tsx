@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FormDatePicker } from "@/components/atoms/form/form-datepicker/form-datepicker";
+import { FormField } from "@/components/atoms/form/form-field/form-field";
 import { FileUpload } from "@/components/atoms/form/file-upload/file-upload";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
 import { MainBannerActionState, createMainBannerAction } from "@/feature/main-banner/action/main-banner-form.action";
@@ -123,7 +124,7 @@ export default function MainBannerForm({
                 id="main-banner-image"
                 name="image"
                 label="배너 이미지"
-                description="jpg, png, webp 파일을 업로드할 수 있습니다. (최대 10MB)"
+                description="권장 비율은 3:1입니다. 1440x480px 또는 1920x640px 이미지를 권장하며, 핵심 문구와 로고는 중앙에 배치해주세요. jpg, png, webp 파일을 업로드할 수 있습니다. (최대 10MB)"
                 fileType="image"
                 multiple={false}
                 maxFiles={1}
@@ -132,6 +133,16 @@ export default function MainBannerForm({
                 error={uploadError || state.fieldErrors?.image}
                 defaultValue={initialData?.image_url ? [initialData.image_url] : []}
                 onFileChange={handleImageFileChange}
+            />
+
+            <FormField
+                id="link_url"
+                name="link_url"
+                label="클릭 이동 링크"
+                placeholder="https://example.com 또는 /clubs"
+                defaultValue={initialData?.link_url ?? ""}
+                description="입력하면 사용자가 배너를 클릭했을 때 해당 링크로 이동합니다."
+                error={state.fieldErrors?.link_url}
             />
 
             <div className="grid grid-cols-2 gap-4">

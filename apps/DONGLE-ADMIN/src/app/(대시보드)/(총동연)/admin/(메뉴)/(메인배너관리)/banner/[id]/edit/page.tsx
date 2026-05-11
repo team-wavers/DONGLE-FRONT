@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import MainBannerForm from "@/feature/main-banner/components/main-banner-form";
 import { updateMainBannerAction } from "@/feature/main-banner/action/main-banner-form.action";
-import { getMainBannerFromListService } from "@/lib/server/cached-services";
+import { getAdminMainBannerService } from "@/lib/server/cached-services";
 import { Button } from "@dongle/ui/button";
 import { Skeleton } from "@dongle/ui/skeleton";
 import MainBannerDeleteButton from "@/feature/main-banner/components/main-banner-delete-button";
@@ -11,7 +11,7 @@ interface EditMainBannerPageProps {
 }
 
 async function EditMainBannerContent({ bannerId }: { bannerId: number }) {
-    const { result, isSuccess, error } = await getMainBannerFromListService(bannerId);
+    const { result, isSuccess, error } = await getAdminMainBannerService(bannerId);
 
     if (!isSuccess || !result) {
         return <div className="text-sm text-red-500">{error?.message || "배너 목록을 불러오지 못했습니다."}</div>;

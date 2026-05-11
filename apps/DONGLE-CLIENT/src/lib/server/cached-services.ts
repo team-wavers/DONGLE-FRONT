@@ -1,6 +1,6 @@
 import { cache } from "react";
 import {
-    getDisplayBannerImageUrls,
+    getDisplayMainBannerItems,
     getActiveMainBannerListService as getActiveMainBannerListServiceBase,
     getClubReportFromListService as getClubReportFromListServiceBase,
     getClubListService as getClubListServiceBase,
@@ -13,4 +13,4 @@ export const getClubService = cache(getClubServiceBase);
 export const getClubReportListService = cache(getClubReportListServiceBase);
 export const getClubReportFromListService = cache(getClubReportFromListServiceBase);
 export const getActiveMainBannerListService = cache(getActiveMainBannerListServiceBase);
-export { getDisplayBannerImageUrls };
+export { getDisplayMainBannerItems };
