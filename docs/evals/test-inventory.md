@@ -30,7 +30,7 @@
 | main banner display | [get-display-banner-image-urls.test.ts](../../packages/service/src/main-banner/get-display-banner-image-urls.test.ts), [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts) | code-graded | display helper / link normalization / admin-user endpoint split / admin detail endpoint |
 | api token refresh retry | [make-request.test.ts](../../packages/api/src/make-request.test.ts) | code-graded | auth retry guard helper |
 | shared normalization | [string.test.ts](../../packages/utils/src/string.test.ts), [phone.test.ts](../../packages/utils/src/phone.test.ts) | code-graded | trim/nullable/phone normalization and phone display formatting helper |
-| client report route | [get-club-report-route-status.test.ts](../../apps/DONGLE-CLIENT/src/lib/get-club-report-route-status.test.ts), [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts) | code-graded | API route status mapping / report detail endpoint |
+| club report detail service | [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts) | code-graded | report detail endpoint |
 | client search | [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts) | code-graded | filtering / summary / query string parser-builder |
 | client search empty-state | [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts) | code-graded | filter/query/data 조합별 empty-state code/message |
 | club fixture | [club.fixture.test.ts](../../e2e/fixtures/club.fixture.test.ts) | code-graded | fixture util |

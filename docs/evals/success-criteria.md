@@ -162,17 +162,13 @@
 - [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts)
 - [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts)
 
-## Client Report Detail API
+## Club Report Detail Service
 
-### 상세 조회 상태코드 매핑
+### 단건 조회
 
 - 활동보고서 단건 조회는 `/clubs/:id/reports/:reportId`를 캐시 없이 호출해야 한다.
-- 활동보고서 상세 조회 성공은 200으로 응답한다.
-- 해당 report를 찾지 못한 경우만 404로 응답한다.
-- 단건 조회 자체 실패 등 upstream 실패는 5xx로 응답한다.
 
 관련 테스트:
-- [get-club-report-route-status.test.ts](../../apps/DONGLE-CLIENT/src/lib/get-club-report-route-status.test.ts)
 - [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts)
 
 ## Shared Utilities
