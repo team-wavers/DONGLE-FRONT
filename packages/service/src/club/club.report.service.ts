@@ -33,6 +33,31 @@ function getReportTags(clubId: number, reportId?: number) {
         : [REPORT_TAG, `${REPORT_TAG}-${clubId}`];
 }
 
+function isClubReportNotFoundError(error: unknown): boolean {
+    if (!(error instanceof Error)) {
+        return false;
+    }
+
+    const message = error.message.toLowerCase();
+
+    return (
+        message.includes("404") ||
+        message.includes("not found") ||
+        message.includes("report_id:") ||
+        message.includes("활동보고서를 찾을 수 없습니다")
+    );
+}
+
+function createClubReportNotFoundResponse(reportId: number): ClubReportResponse {
+    return {
+        isSuccess: false,
+        error: {
+            message: "해당 활동보고서를 찾을 수 없습니다.",
+            detail: `report_id: ${reportId}`,
+        },
+    };
+}
+
 export async function getClubReportListService(clubId: number): Promise<ClubReportListResponse> {
     const response = await instance.get(getClubReportsPath(clubId), {
         next: {
@@ -43,10 +68,18 @@ export async function getClubReportListService(clubId: number): Promise<ClubRepo
 }
 
 export async function getClubReportService(clubId: number, reportId: number): Promise<ClubReportResponse> {
-    const response = await instance.get(getClubReportPath(clubId, reportId), {
-        cache: "no-store",
-    });
-    return response as ClubReportResponse;
+    try {
+        const response = await instance.get(getClubReportPath(clubId, reportId), {
+            cache: "no-store",
+        });
+        return response as ClubReportResponse;
+    } catch (error) {
+        if (isClubReportNotFoundError(error)) {
+            return createClubReportNotFoundResponse(reportId);
+        }
+
+        throw error;
+    }
 }
 
 export async function createClubReportService(
