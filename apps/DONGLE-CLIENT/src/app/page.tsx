@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import {
-    getActiveMainBannerListService,
     getClubListService,
     getDisplayMainBannerItems,
+    getPublicMainBannerListService,
 } from "@/lib/server/cached-services";
 import ClubMainClient from "@/components/main/club-main-client";
 import { Skeleton } from "@dongle/ui/skeleton";
@@ -26,7 +26,7 @@ function getDevelopmentFallbackBanners(banners: DisplayMainBannerItem[]) {
 async function HomePageContent() {
     const [clubListResponse, mainBannerResponse] = await Promise.all([
         getClubListService(),
-        getActiveMainBannerListService(false),
+        getPublicMainBannerListService(false),
     ]);
 
     const clubs =

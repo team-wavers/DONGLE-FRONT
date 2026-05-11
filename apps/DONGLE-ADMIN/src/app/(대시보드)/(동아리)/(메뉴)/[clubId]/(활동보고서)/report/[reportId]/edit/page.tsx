@@ -1,13 +1,12 @@
 import { Suspense } from "react";
-import { getClubReportFromListService } from "@/lib/server/cached-services";
+import { getClubReportService } from "@/lib/server/cached-services";
 import ActivityReportForm from "@/feature/report/components/activity-report-form/activity-report-form";
 import { updateActivityReportAction } from "@/feature/report/action/update-activity-report-form.action";
 import GoBackButton from "@/components/atoms/button/go-back-button/go-back-button";
 import { Skeleton } from "@dongle/ui/skeleton";
 
 async function EditReportContent({ clubId, reportId }: { clubId: string; reportId: string }) {
-    // 캐시된 목록에서 특정 보고서 찾기
-    const { result, isSuccess } = await getClubReportFromListService(Number(clubId), Number(reportId));
+    const { result, isSuccess } = await getClubReportService(Number(clubId), Number(reportId));
 
     if (!isSuccess) {
         throw new Error("활동보고서를 가져오는데 실패했습니다.");

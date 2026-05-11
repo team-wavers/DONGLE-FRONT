@@ -63,8 +63,6 @@ export async function getPublicMainBannerListService(isCache = true): Promise<Ma
     return response as MainBannerListResponse;
 }
 
-export const getActiveMainBannerListService = getPublicMainBannerListService;
-
 export async function getAdminMainBannerListService(): Promise<MainBannerListResponse> {
     const response = await instance.get(ADMIN_MAIN_BANNER_PATH, getAdminMainBannerFetchOptions());
     return response as MainBannerListResponse;

@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import { getClubReportFromListService } from "@/lib/server/cached-services";
+import { getClubReportService } from "@/lib/server/cached-services";
 import ReportView from "@/components/molecules/layout/report-view/report-view";
 import { Skeleton } from "@dongle/ui/skeleton";
 
 async function AdminClubReportDetailContent({ clubId, reportId }: { clubId: string; reportId: string }) {
-    const { result, isSuccess } = await getClubReportFromListService(Number(clubId), Number(reportId));
+    const { result, isSuccess } = await getClubReportService(Number(clubId), Number(reportId));
 
     if (!isSuccess) {
         throw new Error("활동보고서를 가져오는데 실패했습니다.");
