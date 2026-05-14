@@ -181,6 +181,7 @@
 - 사용자 노출용 배너는 사용 중이고 이미지 URL이 있으며 노출 기간 내인 항목만 포함한다.
 - 배너 클릭 링크는 `http(s)` URL 또는 `/`로 시작하는 내부 경로만 허용한다.
 - 허용되지 않는 링크는 사용자 노출 데이터에서 `null`로 정규화한다.
+- 사용자 배너 클릭 링크는 새 탭에서 열려야 한다.
 
 관련 테스트:
 - [get-display-banner-image-urls.test.ts](../../packages/service/src/main-banner/get-display-banner-image-urls.test.ts)

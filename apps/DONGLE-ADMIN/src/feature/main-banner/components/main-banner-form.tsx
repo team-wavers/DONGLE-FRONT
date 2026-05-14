@@ -21,6 +21,7 @@ interface MainBannerFormProps {
     successMessage?: string;
     formId?: string;
     showSubmitButton?: boolean;
+    onLoadingChange?: (state: { loading: boolean; loadingText: string }) => void;
 }
 
 interface UploadMainBannerImageApiResponse {
@@ -51,6 +52,7 @@ export default function MainBannerForm({
     successMessage = "배너가 저장되었습니다.",
     formId,
     showSubmitButton = true,
+    onLoadingChange,
 }: MainBannerFormProps) {
     const router = useRouter();
     const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
@@ -61,6 +63,8 @@ export default function MainBannerForm({
         error: undefined,
         fieldErrors: undefined,
     });
+    const isLoading = isPending || isImageUploading;
+    const currentLoadingText = isImageUploading ? "이미지 업로드 중..." : loadingText;
 
     useEffect(() => {
         if (state.success) {
@@ -72,6 +76,10 @@ export default function MainBannerForm({
             toast.error(state.error);
         }
     }, [state.success, state.error, successMessage, router]);
+
+    useEffect(() => {
+        onLoadingChange?.({ loading: isLoading, loadingText: currentLoadingText });
+    }, [currentLoadingText, isLoading, onLoadingChange]);
 
     const handleImageFileChange = async (files: File[]) => {
         const nextFile = files[0];
@@ -194,8 +202,8 @@ export default function MainBannerForm({
             {showSubmitButton ? (
                 <LoadingButton
                     type="submit"
-                    loading={isPending || isImageUploading}
-                    loadingText={isImageUploading ? "이미지 업로드 중..." : loadingText}
+                    loading={isLoading}
+                    loadingText={currentLoadingText}
                     className="w-full">
                     {submitText}
                 </LoadingButton>
