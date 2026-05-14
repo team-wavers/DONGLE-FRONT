@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FormDatePicker } from "@/components/atoms/form/form-datepicker/form-datepicker";
@@ -35,10 +35,10 @@ interface UploadMainBannerImageApiResponse {
     };
 }
 
-function toDateValue(value?: string | null): Date | undefined {
+function toDateValue(value?: string | Date | null): Date | undefined {
     if (!value) return undefined;
 
-    const date = new Date(value);
+    const date = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(date.getTime())) return undefined;
 
     return date;
@@ -65,6 +65,14 @@ export default function MainBannerForm({
     });
     const isLoading = isPending || isImageUploading;
     const currentLoadingText = isImageUploading ? "이미지 업로드 중..." : loadingText;
+    const publishStartAtDefaultValue = useMemo(
+        () => toDateValue(initialData?.publish_start_at),
+        [initialData?.publish_start_at]
+    );
+    const publishEndAtDefaultValue = useMemo(
+        () => toDateValue(initialData?.publish_end_at),
+        [initialData?.publish_end_at]
+    );
 
     useEffect(() => {
         if (state.success) {
@@ -158,8 +166,9 @@ export default function MainBannerForm({
                     id="publish_start_at"
                     name="publish_start_at"
                     label="게시 시작일시"
+                    includeTime
                     required
-                    defaultValue={toDateValue(initialData?.publish_start_at)}
+                    defaultValue={publishStartAtDefaultValue}
                     error={state.fieldErrors?.publish_start_at}
                 />
 
@@ -167,8 +176,9 @@ export default function MainBannerForm({
                     id="publish_end_at"
                     name="publish_end_at"
                     label="게시 종료일시"
+                    includeTime
                     required
-                    defaultValue={toDateValue(initialData?.publish_end_at)}
+                    defaultValue={publishEndAtDefaultValue}
                     error={state.fieldErrors?.publish_end_at}
                 />
             </div>

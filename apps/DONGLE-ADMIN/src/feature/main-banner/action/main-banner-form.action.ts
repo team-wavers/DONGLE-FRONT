@@ -10,6 +10,7 @@ import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { normalizeDateTimeToApiFormat } from "@/feature/main-banner/utils/main-banner-datetime";
 
 export interface MainBannerActionState {
     success?: boolean;
@@ -29,12 +30,6 @@ interface MainBannerFormValues {
     publish_start_at: string;
     publish_end_at: string;
     is_active: boolean | null;
-}
-
-function normalizeDateTimeToApiFormat(value: string): string {
-    // `datetime-local` 값(`YYYY-MM-DDTHH:mm`)을 API 포맷(`YYYY-MM-DD HH:mm:ss`)으로 변환
-    const normalized = value.trim().replace("T", " ");
-    return normalized.length === 16 ? `${normalized}:00` : normalized;
 }
 
 function validateMainBannerForm(values: MainBannerFormValues): MainBannerActionState["fieldErrors"] {
