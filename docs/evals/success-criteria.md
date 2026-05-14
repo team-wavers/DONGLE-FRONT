@@ -25,6 +25,7 @@
 
 - 동아리 등록 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
 - 쉼표로 입력한 태그 문자열은 공백과 빈 항목을 제거한 배열로 변환되어야 한다.
+- 동아리 등록 폼에서 선택한 아이콘 파일은 동아리 생성 이후 업로드되고 `icon_url`로 저장되어야 한다.
 
 ### 수정 폼 스키마
 
@@ -67,6 +68,7 @@
 
 관련 테스트:
 - [club-register.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-register.schema.test.ts)
+- [club-register.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-register.action.test.ts)
 - [club-edit.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit.schema.test.ts)
 - [club-edit-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit-payload.test.ts)
 - [club-president.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-president.schema.test.ts)

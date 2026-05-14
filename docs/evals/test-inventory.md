@@ -15,7 +15,7 @@
 | admin club management | [filterable-club-list.test.ts](../../apps/DONGLE-ADMIN/src/components/organics/filterable-club-list.test.ts) | code-graded | 검색 필터 로직 |
 | admin shared action | [action-result.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/action-result.test.ts), [zod-field-errors.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/zod-field-errors.test.ts) | code-graded | typed action result helper / zod field error mapper |
 | admin shared form | [date-picker-value.test.ts](../../apps/DONGLE-ADMIN/src/shared/form/date-picker-value.test.ts) | code-graded | date picker local date/datetime formatter |
-| club register form | [club-register.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-register.schema.test.ts) | code-graded | shared RHF/server action schema |
+| club register form | [club-register.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-register.schema.test.ts), [club-register.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-register.action.test.ts) | code-graded | shared RHF/server action schema / 모집 상태 라벨 정규화 / create 후 icon upload 저장 |
 | club edit form | [club-edit.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit.schema.test.ts), [club-edit-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit-payload.test.ts) | code-graded | shared RHF/server action schema / update payload mapper |
 | club president form | [club-president.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-president.schema.test.ts) | code-graded | shared RHF/server action schema |
 | club form | [club-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/validation/club-form.validation.test.ts) | code-graded | validation |

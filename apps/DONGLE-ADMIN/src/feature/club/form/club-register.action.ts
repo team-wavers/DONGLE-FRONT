@@ -1,6 +1,6 @@
 "use server";
 
-import { createClubService } from "@dongle/service/club/club.service";
+import { createClubService, updateClubService, uploadClubIconService } from "@dongle/service/club/club.service";
 import { createUserService } from "@dongle/service/user/user.service";
 import type { CreateClubRequest } from "@dongle/types/club/club.response";
 import { normalizeSocialUrl } from "@dongle/ui/utils";
@@ -14,6 +14,7 @@ export interface ClubRegisterSuccessData {
     tempId: string;
     tempPassword: string;
     clubName: string;
+    warningMessage?: string;
 }
 
 type ClubRegisterActionResult = ActionResult<ClubRegisterField, ClubRegisterSuccessData>;
@@ -29,6 +30,21 @@ function normalizeClubSnsPayload(instagram: string, youtube: string) {
         instagram: normalizeSocialUrl("instagram", instagram) ?? instagram,
         youtube: normalizeSocialUrl("youtube", youtube) ?? youtube,
     };
+}
+
+function extractUploadedIconUrl(result: unknown): string | undefined {
+    if (typeof result === "string" && result.trim()) {
+        return result;
+    }
+
+    if (result && typeof result === "object") {
+        const iconUrl = (result as { icon_url?: unknown }).icon_url;
+        if (typeof iconUrl === "string" && iconUrl.trim()) {
+            return iconUrl;
+        }
+    }
+
+    return undefined;
 }
 
 export async function submitClubRegisterAction(
@@ -99,11 +115,37 @@ export async function submitClubRegisterAction(
             });
         }
 
+        let warningMessage: string | undefined;
+        const createdClubId = club.result?.id;
+        const iconFile = data.iconFile;
+
+        if (createdClubId && iconFile && iconFile.size > 0) {
+            const iconUploadResult = await uploadClubIconService(createdClubId, iconFile);
+
+            if (iconUploadResult.isSuccess) {
+                const uploadedIconUrl = extractUploadedIconUrl(iconUploadResult.result);
+                if (!uploadedIconUrl) {
+                    warningMessage = "동아리는 등록되었지만 아이콘 업로드 결과를 확인하지 못했습니다.";
+                } else {
+                    const iconUpdateResult = await updateClubService(createdClubId, {
+                        icon_url: uploadedIconUrl,
+                    });
+
+                    if (!iconUpdateResult.isSuccess) {
+                        warningMessage = "동아리는 등록되었지만 아이콘 저장에 실패했습니다.";
+                    }
+                }
+            } else {
+                warningMessage = "동아리는 등록되었지만 아이콘 업로드에 실패했습니다.";
+            }
+        }
+
         return actionSuccess({
             data: {
                 tempId,
                 tempPassword,
                 clubName: data.clubName,
+                warningMessage,
             },
         });
     } catch (error) {

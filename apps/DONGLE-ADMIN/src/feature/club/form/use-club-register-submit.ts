@@ -41,6 +41,7 @@ export function useClubRegisterSubmit(registrationKey: string, form: UseFormRetu
                         tempId: result.data.tempId,
                         tempPassword: result.data.tempPassword,
                         clubName: result.data.clubName,
+                        warningMessage: result.data.warningMessage,
                     })
                 );
                 router.push(`/club-register/register-success?data=${encoded}`);

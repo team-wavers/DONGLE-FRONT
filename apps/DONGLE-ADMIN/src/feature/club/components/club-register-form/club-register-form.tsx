@@ -4,7 +4,7 @@ import { useClubRegisterForm } from "@/feature/club/form/use-club-register-form"
 import { RECRUITMENT_STATUS, RECRUITMENT_STATUS_LABEL } from "@/feature/club/constants/club.constants";
 import type { ClubRegisterFormValues } from "@/feature/club/form/club-register.schema";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
-import { FormRoot, RHFDatePicker, RHFRichTextEditor, RHFSelectField, RHFTextField } from "@/shared/form";
+import { FormRoot, RHFDatePicker, RHFFileUpload, RHFRichTextEditor, RHFSelectField, RHFTextField } from "@/shared/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@dongle/ui/card";
 import { Calendar, Mail, Tag, Users } from "lucide-react";
 
@@ -79,6 +79,19 @@ export default function ClubRegisterForm({ registrationKey }: ClubRegisterFormPr
                         type="text"
                         placeholder="예: 학생회관 3층 301호"
                         required
+                    />
+
+                    {/* 동아리 아이콘 */}
+                    <RHFFileUpload<ClubRegisterFormValues>
+                        id="iconFile"
+                        name="iconUrls"
+                        fileName="iconFile"
+                        label="동아리 아이콘"
+                        description="동아리 대표 아이콘 이미지를 업로드해주세요"
+                        fileType="image"
+                        maxSize={5}
+                        maxFiles={1}
+                        presentation="club-icon"
                     />
                 </CardContent>
             </Card>

@@ -17,6 +17,8 @@ function createValues(overrides: Partial<Record<string, string>> = {}) {
         instagram: "",
         youtube: "",
         tags: "",
+        iconUrls: [],
+        iconFile: null,
         ...overrides,
     };
 }
@@ -32,6 +34,19 @@ describe("clubRegisterSchema", () => {
         expect(result.success).toBe(false);
         expect(result.error?.issues.map((issue) => issue.path.join("."))).toContain("recruitmentStartDate");
         expect(result.error?.issues.map((issue) => issue.path.join("."))).toContain("recruitmentEndDate");
+    });
+
+    test("모집 상태 라벨 값을 내부 enum 값으로 정규화한다", () => {
+        const result = clubRegisterSchema.safeParse(
+            createValues({
+                recruitmentStatus: "모집중",
+                recruitmentStartDate: "2026-05-20",
+                recruitmentEndDate: "2026-05-21",
+            })
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.data?.recruitmentStatus).toBe(RECRUITMENT_STATUS.RECRUITING);
     });
 
     test("모집 종료일이 시작일보다 이르면 실패한다", () => {

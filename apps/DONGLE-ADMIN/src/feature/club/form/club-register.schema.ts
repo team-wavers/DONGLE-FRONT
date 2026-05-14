@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
-import { hasMeaningfulRichText, isValidPhoneNumber } from "@/feature/club/validation/club-form.validation";
+import { hasMeaningfulRichText, isValidPhoneNumber, normalizeRecruitmentStatus } from "@/feature/club/validation/club-form.validation";
 import { trimToEmpty } from "@dongle/utils";
 
 export const clubRegisterSchema = z
@@ -9,7 +9,7 @@ export const clubRegisterSchema = z
         category: z.string().transform(trimToEmpty).pipe(z.string().min(1, "분과를 선택해주세요")),
         recruitmentStatus: z
             .string()
-            .transform(trimToEmpty)
+            .transform((value) => normalizeRecruitmentStatus(value))
             .pipe(z.string().min(1, "모집여부를 선택해주세요")),
         location: z.string().transform(trimToEmpty).pipe(z.string().min(1, "동아리 방 정보를 입력해주세요")),
         description: z.string().refine(hasMeaningfulRichText, { message: "동아리 설명을 입력해주세요" }),
@@ -27,6 +27,8 @@ export const clubRegisterSchema = z
         instagram: z.string().transform(trimToEmpty),
         youtube: z.string().transform(trimToEmpty),
         tags: z.string().transform(trimToEmpty),
+        iconUrls: z.array(z.string()),
+        iconFile: z.custom<File | null>().nullable(),
     })
     .superRefine((values, ctx) => {
         const isRecruiting = values.recruitmentStatus === RECRUITMENT_STATUS.RECRUITING;
@@ -77,6 +79,8 @@ export const CLUB_REGISTER_DEFAULT_VALUES: ClubRegisterFormValues = {
     instagram: "",
     youtube: "",
     tags: "",
+    iconUrls: [],
+    iconFile: null,
 };
 
 export type ClubRegisterField = keyof ClubRegisterFormValues;
