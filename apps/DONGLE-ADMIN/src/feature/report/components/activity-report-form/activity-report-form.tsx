@@ -1,23 +1,23 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { FormField } from "@/components/atoms/form/form-field/form-field";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
-import { FileUpload } from "@/components/atoms/form/file-upload/file-upload";
-import { RichTextEditor } from "@/components/atoms/form/rich-text-editor/rich-text-editor";
-import { activityReportAction, ActivityReportActionState } from "@/feature/report/action/activity-report-form.action";
-import { UpdateActivityReportActionState } from "@/feature/report/action/update-activity-report-form.action";
+import { FormRoot, RHFFileUpload, RHFRichTextEditor, RHFTextField } from "@/shared/form";
 import { useSessionStorageDraft } from "@/hooks/use-session-storage-draft";
-import { useSessionExpiredRedirect } from "@/hooks/use-session-expired-redirect";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
+import {
+    activityReportSchema,
+    createActivityReportDefaultValues,
+    createActivityReportDraftValues,
+    type ActivityReportFormValues,
+} from "@/feature/report/form/activity-report.schema";
+import { useActivityReportSubmit } from "@/feature/report/form/use-activity-report-submit";
 
 export interface ActivityReportFormProps {
-    customAction?: (
-        prevState: ActivityReportActionState | UpdateActivityReportActionState,
-        formData: FormData
-    ) => Promise<ActivityReportActionState | UpdateActivityReportActionState>;
     title?: string;
     content?: string;
     images?: string[];
@@ -27,17 +27,10 @@ export interface ActivityReportFormProps {
     successMessage?: string;
 }
 
-interface ActivityReportDraft {
-    title: string;
-    content: string;
-    existingUrls: string[];
-    removedUrls: string[];
-}
-
 const UNSAVED_CHANGES_MESSAGE = "작성 중인 내용이 저장되지 않았습니다. 정말 페이지를 떠날까요?";
 
-function areStringArraysEqual(left: string[], right: string[]) {
-    return left.length === right.length && left.every((value, index) => value === right[index]);
+function areEqual<T>(left: T, right: T) {
+    return JSON.stringify(left) === JSON.stringify(right);
 }
 
 function getDraftStorageKey(clubId: string, reportId?: string) {
@@ -45,7 +38,6 @@ function getDraftStorageKey(clubId: string, reportId?: string) {
 }
 
 export default function ActivityReportForm({
-    customAction,
     title,
     content,
     images,
@@ -54,67 +46,74 @@ export default function ActivityReportForm({
     successRedirectHref,
     successMessage,
 }: ActivityReportFormProps) {
-    const router = useRouter();
     const pathname = usePathname();
-    const initialTitle = title ?? "";
-    const initialContent = content ?? "";
-    const initialImages = useMemo(() => images ?? [], [images]);
-    const [titleValue, setTitleValue] = useState(initialTitle);
-    const [contentValue, setContentValue] = useState(initialContent);
-    const [existingUrls, setExistingUrls] = useState<string[]>(initialImages);
-    const [removedUrls, setRemovedUrls] = useState<string[]>([]);
-    const [didRestoreDraft, setDidRestoreDraft] = useState(false);
-    const [state, formAction, isPending] = useActionState(customAction || activityReportAction, {
-        success: false,
-        error: undefined,
-        sessionExpired: false,
-        fieldErrors: undefined,
-    } as ActivityReportActionState | UpdateActivityReportActionState);
-
+    const initialValues = useMemo(
+        () => createActivityReportDefaultValues({ title, content, images }),
+        [content, images, title]
+    );
     const draftStorageKey = useMemo(() => getDraftStorageKey(clubId, reportId), [clubId, reportId]);
-    const currentDraft = useMemo<ActivityReportDraft>(
-        () => ({
-            title: titleValue,
-            content: contentValue,
-            existingUrls,
-            removedUrls,
-        }),
-        [contentValue, existingUrls, removedUrls, titleValue]
-    );
-    const baselineDraft = useMemo<ActivityReportDraft>(
-        () => ({
-            title: initialTitle,
-            content: initialContent,
-            existingUrls: initialImages,
-            removedUrls: [],
-        }),
-        [initialContent, initialImages, initialTitle]
-    );
-    const isDirty =
-        currentDraft.title !== baselineDraft.title ||
-        currentDraft.content !== baselineDraft.content ||
-        !areStringArraysEqual(currentDraft.existingUrls, baselineDraft.existingUrls) ||
-        currentDraft.removedUrls.length > 0;
+    const [baseline, setBaseline] = useState<ActivityReportFormValues>(initialValues);
+    const [didRestoreDraft, setDidRestoreDraft] = useState(false);
+    const form = useForm<ActivityReportFormValues>({
+        resolver: zodResolver(activityReportSchema),
+        defaultValues: initialValues,
+        mode: "onSubmit",
+    });
+    const watchedValues = useWatch({ control: form.control }) as ActivityReportFormValues;
+    const currentDraft = createActivityReportDraftValues({
+        ...initialValues,
+        ...watchedValues,
+    });
+    const isDirty = form.formState.isDirty || !areEqual(currentDraft, baseline);
 
-    useSessionStorageDraft<ActivityReportDraft>({
+    useEffect(() => {
+        setBaseline(initialValues);
+        form.reset(initialValues);
+    }, [form, initialValues]);
+
+    const { saveNow, clear } = useSessionStorageDraft<ActivityReportFormValues>({
         key: draftStorageKey,
         currentValue: currentDraft,
-        baselineValue: baselineDraft,
+        baselineValue: baseline,
         isDirty,
-        success: state.success,
-        shouldRestore: (savedDraft, baseDraft) =>
-            savedDraft.title !== baseDraft.title ||
-            savedDraft.content !== baseDraft.content ||
-            !areStringArraysEqual(savedDraft.existingUrls, baseDraft.existingUrls) ||
-            savedDraft.removedUrls.length > 0,
+        success: false,
+        shouldRestore: (savedDraft, baseDraft) => !areEqual(savedDraft, baseDraft),
         onRestore: (savedDraft) => {
-            setTitleValue(savedDraft.title);
-            setContentValue(savedDraft.content);
-            setExistingUrls(savedDraft.existingUrls);
-            setRemovedUrls(savedDraft.removedUrls);
+            const draft = createActivityReportDraftValues(savedDraft);
+            form.reset(draft);
             setDidRestoreDraft(true);
             toast.success("임시 저장된 활동보고서 내용을 복구했습니다.");
         },
+    });
+
+    const saveDraftNow = useCallback(() => {
+        if (isDirty) {
+            saveNow(createActivityReportDraftValues(form.getValues()));
+        }
+    }, [form, isDirty, saveNow]);
+
+    const {
+        formError,
+        isSubmitting,
+        onSubmit,
+        onInvalid,
+        submitSucceeded,
+    } = useActivityReportSubmit({
+        form,
+        clubId,
+        reportId,
+        originalReport:
+            reportId && title !== undefined && content !== undefined
+                ? {
+                      title,
+                      content,
+                      image_urls: images ?? [],
+                  }
+                : undefined,
+        successRedirectHref,
+        successMessage,
+        returnTo: pathname,
+        onSessionExpired: saveDraftNow,
     });
 
     useUnsavedChangesGuard({
@@ -122,53 +121,15 @@ export default function ActivityReportForm({
         message: UNSAVED_CHANGES_MESSAGE,
     });
 
-    useSessionExpiredRedirect({
-        sessionExpired: state.sessionExpired,
-        returnTo: pathname,
-        drafts: [
-            {
-                isDirty,
-                save: () => {
-                    if (typeof window === "undefined") {
-                        return;
-                    }
-                    window.sessionStorage.setItem(draftStorageKey, JSON.stringify(currentDraft));
-                },
-            },
-        ],
-    });
-
-    const handleUrlRemove = (url: string) => {
-        setExistingUrls((prev) => prev.filter((item) => item !== url));
-        setRemovedUrls((prev) => [...prev, url]);
-    };
-
-    const handleReplaceExistingUrls = () => {
-        if (existingUrls.length === 0) return;
-        setRemovedUrls((prev) => [...new Set([...prev, ...existingUrls])]);
-        setExistingUrls([]);
-    };
-
     useEffect(() => {
-        if (state.success) {
-            toast.success(successMessage ?? "활동 보고서가 성공적으로 등록되었습니다!");
-            router.push(successRedirectHref ?? `/${clubId}/report`);
+        if (submitSucceeded) {
+            clear();
+            setDidRestoreDraft(false);
         }
-        if (state.error && !state.sessionExpired) {
-            toast.error(state.error);
-        }
-    }, [clubId, router, state.error, state.sessionExpired, state.success, successMessage, successRedirectHref]);
+    }, [clear, submitSucceeded]);
 
     return (
-        <form action={formAction} className="space-y-6 w-full">
-            <input type="hidden" name="reportId" value={reportId} />
-            <input type="hidden" name="clubId" value={clubId} />
-            <input type="hidden" name="existingUrls" value={JSON.stringify(existingUrls)} />
-            <input type="hidden" name="removedUrls" value={JSON.stringify(removedUrls)} />
-            {title && <input type="hidden" name="originalTitle" value={title} />}
-            {content && <input type="hidden" name="originalContent" value={content} />}
-            {images && <input type="hidden" name="originalImageUrls" value={JSON.stringify(images)} />}
-
+        <FormRoot form={form} onSubmit={onSubmit} onInvalid={onInvalid} formError={formError} className="space-y-6 w-full">
             {didRestoreDraft ? (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                     임시 저장된 내용을 복구했습니다. 새로 선택했던 썸네일 파일은 브라우저 보안 정책상 자동 복구되지 않아 다시 선택해야
@@ -176,49 +137,45 @@ export default function ActivityReportForm({
                 </div>
             ) : null}
 
-            <FormField
+            {/* 보고서 제목 */}
+            <RHFTextField<ActivityReportFormValues>
+                id="title"
+                name="title"
                 label="보고서 제목"
                 type="text"
-                name="title"
                 placeholder="활동 보고서 제목을 입력하세요"
                 required
-                error={state.fieldErrors?.title}
-                id="title"
-                value={titleValue}
-                onChange={(event) => setTitleValue(event.target.value)}
             />
 
-            <RichTextEditor
-                label="활동 내용"
+            {/* 활동 내용 */}
+            <RHFRichTextEditor<ActivityReportFormValues>
+                id="content"
                 name="content"
+                label="활동 내용"
                 clubId={clubId}
                 placeholder="이번 달 동아리 활동 내용을 상세히 작성해주세요."
                 required
-                error={state.fieldErrors?.content}
-                id="content"
-                value={contentValue}
-                onChange={setContentValue}
             />
 
-            <FileUpload
+            {/* 썸네일 */}
+            <RHFFileUpload<ActivityReportFormValues>
+                id="images"
+                name="imageUrls"
+                fileName="imageFile"
                 label="썸네일"
-                name="images"
                 maxFiles={1}
                 selectionMode="replace"
                 presentation="single-thumbnail"
                 description="보고서 대표 썸네일 이미지를 업로드하세요"
-                defaultValue={existingUrls}
-                onUrlRemove={handleUrlRemove}
-                onReplaceExistingUrls={handleReplaceExistingUrls}
             />
 
             <LoadingButton
                 type="submit"
-                className="w-full  bg-primary hover:bg-primary/90 text-white py-3 text-lg font-bold"
-                loading={isPending}
-                loadingText="보고서 등록 중...">
-                등록
+                className="w-full bg-primary hover:bg-primary/90 text-white py-3 text-lg font-bold"
+                loading={isSubmitting}
+                loadingText={reportId ? "보고서 수정 중..." : "보고서 등록 중..."}>
+                {reportId ? "수정 완료" : "등록"}
             </LoadingButton>
-        </form>
+        </FormRoot>
     );
 }

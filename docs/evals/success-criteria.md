@@ -21,6 +21,28 @@
 
 ## Club Form
 
+### 등록 폼 스키마
+
+- 동아리 등록 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
+- 쉼표로 입력한 태그 문자열은 공백과 빈 항목을 제거한 배열로 변환되어야 한다.
+
+### 수정 폼 스키마
+
+- 동아리 수정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
+- 수정 폼의 텍스트 입력값은 제출 전에 trim 정규화되어야 한다.
+- 쉼표로 입력한 태그 문자열은 공백과 빈 항목을 제거한 배열로 변환되어야 한다.
+
+### 수정 payload 조합
+
+- 모집마감 상태로 수정하면 모집 시작일과 마감일은 `null`로 제거해야 한다.
+- 모집중 상태로 수정하면 검증된 모집 시작일과 마감일을 payload에 유지해야 한다.
+- 아이콘 삭제 또는 업로드 결과가 있으면 `icon_url`을 명시적으로 payload에 포함해야 한다.
+
+### 회장 수정 폼 스키마
+
+- 회장 수정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
+- 회장 이름과 연락처는 제출 전에 trim 정규화되어야 한다.
+
 ### 모집 상태 정규화
 
 - 화면 라벨과 내부 enum 값이 같은 의미로 정규화되어야 한다.
@@ -44,21 +66,60 @@
 - 동아리 설명과 주요 활동은 rich text 마크업만 있는 빈 값으로 저장될 수 없다.
 
 관련 테스트:
+- [club-register.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-register.schema.test.ts)
+- [club-edit.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit.schema.test.ts)
+- [club-edit-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit-payload.test.ts)
+- [club-president.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-president.schema.test.ts)
 - [club-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/validation/club-form.validation.test.ts)
+
+## Admin Shared Action
+
+### action result
+
+- typed server action은 성공/실패를 `ok` 기준의 공통 결과 형태로 표현할 수 있어야 한다.
+- 실패 결과는 field error와 form error를 함께 담을 수 있어야 한다.
+- 실패 결과는 필요한 경우 retry 가능 여부와 에러 종류 메타를 함께 담을 수 있어야 한다.
+
+### zod field error 변환
+
+- zod issue 목록은 field별 첫 번째 에러 메시지만 공통 field error map으로 변환해야 한다.
+- field path가 없는 issue는 field error map에 포함하지 않아야 한다.
+
+관련 테스트:
+- [action-result.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/action-result.test.ts)
+- [zod-field-errors.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/zod-field-errors.test.ts)
+
+## Admin Shared Form
+
+### date picker 값 변환
+
+- 날짜 picker에서 선택한 로컬 날짜는 UTC 변환으로 하루 앞당겨지지 않아야 한다.
+- 시간 포함 날짜 picker 값은 UTC 변환 없이 `YYYY-MM-DD HH:mm:ss` 형식으로 유지되어야 한다.
+- 선택한 날짜가 없으면 빈 문자열로 정규화해야 한다.
+
+관련 테스트:
+- [date-picker-value.test.ts](../../apps/DONGLE-ADMIN/src/shared/form/date-picker-value.test.ts)
 
 ## User Form
 
 ### 계정 입력 검증
 
+- 사용자 생성/수정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
 - 공백 loginId는 거부한다.
 - 비밀번호는 required 여부에 따라 빈 값 허용 규칙이 달라진다.
 - 전화번호는 올바른 휴대폰 형식만 통과한다.
 - 사용자 생성 폼은 역할을 입력받지 않고 관리자 계정으로 생성한다.
 - 사용자 수정 폼은 역할을 변경하지 않는다.
 
+### 수정 payload 조합
+
+- 사용자 수정 payload는 변경된 필드만 포함한다.
+- 수정 폼의 비밀번호는 입력된 경우에만 payload에 포함한다.
+
 관련 테스트:
+- [user-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/form/user-form.schema.test.ts)
 - [user-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/validation/user-form.validation.test.ts)
-- [user-create-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/action/user-create-form.action.test.ts)
+- [user-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/form/user-form.action.test.ts)
 
 ## Admin User Management
 
@@ -75,6 +136,7 @@
 
 ### 보고서 입력 검증
 
+- 활동보고서 작성/수정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
 - 제목과 내용은 빈 값일 수 없다.
 - 제목 최소 길이와 내용 최소 길이를 만족해야 한다.
 
@@ -93,11 +155,12 @@
 - 예외 throw는 공통 exception form error 규약으로 매핑한다.
 
 관련 테스트:
+- [activity-report.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/form/activity-report.schema.test.ts)
 - [activity-report.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/activity-report.validation.test.ts)
 - [report-update-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/report-update-payload.test.ts)
 - [report-action-error-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/report-action-error-policy.test.ts)
-- [activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/activity-report-form.action.test.ts)
-- [update-activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/update-activity-report-form.action.test.ts)
+- [activity-report-create.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/form/activity-report-create.action.test.ts)
+- [activity-report-update.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/form/activity-report-update.action.test.ts)
 
 ## Admin URL Generation
 
@@ -178,8 +241,11 @@
 - 사용자용 배너 목록 조회는 공개 엔드포인트인 `/main-banners`를 사용해야 한다.
 - 관리자용 배너 목록 조회는 관리자 엔드포인트인 `/main-banners/admin`을 사용해야 한다.
 - 관리자용 배너 단건 조회는 `/main-banners/admin/:id`를 캐시 없이 호출해야 한다.
+- 관리자 배너 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
 - 관리자 배너 폼은 날짜와 시간을 함께 선택할 수 있어야 한다.
 - 관리자 배너 폼의 시간 포함 제출값은 API가 받는 `YYYY-MM-DD HH:mm:ss` 형식이어야 한다.
+- 관리자 배너 폼은 이미지가 없으면 저장할 수 없다.
+- 관리자 배너 폼은 `http(s)` URL 또는 `/`로 시작하는 내부 경로만 링크로 허용한다.
 - 사용자 노출용 배너는 사용 중이고 이미지 URL이 있으며 노출 기간 내인 항목만 포함한다.
 - 배너 클릭 링크는 `http(s)` URL 또는 `/`로 시작하는 내부 경로만 허용한다.
 - 허용되지 않는 링크는 사용자 노출 데이터에서 `null`로 정규화한다.
@@ -189,6 +255,7 @@
 - [get-display-banner-image-urls.test.ts](../../packages/service/src/main-banner/get-display-banner-image-urls.test.ts)
 - [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts)
 - [main-banner-datetime.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/utils/main-banner-datetime.test.ts)
+- [main-banner-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/form/main-banner-form.schema.test.ts)
 
 ### API Token Refresh Retry
 

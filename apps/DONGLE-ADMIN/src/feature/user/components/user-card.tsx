@@ -10,7 +10,7 @@ import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
 import { User as UserIcon, Phone, Calendar, Edit, Trash2 } from "lucide-react";
 import UserEditForm from "@/feature/user/components/user-edit-form";
-import { deleteUserAction } from "@/feature/user/action/user-form.action";
+import { deleteUserAction } from "@/feature/user/action/delete-user.action";
 import { formatMobilePhoneNumber } from "@dongle/utils";
 import { formatKoreanDate } from "@/lib/format/date";
 import { toast } from "sonner";

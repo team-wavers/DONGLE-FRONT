@@ -18,6 +18,14 @@
 - 브라우저 UI 존재 여부 확인만 하는 케이스는 E2E로 만들지 않는다.
 - 기본 진입 명령은 `pnpm verify:fast`다.
 
+## Large Change / TDD Contract
+- 큰 기능 추가, 도메인 로직 변경, payload transform, validation, parser, formatter, helper 변경은 TDD 흐름을 우선한다.
+- 구현 전에 먼저 실패하는 테스트 또는 테스트 계획을 작성한다.
+- 테스트가 새 성공 기준을 올바르게 표현하는지 사용자에게 먼저 확인받는다.
+- 사용자 확인 후 실제 구현을 진행하고, 작성한 테스트가 통과하는지 검증한다.
+- 단순 rename, import 정리, 스타일 조정, UI 배치 변경처럼 순수 로직 검증 가치가 낮은 작업은 TDD 대상에서 제외할 수 있다.
+- TDD를 적용하지 않았다면 종료 보고에 이유를 남긴다.
+
 ## Done Contract
 - 성공 기준이 바뀌면 관련 문서를 같이 갱신한다.
 - 새 pure logic, validation, helper, payload transform이 생기면 `test` 추가 여부를 확인한다.
