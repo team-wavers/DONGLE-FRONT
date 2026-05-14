@@ -86,6 +86,8 @@ export default function ClubMainHeroBannerCarousel({ banners }: ClubMainHeroBann
                                 {banner.linkUrl ? (
                                     <Link
                                         href={banner.linkUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2">
                                         {image}
                                     </Link>
