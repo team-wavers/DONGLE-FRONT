@@ -1,10 +1,7 @@
 import { Suspense } from "react";
-import MainBannerForm from "@/feature/main-banner/components/main-banner-form";
-import { updateMainBannerAction } from "@/feature/main-banner/action/main-banner-form.action";
 import { getAdminMainBannerService } from "@/lib/server/cached-services";
-import { Button } from "@dongle/ui/button";
 import { Skeleton } from "@dongle/ui/skeleton";
-import MainBannerDeleteButton from "@/feature/main-banner/components/main-banner-delete-button";
+import MainBannerEditSection from "@/feature/main-banner/components/main-banner-edit-section";
 
 interface EditMainBannerPageProps {
     params: Promise<{ id: string }>;
@@ -17,26 +14,7 @@ async function EditMainBannerContent({ bannerId }: { bannerId: number }) {
         return <div className="text-sm text-red-500">{error?.message || "배너 목록을 불러오지 못했습니다."}</div>;
     }
 
-    return (
-        <div className="flex flex-col gap-8">
-            <MainBannerForm
-                customAction={updateMainBannerAction}
-                initialData={result}
-                submitText="수정"
-                loadingText="수정 중..."
-                successMessage="배너가 수정되었습니다."
-                formId="main-banner-edit-form"
-                showSubmitButton={false}
-            />
-
-            <div className="grid grid-cols-2 gap-3 pt-2">
-                <MainBannerDeleteButton bannerId={bannerId} />
-                <Button type="submit" form="main-banner-edit-form" className="w-full">
-                    수정
-                </Button>
-            </div>
-        </div>
-    );
+    return <MainBannerEditSection banner={result} />;
 }
 
 function EditMainBannerFallback() {

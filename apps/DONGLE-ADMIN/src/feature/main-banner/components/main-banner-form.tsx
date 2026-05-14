@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FormDatePicker } from "@/components/atoms/form/form-datepicker/form-datepicker";
@@ -21,6 +21,7 @@ interface MainBannerFormProps {
     successMessage?: string;
     formId?: string;
     showSubmitButton?: boolean;
+    onLoadingChange?: (state: { loading: boolean; loadingText: string }) => void;
 }
 
 interface UploadMainBannerImageApiResponse {
@@ -34,10 +35,10 @@ interface UploadMainBannerImageApiResponse {
     };
 }
 
-function toDateValue(value?: string | null): Date | undefined {
+function toDateValue(value?: string | Date | null): Date | undefined {
     if (!value) return undefined;
 
-    const date = new Date(value);
+    const date = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(date.getTime())) return undefined;
 
     return date;
@@ -51,6 +52,7 @@ export default function MainBannerForm({
     successMessage = "배너가 저장되었습니다.",
     formId,
     showSubmitButton = true,
+    onLoadingChange,
 }: MainBannerFormProps) {
     const router = useRouter();
     const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
@@ -61,6 +63,16 @@ export default function MainBannerForm({
         error: undefined,
         fieldErrors: undefined,
     });
+    const isLoading = isPending || isImageUploading;
+    const currentLoadingText = isImageUploading ? "이미지 업로드 중..." : loadingText;
+    const publishStartAtDefaultValue = useMemo(
+        () => toDateValue(initialData?.publish_start_at),
+        [initialData?.publish_start_at]
+    );
+    const publishEndAtDefaultValue = useMemo(
+        () => toDateValue(initialData?.publish_end_at),
+        [initialData?.publish_end_at]
+    );
 
     useEffect(() => {
         if (state.success) {
@@ -72,6 +84,10 @@ export default function MainBannerForm({
             toast.error(state.error);
         }
     }, [state.success, state.error, successMessage, router]);
+
+    useEffect(() => {
+        onLoadingChange?.({ loading: isLoading, loadingText: currentLoadingText });
+    }, [currentLoadingText, isLoading, onLoadingChange]);
 
     const handleImageFileChange = async (files: File[]) => {
         const nextFile = files[0];
@@ -150,8 +166,9 @@ export default function MainBannerForm({
                     id="publish_start_at"
                     name="publish_start_at"
                     label="게시 시작일시"
+                    includeTime
                     required
-                    defaultValue={toDateValue(initialData?.publish_start_at)}
+                    defaultValue={publishStartAtDefaultValue}
                     error={state.fieldErrors?.publish_start_at}
                 />
 
@@ -159,8 +176,9 @@ export default function MainBannerForm({
                     id="publish_end_at"
                     name="publish_end_at"
                     label="게시 종료일시"
+                    includeTime
                     required
-                    defaultValue={toDateValue(initialData?.publish_end_at)}
+                    defaultValue={publishEndAtDefaultValue}
                     error={state.fieldErrors?.publish_end_at}
                 />
             </div>
@@ -194,8 +212,8 @@ export default function MainBannerForm({
             {showSubmitButton ? (
                 <LoadingButton
                     type="submit"
-                    loading={isPending || isImageUploading}
-                    loadingText={isImageUploading ? "이미지 업로드 중..." : loadingText}
+                    loading={isLoading}
+                    loadingText={currentLoadingText}
                     className="w-full">
                     {submitText}
                 </LoadingButton>

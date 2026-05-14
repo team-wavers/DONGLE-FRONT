@@ -178,13 +178,17 @@
 - 사용자용 배너 목록 조회는 공개 엔드포인트인 `/main-banners`를 사용해야 한다.
 - 관리자용 배너 목록 조회는 관리자 엔드포인트인 `/main-banners/admin`을 사용해야 한다.
 - 관리자용 배너 단건 조회는 `/main-banners/admin/:id`를 캐시 없이 호출해야 한다.
+- 관리자 배너 폼은 날짜와 시간을 함께 선택할 수 있어야 한다.
+- 관리자 배너 폼의 시간 포함 제출값은 API가 받는 `YYYY-MM-DD HH:mm:ss` 형식이어야 한다.
 - 사용자 노출용 배너는 사용 중이고 이미지 URL이 있으며 노출 기간 내인 항목만 포함한다.
 - 배너 클릭 링크는 `http(s)` URL 또는 `/`로 시작하는 내부 경로만 허용한다.
 - 허용되지 않는 링크는 사용자 노출 데이터에서 `null`로 정규화한다.
+- 사용자 배너 클릭 링크는 새 탭에서 열려야 한다.
 
 관련 테스트:
 - [get-display-banner-image-urls.test.ts](../../packages/service/src/main-banner/get-display-banner-image-urls.test.ts)
 - [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts)
+- [main-banner-datetime.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/utils/main-banner-datetime.test.ts)
 
 ### API Token Refresh Retry
 
