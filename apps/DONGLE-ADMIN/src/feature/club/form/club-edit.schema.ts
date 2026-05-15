@@ -109,3 +109,19 @@ export function createClubEditDraftValues(values: ClubEditFormValues): ClubEditF
         iconFile: null,
     };
 }
+
+export function createClubEditSavedValues(
+    values: ClubEditFormValues,
+    options: {
+        iconUrl?: string | null;
+    } = {}
+): ClubEditFormValues {
+    return createClubEditDraftValues({
+        ...values,
+        ...(options.iconUrl !== undefined
+            ? {
+                  iconUrls: options.iconUrl ? [options.iconUrl] : [],
+              }
+            : {}),
+    });
+}

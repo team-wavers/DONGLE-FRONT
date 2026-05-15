@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
-import { clubEditSchema, splitClubEditTags } from "./club-edit.schema";
+import { clubEditSchema, createClubEditSavedValues, splitClubEditTags } from "./club-edit.schema";
 
 function createValues(overrides: Record<string, unknown> = {}) {
     return {
@@ -62,5 +62,20 @@ describe("clubEditSchema", () => {
 describe("splitClubEditTags", () => {
     test("쉼표 태그 문자열을 trim된 배열로 변환한다", () => {
         expect(splitClubEditTags(" 개발, 디자인 ,, 운영 ")).toEqual(["개발", "디자인", "운영"]);
+    });
+});
+
+describe("createClubEditSavedValues", () => {
+    test("업로드된 아이콘 URL을 다음 수정 기준값에 반영하고 파일 값은 제거한다", () => {
+        const iconFile = new File(["icon"], "icon.png", { type: "image/png" });
+
+        expect(
+            createClubEditSavedValues(createValues({ iconFile }), {
+                iconUrl: "https://cdn.test/icon.png",
+            })
+        ).toMatchObject({
+            iconUrls: ["https://cdn.test/icon.png"],
+            iconFile: null,
+        });
     });
 });

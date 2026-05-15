@@ -38,6 +38,7 @@
 - 모집마감 상태로 수정하면 모집 시작일과 마감일은 `null`로 제거해야 한다.
 - 모집중 상태로 수정하면 검증된 모집 시작일과 마감일을 payload에 유지해야 한다.
 - 아이콘 삭제 또는 업로드 결과가 있으면 `icon_url`을 명시적으로 payload에 포함해야 한다.
+- 새 아이콘 업로드 성공 후에는 업로드된 URL을 성공 결과로 반환해 다음 수정 기준값의 `iconUrls`가 최신 URL을 유지해야 한다.
 
 ### 회장 수정 폼 스키마
 
@@ -71,6 +72,7 @@
 - [club-register.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-register.action.test.ts)
 - [club-edit.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit.schema.test.ts)
 - [club-edit-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit-payload.test.ts)
+- [club-edit.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit.action.test.ts)
 - [club-president.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-president.schema.test.ts)
 - [club-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/validation/club-form.validation.test.ts)
 

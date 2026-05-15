@@ -8,7 +8,11 @@ import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { clubEditSchema, type ClubEditField, type ClubEditFormValues } from "./club-edit.schema";
 import { buildClubEditPayload } from "./club-edit-payload";
 
-type ClubEditActionResult = ActionResult<ClubEditField>;
+interface ClubEditSuccessData {
+    iconUrl?: string | null;
+}
+
+type ClubEditActionResult = ActionResult<ClubEditField, ClubEditSuccessData>;
 
 function extractUploadedIconUrl(result: unknown): string | undefined {
     if (typeof result === "string" && result.trim()) {
@@ -97,6 +101,7 @@ export async function submitClubEditAction({
         revalidateTag(`club-${normalizedClubId}`);
 
         return actionSuccess({
+            data: iconUrl !== undefined ? { iconUrl } : undefined,
             message: "동아리 정보가 성공적으로 수정되었습니다!",
         });
     } catch (error) {

@@ -6,7 +6,7 @@ import type { SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hoo
 import { toast } from "sonner";
 import { applyServerFieldErrors } from "@/shared/form";
 import { submitClubEditAction } from "./club-edit.action";
-import { createClubEditDraftValues, type ClubEditFormValues } from "./club-edit.schema";
+import { createClubEditSavedValues, type ClubEditFormValues } from "./club-edit.schema";
 
 interface UseClubEditSubmitOptions {
     clubId: string;
@@ -50,7 +50,9 @@ export function useClubEditSubmit({ clubId, form, returnTo, onSuccess, onSession
                 return;
             }
 
-            const savedValues = createClubEditDraftValues(values);
+            const savedValues = createClubEditSavedValues(values, {
+                iconUrl: result.data?.iconUrl,
+            });
             setSubmitSucceeded(true);
             onSuccess?.(savedValues);
             toast.success(result.message ?? "동아리 정보가 성공적으로 수정되었습니다!");
