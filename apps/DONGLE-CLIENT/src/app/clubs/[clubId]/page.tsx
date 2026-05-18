@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getClubReportListService, getClubService } from "@/lib/server/cached-services";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
+import { formatMobilePhoneNumber } from "@dongle/utils";
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
 import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
 import ClubIconAvatar from "@/components/main/club-icon-avatar";
@@ -156,11 +157,13 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
     const categoryPresentation = getClubCategoryPresentation(club.category);
     const recruitPeriod =
         club.recruit_start && club.recruit_end ? formatDateRange(club.recruit_start, club.recruit_end) : "미정";
+    const presidentPhone = club.president?.phone;
+    const formattedPresidentPhone = presidentPhone ? formatMobilePhoneNumber(presidentPhone) : "-";
     const infoItems = [
         { icon: MapPin, label: "동아리방", value: club.location || "-" },
         { icon: CalendarDays, label: "모집기간", value: recruitPeriod },
         { icon: UserRound, label: "회장", value: club.president?.name || "-" },
-        { icon: Phone, label: "연락처", value: club.president?.phone || "-" },
+        { icon: Phone, label: "연락처", value: formattedPresidentPhone },
     ];
 
     return (
