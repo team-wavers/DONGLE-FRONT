@@ -18,6 +18,8 @@
             "@dongle/content/*": ["../../packages/content/src/*"],
             "@dongle/types": ["../../packages/types/src/index.ts"],
             "@dongle/types/*": ["../../packages/types/src/*"],
+            "@dongle/utils": ["../../packages/utils/src/index.ts"],
+            "@dongle/utils/*": ["../../packages/utils/src/*"],
             "@dongle/ui": ["../../packages/ui/src/index.ts"],
             "@dongle/ui/*": ["../../packages/ui/src/*"],
         },
