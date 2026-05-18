@@ -590,6 +590,63 @@ Authorization: Bearer {accessToken}
 
 ## 9. 일정 (Club Schedules)
 
+### 공통 응답 스키마
+
+#### ClubSchedule
+
+사용자/회장용 일정 응답 객체입니다.
+
+```json
+{
+    "id": 1,
+    "title": "정기 모임",
+    "type": "regular_meeting",
+    "start_at": "2026-05-20T10:00:00.000Z",
+    "end_at": "2026-05-20T12:00:00.000Z",
+    "is_public": true,
+    "location": "학생회관",
+    "description": "5월 정기 모임",
+    "external_url": "https://forms.example.com/schedule",
+    "created_at": "2026-05-01T00:00:00.000Z",
+    "updated_at": "2026-05-01T00:00:00.000Z",
+    "deleted_at": null
+}
+```
+
+#### AdminClubSchedule
+
+관리자용 일정 응답 객체입니다. `ClubSchedule`에 `club` 정보가 포함됩니다.
+
+```json
+{
+    "id": 1,
+    "title": "정기 모임",
+    "type": "regular_meeting",
+    "start_at": "2026-05-20T10:00:00.000Z",
+    "end_at": "2026-05-20T12:00:00.000Z",
+    "is_public": true,
+    "location": "학생회관",
+    "description": "5월 정기 모임",
+    "external_url": "https://forms.example.com/schedule",
+    "club": {
+        "id": 1,
+        "name": "UCDC",
+        "category": "학술"
+    },
+    "created_at": "2026-05-01T00:00:00.000Z",
+    "updated_at": "2026-05-01T00:00:00.000Z",
+    "deleted_at": null
+}
+```
+
+**비고**:
+
+-   `type`: `recruitment`, `event`, `regular_meeting`, `notice`
+-   `location`, `description`, `external_url`, `deleted_at`은 `null`일 수 있습니다.
+-   삭제되지 않은 일정 응답의 `deleted_at`은 `null`입니다.
+
+---
+
 ### GET /v1/clubs/:id/public-schedules
 
 동아리 상세 사용자용 공개 일정 조회
@@ -600,23 +657,7 @@ Authorization: Bearer {accessToken}
 
 -   `id` (number): 동아리 ID
 
-**응답**:
-
-```json
-[
-    {
-        "id": 1,
-        "title": "string",
-        "type": "regular_meeting",
-        "start_at": "2026-05-20T10:00:00.000Z",
-        "end_at": "2026-05-20T12:00:00.000Z",
-        "is_public": true,
-        "location": "string",
-        "description": "string",
-        "external_url": "string"
-    }
-]
-```
+**응답**: `ClubSchedule[]`
 
 ---
 
@@ -631,7 +672,7 @@ Authorization: Bearer {accessToken}
 
 -   `status` (선택): `all`, `public`, `private`, `upcoming`, `past`
 
-**응답**: 일정 배열
+**응답**: `ClubSchedule[]`
 
 ---
 
@@ -663,7 +704,7 @@ Authorization: Bearer {accessToken}
 -   선택값은 `location`, `description`, `external_url`만 지원합니다.
 -   첨부 이미지와 신청 링크 별도 필드는 지원하지 않습니다.
 
-**응답**: 생성된 일정 객체
+**응답**: `ClubSchedule`
 
 ---
 
@@ -676,7 +717,7 @@ Authorization: Bearer {accessToken}
 
 **요청 바디**: 생성 요청 바디의 부분 집합
 
-**응답**: 수정된 일정 객체
+**응답**: `ClubSchedule`
 
 ---
 
@@ -706,7 +747,7 @@ Authorization: Bearer {accessToken}
 -   `isPublic` (선택): `true`, `false`
 -   `from`, `to` (선택): 조회 기간
 
-**응답**: 일정 배열
+**응답**: `AdminClubSchedule[]`
 
 ---
 
@@ -722,7 +763,7 @@ Authorization: Bearer {accessToken}
 -   `from` (필수): 조회 시작일시
 -   `to` (필수): 조회 종료일시
 
-**응답**: 일정 배열
+**응답**: `AdminClubSchedule[]`
 
 ---
 
@@ -733,7 +774,7 @@ Authorization: Bearer {accessToken}
 **인증**: 필요 (JWT)
 **권한**: ADMIN
 
-**응답**: 일정 객체
+**응답**: `AdminClubSchedule`
 
 ---
 
@@ -752,7 +793,7 @@ Authorization: Bearer {accessToken}
 }
 ```
 
-**응답**: 수정된 일정 객체
+**응답**: `AdminClubSchedule`
 
 ---
 
