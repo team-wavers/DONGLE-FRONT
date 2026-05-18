@@ -22,7 +22,8 @@ export default function ClubSummaryCard({ club }: ClubSummaryCardProps) {
             <div
                 className={cn(
                     "relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md border",
-                    presentation.iconClassName
+                    presentation.iconClassName,
+                    "bg-white"
                 )}>
                 {club.icon_url ? (
                     <Image src={club.icon_url} alt={`${club.name} 아이콘`} fill sizes="48px" className="object-cover" />

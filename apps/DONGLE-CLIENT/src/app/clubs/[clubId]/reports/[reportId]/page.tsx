@@ -115,6 +115,7 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
             image_urls: item.image_urls,
         }));
     const wasUpdated = report.updatedAt !== report.createdAt;
+    const hasReportImages = report.image_urls.some((url) => url.trim().length > 0);
 
     return (
         <article className="py-6 md:py-10">
@@ -155,7 +156,7 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
                 <main className="min-w-0 space-y-8">
                     <ReportImageGallery report={report} />
 
-                    <section className="border-t border-zinc-200 pt-8">
+                    <section className={hasReportImages ? "border-t border-zinc-200 pt-8" : undefined}>
                         <RichTextViewer html={report.content} className="max-w-[720px] text-[17px]" />
                     </section>
                 </main>
