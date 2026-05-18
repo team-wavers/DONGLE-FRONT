@@ -588,6 +588,185 @@ Authorization: Bearer {accessToken}
 
 ---
 
+## 9. 일정 (Club Schedules)
+
+### GET /v1/clubs/:id/public-schedules
+
+동아리 상세 사용자용 공개 일정 조회
+
+**인증**: 불필요
+
+**파라미터**:
+
+-   `id` (number): 동아리 ID
+
+**응답**:
+
+```json
+[
+    {
+        "id": 1,
+        "title": "string",
+        "type": "regular_meeting",
+        "start_at": "2026-05-20T10:00:00.000Z",
+        "end_at": "2026-05-20T12:00:00.000Z",
+        "is_public": true,
+        "location": "string",
+        "description": "string",
+        "external_url": "string"
+    }
+]
+```
+
+---
+
+### GET /v1/clubs/:id/schedules
+
+회장용 동아리 일정 목록 조회
+
+**인증**: 필요 (JWT)
+**권한**: PRESIDENT
+
+**쿼리**:
+
+-   `status` (선택): `all`, `public`, `private`, `upcoming`, `past`
+
+**응답**: 일정 배열
+
+---
+
+### POST /v1/clubs/:id/schedules
+
+회장용 동아리 일정 생성
+
+**인증**: 필요 (JWT)
+**권한**: PRESIDENT
+
+**요청 바디**:
+
+```json
+{
+    "title": "string",
+    "type": "regular_meeting",
+    "start_at": "2026-05-20 19:00:00",
+    "end_at": "2026-05-20 21:00:00",
+    "is_public": true,
+    "location": "string",
+    "description": "string",
+    "external_url": "string"
+}
+```
+
+**비고**:
+
+-   `type`: `recruitment`, `event`, `regular_meeting`, `notice`
+-   선택값은 `location`, `description`, `external_url`만 지원합니다.
+-   첨부 이미지와 신청 링크 별도 필드는 지원하지 않습니다.
+
+**응답**: 생성된 일정 객체
+
+---
+
+### PATCH /v1/clubs/:id/schedules/:scheduleId
+
+회장용 동아리 일정 수정
+
+**인증**: 필요 (JWT)
+**권한**: PRESIDENT
+
+**요청 바디**: 생성 요청 바디의 부분 집합
+
+**응답**: 수정된 일정 객체
+
+---
+
+### DELETE /v1/clubs/:id/schedules/:scheduleId
+
+회장용 동아리 일정 삭제
+
+**인증**: 필요 (JWT)
+**권한**: PRESIDENT
+
+**응답**: 삭제 결과
+
+---
+
+### GET /v1/club-schedules
+
+관리자용 전체 일정 목록 조회
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**쿼리**:
+
+-   `clubName` (선택): 동아리명 검색
+-   `category` (선택): 분과
+-   `type` (선택): 일정 유형
+-   `isPublic` (선택): `true`, `false`
+-   `from`, `to` (선택): 조회 기간
+
+**응답**: 일정 배열
+
+---
+
+### GET /v1/club-schedules/calendar
+
+관리자용 월간 캘린더 일정 조회
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**쿼리**:
+
+-   `from` (필수): 조회 시작일시
+-   `to` (필수): 조회 종료일시
+
+**응답**: 일정 배열
+
+---
+
+### GET /v1/club-schedules/:scheduleId
+
+관리자용 일정 상세 조회
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**응답**: 일정 객체
+
+---
+
+### PATCH /v1/club-schedules/:scheduleId/admin-status
+
+관리자용 일정 공개 상태 변경
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**요청 바디**:
+
+```json
+{
+    "is_public": false
+}
+```
+
+**응답**: 수정된 일정 객체
+
+---
+
+### DELETE /v1/club-schedules/:scheduleId
+
+관리자용 일정 삭제
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**응답**: 삭제 결과
+
+---
+
 ## 권한 (Roles)
 
 -   **ADMIN**: 관리자

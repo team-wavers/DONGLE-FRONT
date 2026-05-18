@@ -136,6 +136,23 @@
 관련 테스트:
 - [filterable-user-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/components/filterable-user-list.test.ts)
 
+## Admin Schedule Management
+
+### 캘린더 날짜 계산
+
+- 월간 캘린더는 표시 월의 앞뒤 날짜를 포함해 6주 날짜를 안정적으로 계산해야 한다.
+- 선택한 날짜의 일정은 시작일시의 로컬 날짜 기준으로 계산되어야 한다.
+
+### 일정 필터와 정렬
+
+- 검색어는 trim 후 소문자 기준으로 비교된다.
+- 일정 제목, 동아리명, 분과, 장소가 검색 대상이다.
+- 분과, 일정 유형, 공개 상태 필터가 함께 적용되어야 한다.
+- 일정 목록은 시작일시 오름차순으로 정렬되어야 한다.
+
+관련 테스트:
+- [schedule.utils.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/schedule.utils.test.ts)
+
 ## Report Create / Update
 
 ### 보고서 입력 검증
@@ -228,6 +245,18 @@
 관련 테스트:
 - [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts)
 - [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts)
+
+## Client Club Schedule
+
+### 동아리 상세 일정
+
+- 사용자 동아리 상세 일정은 해당 동아리의 공개 일정만 포함해야 한다.
+- 비공개 일정은 사용자 동아리 상세 일정에 포함하지 않아야 한다.
+- 일정은 다가오는 일정과 지난 일정으로 분리되어야 한다.
+- 각 일정 그룹은 시작일시 오름차순으로 정렬되어야 한다.
+
+관련 테스트:
+- [club-schedule.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-schedule.test.ts)
 
 ## Club Report Detail Service
 
