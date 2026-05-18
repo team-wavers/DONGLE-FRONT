@@ -1,7 +1,7 @@
 "use client";
 
 import { ConfirmButton } from "@dongle/ui/confirm-button";
-import { deleteMainBannerAction } from "@/feature/main-banner/action/main-banner-form.action";
+import { deleteMainBannerAction } from "@/feature/main-banner/action/delete-main-banner.action";
 
 interface MainBannerDeleteButtonProps {
     bannerId: number;

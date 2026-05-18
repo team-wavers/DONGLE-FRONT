@@ -2,7 +2,7 @@
 
 import { deleteClubReportService } from "@dongle/service/club/club.report.service";
 import { revalidateTag } from "next/cache";
-import { requireServerActionAccessToken } from "@/feature/shared/action/server-action-auth";
+import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 /** 활동 보고서 삭제 서버 액션 */

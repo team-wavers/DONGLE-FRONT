@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { getClubReportService } from "@/lib/server/cached-services";
 import ActivityReportForm from "@/feature/report/components/activity-report-form/activity-report-form";
-import { updateActivityReportAction } from "@/feature/report/action/update-activity-report-form.action";
 import GoBackButton from "@/components/atoms/button/go-back-button/go-back-button";
 import { Skeleton } from "@dongle/ui/skeleton";
 
@@ -28,7 +27,6 @@ async function EditReportContent({ clubId, reportId }: { clubId: string; reportI
                 </div>
 
                 <ActivityReportForm
-                    customAction={updateActivityReportAction}
                     title={result.title}
                     content={result.content}
                     clubId={clubId}

@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from "react";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
-import { updateMainBannerAction } from "@/feature/main-banner/action/main-banner-form.action";
 import type { MainBanner } from "@dongle/types/main-banner/main-banner";
 import MainBannerDeleteButton from "./main-banner-delete-button";
 import MainBannerForm from "./main-banner-form";
@@ -24,7 +23,6 @@ export default function MainBannerEditSection({ banner }: MainBannerEditSectionP
     return (
         <div className="flex flex-col gap-8">
             <MainBannerForm
-                customAction={updateMainBannerAction}
                 initialData={banner}
                 submitText="수정"
                 loadingText="수정 중..."

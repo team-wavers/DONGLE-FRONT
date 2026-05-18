@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@dongle/ui/button";
 import { Trash2 } from "lucide-react";
-import { deleteClubAction } from "@/feature/club/action/club-form.action";
+import { deleteClubAction } from "@/feature/club/action/delete-club.action";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
 
 interface ClubDeleteButtonProps {

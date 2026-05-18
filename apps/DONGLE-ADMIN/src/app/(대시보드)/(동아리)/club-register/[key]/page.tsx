@@ -1,6 +1,6 @@
 import { Card, CardDescription, CardHeader, CardTitle } from "@dongle/ui/card";
 import { Users, AlertTriangle } from "lucide-react";
-import ClubRegisterHookForm from "@/feature/club/components/club-register-hook-form/club-register-hook-form";
+import ClubRegisterForm from "@/feature/club/components/club-register-form/club-register-form";
 
 interface ClubRegisterPageProps {
     params: Promise<{ key?: string }>;
@@ -44,7 +44,7 @@ export default async function ClubRegisterPage({ params }: ClubRegisterPageProps
                 </CardHeader>
             </Card>
 
-            <ClubRegisterHookForm registrationKey={key} />
+            <ClubRegisterForm registrationKey={key} />
         </div>
     );
 }

@@ -1,230 +1,245 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { clubRegisterFormAction } from "@/feature/club/action/club-form.action";
-import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
-import {
-    ClubActivityInfo,
-    ClubBasicInfo,
-    ClubContactInfo,
-    ClubFormActions,
-    ClubIntroduction,
-    ClubMemberManagement,
-} from "../@club";
-import { useSessionStorageDraft } from "@/hooks/use-session-storage-draft";
-import { useSessionExpiredRedirect } from "@/hooks/use-session-expired-redirect";
-import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
+import { useClubRegisterForm } from "@/feature/club/form/use-club-register-form";
+import { RECRUITMENT_STATUS, RECRUITMENT_STATUS_LABEL } from "@/feature/club/constants/club.constants";
+import type { ClubRegisterFormValues } from "@/feature/club/form/club-register.schema";
+import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
+import { FormRoot, RHFDatePicker, RHFFileUpload, RHFRichTextEditor, RHFSelectField, RHFTextField } from "@/shared/form";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@dongle/ui/card";
+import { Calendar, Mail, Tag, Users } from "lucide-react";
 
 export interface ClubRegisterFormProps {
     registrationKey: string;
 }
 
-interface ClubRegisterDraft {
-    clubName: string;
-    recruitmentStatus: string;
-    category: string;
-    location: string;
-    description: string;
-    mainActivities: string;
-    tags: string;
-    recruitmentStartDate?: string;
-    recruitmentEndDate?: string;
-    instagram: string;
-    youtube: string;
-    presidentName: string;
-    presidentContact: string;
-}
-
-const DEFAULT_RECRUITMENT_STATUS = RECRUITMENT_STATUS.CLOSED;
-const UNSAVED_CHANGES_MESSAGE = "작성 중인 동아리 등록 내용이 저장되지 않았습니다. 정말 페이지를 떠날까요?";
-
-function createInitialDraft(): ClubRegisterDraft {
-    return {
-        clubName: "",
-        recruitmentStatus: DEFAULT_RECRUITMENT_STATUS,
-        category: "",
-        location: "",
-        description: "",
-        mainActivities: "",
-        tags: "",
-        recruitmentStartDate: undefined,
-        recruitmentEndDate: undefined,
-        instagram: "",
-        youtube: "",
-        presidentName: "",
-        presidentContact: "",
-    };
-}
-
-function getDraftStorageKey(registrationKey: string) {
-    return `club-register-draft:${registrationKey}`;
-}
-
-function areDraftsEqual(left: ClubRegisterDraft, right: ClubRegisterDraft) {
-    return JSON.stringify(left) === JSON.stringify(right);
-}
-
 export default function ClubRegisterForm({ registrationKey }: ClubRegisterFormProps) {
-    const router = useRouter();
-    const pathname = usePathname();
-    const initialDraft = useMemo(() => createInitialDraft(), []);
-    const draftStorageKey = useMemo(() => getDraftStorageKey(registrationKey), [registrationKey]);
-    const [draft, setDraft] = useState<ClubRegisterDraft>(initialDraft);
-    const [didRestoreDraft, setDidRestoreDraft] = useState(false);
-    const [state, formAction, isPending] = useActionState(clubRegisterFormAction, {
-        success: false,
-        error: undefined,
-        sessionExpired: false,
-        fieldErrors: undefined,
-    });
-    const isDirty = !areDraftsEqual(draft, initialDraft);
-
-    useSessionStorageDraft<ClubRegisterDraft>({
-        key: draftStorageKey,
-        currentValue: draft,
-        baselineValue: initialDraft,
-        isDirty,
-        success: state.success,
-        shouldRestore: (savedDraft, baseDraft) => !areDraftsEqual(savedDraft, baseDraft),
-        onRestore: (savedDraft) => {
-            setDraft(savedDraft);
-            setDidRestoreDraft(true);
-            toast.success("임시 저장된 동아리 등록 내용을 복구했습니다.");
-        },
-    });
-
-    useUnsavedChangesGuard({
-        isDirty,
-        message: UNSAVED_CHANGES_MESSAGE,
-    });
-
-    useSessionExpiredRedirect({
-        sessionExpired: state.sessionExpired,
-        returnTo: pathname,
-        drafts: [
-            {
-                isDirty,
-                save: () => {
-                    if (typeof window === "undefined") {
-                        return;
-                    }
-                    window.sessionStorage.setItem(draftStorageKey, JSON.stringify(draft));
-                },
-            },
-        ],
-    });
-
-    useEffect(() => {
-        if (state.success && state.tempId && state.tempPassword) {
-            const successData = {
-                tempId: state.tempId,
-                tempPassword: state.tempPassword,
-                clubName: state.clubName,
-                warningMessage: state.warningMessage,
-            };
-            const encoded = btoa(JSON.stringify(successData));
-            router.push(`/club-register/register-success?data=${encoded}`);
-        } else if (state.success) {
-            toast.success("동아리 등록이 성공적으로 완료되었습니다!");
-            router.replace("/club-register/register-success");
-        }
-
-        if (state.error && !state.sessionExpired) {
-            toast.error(state.error);
-        }
-    }, [router, state]);
-
-    const recruitmentStartDate = draft.recruitmentStartDate ? new Date(draft.recruitmentStartDate) : undefined;
-    const recruitmentEndDate = draft.recruitmentEndDate ? new Date(draft.recruitmentEndDate) : undefined;
+    const { form, onSubmit, onInvalid, formError, isSubmitting } = useClubRegisterForm(registrationKey);
 
     return (
-        <form action={formAction} className="flex max-w-3xl flex-col gap-4 min-w-2xs w-full">
-            <input type="hidden" name="registrationKey" value={registrationKey} />
+        <FormRoot
+            form={form}
+            onSubmit={onSubmit}
+            onInvalid={onInvalid}
+            formError={formError}
+            className="flex max-w-3xl flex-col gap-4 min-w-2xs w-full">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Tag className="w-5 h-5 text-primary" />
+                        동아리 정보
+                    </CardTitle>
+                    <CardDescription>동아리의 기본적인 정보를 입력해주세요</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {/* 동아리 이름 */}
+                    <RHFTextField<ClubRegisterFormValues>
+                        id="clubName"
+                        name="clubName"
+                        label="동아리 이름"
+                        type="text"
+                        placeholder="동아리 이름을 입력하세요"
+                        required
+                    />
 
-            {didRestoreDraft ? (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                    임시 저장된 동아리 등록 내용을 복구했습니다. 새로 선택했던 이미지 파일은 자동 복구되지 않아 다시 선택해야 할 수
-                    있습니다.
-                </div>
-            ) : null}
+                    {/* 모집여부 */}
+                    <RHFSelectField<ClubRegisterFormValues>
+                        id="recruitmentStatus"
+                        name="recruitmentStatus"
+                        label="모집여부"
+                        placeholder="모집 상태를 선택하세요"
+                        required
+                        options={[
+                            { value: RECRUITMENT_STATUS.RECRUITING, label: RECRUITMENT_STATUS_LABEL.RECRUITING },
+                            { value: RECRUITMENT_STATUS.CLOSED, label: RECRUITMENT_STATUS_LABEL.CLOSED },
+                        ]}
+                    />
 
-            <ClubBasicInfo
-                values={{
-                    clubName: draft.clubName,
-                    recruitmentStatus: draft.recruitmentStatus,
-                    category: draft.category,
-                    location: draft.location,
-                    iconUrls: [],
-                }}
-                onClubNameChange={(value) => setDraft((prev) => ({ ...prev, clubName: value }))}
-                onRecruitmentStatusChange={(value) => setDraft((prev) => ({ ...prev, recruitmentStatus: value }))}
-                onCategoryChange={(value) => setDraft((prev) => ({ ...prev, category: value }))}
-                onLocationChange={(value) => setDraft((prev) => ({ ...prev, location: value }))}
-                fieldErrors={{
-                    clubName: state.fieldErrors?.clubName,
-                    recruitmentStatus: state.fieldErrors?.recruitmentStatus,
-                    category: state.fieldErrors?.category,
-                    location: state.fieldErrors?.location,
-                }}
-            />
+                    {/* 분과 */}
+                    <RHFSelectField<ClubRegisterFormValues>
+                        id="category"
+                        name="category"
+                        label="분과"
+                        placeholder="분과를 선택하세요"
+                        required
+                        options={[
+                            { value: "학술분과", label: "학술분과" },
+                            { value: "문예분과", label: "문예분과" },
+                            { value: "체육분과", label: "체육분과" },
+                            { value: "봉사분과", label: "봉사분과" },
+                            { value: "종교분과", label: "종교분과" },
+                            { value: "음악분과", label: "음악분과" },
+                        ]}
+                    />
 
-            <ClubIntroduction
-                values={{
-                    description: draft.description,
-                    mainActivities: draft.mainActivities,
-                    tags: draft.tags,
-                }}
-                onDescriptionChange={(value) => setDraft((prev) => ({ ...prev, description: value }))}
-                onMainActivitiesChange={(value) => setDraft((prev) => ({ ...prev, mainActivities: value }))}
-                onTagsChange={(value) => setDraft((prev) => ({ ...prev, tags: value }))}
-                fieldErrors={{
-                    description: state.fieldErrors?.description,
-                    main_activities: state.fieldErrors?.main_activities,
-                }}
-            />
+                    {/* 동아리방 정보 */}
+                    <RHFTextField<ClubRegisterFormValues>
+                        id="location"
+                        name="location"
+                        label="동아리방 정보"
+                        type="text"
+                        placeholder="예: 학생회관 3층 301호"
+                        required
+                    />
 
-            <ClubMemberManagement
-                values={{
-                    presidentName: draft.presidentName,
-                    presidentContact: draft.presidentContact,
-                }}
-                onPresidentNameChange={(value) => setDraft((prev) => ({ ...prev, presidentName: value }))}
-                onPresidentContactChange={(value) => setDraft((prev) => ({ ...prev, presidentContact: value }))}
-                fieldErrors={{
-                    presidentName: state.fieldErrors?.presidentName,
-                    presidentContact: state.fieldErrors?.presidentContact,
-                }}
-            />
+                    {/* 동아리 아이콘 */}
+                    <RHFFileUpload<ClubRegisterFormValues>
+                        id="iconFile"
+                        name="iconUrls"
+                        fileName="iconFile"
+                        label="동아리 아이콘"
+                        description="동아리 대표 아이콘 이미지를 업로드해주세요"
+                        fileType="image"
+                        maxSize={5}
+                        maxFiles={1}
+                        presentation="club-icon"
+                    />
+                </CardContent>
+            </Card>
 
-            <ClubActivityInfo
-                values={{
-                    recruitmentStartDate,
-                    recruitmentEndDate,
-                }}
-                onRecruitmentStartDateChange={(date) =>
-                    setDraft((prev) => ({ ...prev, recruitmentStartDate: date ? date.toISOString() : undefined }))
-                }
-                onRecruitmentEndDateChange={(date) =>
-                    setDraft((prev) => ({ ...prev, recruitmentEndDate: date ? date.toISOString() : undefined }))
-                }
-                fieldErrors={{
-                    recruitmentStartDate: state.fieldErrors?.recruitmentStartDate,
-                    recruitmentEndDate: state.fieldErrors?.recruitmentEndDate,
-                }}
-            />
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Tag className="w-5 h-5 text-primary" />
+                        동아리 소개
+                    </CardTitle>
+                    <CardDescription>동아리에 대한 자세한 설명을 입력해주세요</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {/* 동아리 설명 */}
+                    <RHFRichTextEditor<ClubRegisterFormValues>
+                        name="description"
+                        label="동아리 설명"
+                        id="description"
+                        placeholder="동아리에 대한 자세한 설명을 입력해주세요."
+                        enableImageUpload={false}
+                        description="굵게, 기울임, 제목, 목록, 링크 서식을 사용할 수 있습니다."
+                        required
+                    />
 
-            <ClubContactInfo
-                values={{
-                    instagram: draft.instagram,
-                    youtube: draft.youtube,
-                }}
-                onInstagramChange={(value) => setDraft((prev) => ({ ...prev, instagram: value }))}
-                onYoutubeChange={(value) => setDraft((prev) => ({ ...prev, youtube: value }))}
-            />
+                    {/* 주요 활동 */}
+                    <RHFRichTextEditor<ClubRegisterFormValues>
+                        name="main_activities"
+                        label="주요 활동"
+                        id="main_activities"
+                        placeholder="동아리에서 주로 하는 활동을 소개해주세요."
+                        enableImageUpload={false}
+                        description="동아리의 핵심 활동을 보기 쉽게 정리해보세요."
+                        required
+                    />
 
-            <ClubFormActions isPending={isPending} buttonText="동아리 등록" loadingText="등록 중..." />
-        </form>
+                    {/* 태그 */}
+                    <RHFTextField<ClubRegisterFormValues>
+                        id="tags"
+                        name="tags"
+                        label="태그"
+                        placeholder="태그를 입력하세요 (예: 개발, 디자인)"
+                        description="여러 태그는 쉼표(,)로 구분해주세요"
+                    />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-primary" />
+                        회원 관리
+                    </CardTitle>
+                    <CardDescription>동아리 회원과 관련된 설정을 관리합니다</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {/* 회장 이름 */}
+                    <RHFTextField<ClubRegisterFormValues>
+                        id="presidentName"
+                        name="presidentName"
+                        label="회장 이름"
+                        type="text"
+                        placeholder="회장님의 이름을 입력하세요"
+                        required
+                    />
+
+                    {/* 회장 연락처 */}
+                    <RHFTextField<ClubRegisterFormValues>
+                        id="presidentContact"
+                        name="presidentContact"
+                        label="회장 연락처"
+                        type="tel"
+                        placeholder="010-0000-0000"
+                        required
+                    />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-primary" />
+                        활동 정보
+                    </CardTitle>
+                    <CardDescription>동아리 활동 관련 정보입니다</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* 모집 시작일 */}
+                        <RHFDatePicker<ClubRegisterFormValues>
+                            id="recruitmentStartDate"
+                            name="recruitmentStartDate"
+                            label="모집 시작일"
+                        />
+
+                        {/* 모집 마감일 */}
+                        <RHFDatePicker<ClubRegisterFormValues>
+                            id="recruitmentEndDate"
+                            name="recruitmentEndDate"
+                            label="모집 마감일"
+                        />
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Mail className="w-5 h-5 text-primary" />
+                        연락처 정보
+                    </CardTitle>
+                    <CardDescription>동아리 연락처 정보를 입력해주세요</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-4">
+                        <label className="text-base font-medium">SNS</label>
+                        <div className="space-y-3">
+                            {/* Instagram */}
+                            <RHFTextField<ClubRegisterFormValues>
+                                id="instagram"
+                                name="instagram"
+                                label="Instagram"
+                                type="text"
+                                placeholder="@username 또는 전체 URL"
+                            />
+
+                            {/* YouTube */}
+                            <RHFTextField<ClubRegisterFormValues>
+                                id="youtube"
+                                name="youtube"
+                                label="YouTube"
+                                type="text"
+                                placeholder="채널명 또는 전체 URL"
+                            />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <div className="flex justify-end gap-4 pt-6">
+                <LoadingButton
+                    type="submit"
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90 text-white"
+                    loading={isSubmitting}
+                    loadingText="등록 중...">
+                    동아리 등록
+                </LoadingButton>
+            </div>
+        </FormRoot>
     );
 }
