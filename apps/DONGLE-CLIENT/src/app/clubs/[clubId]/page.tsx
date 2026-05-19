@@ -153,7 +153,7 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
           }))
         : [];
     const schedules = getClubScheduleGroups(
-        scheduleResponse.map((schedule) => mapClubScheduleToPublicSchedule(schedule, clubIdNumber)),
+        scheduleResponse.map(mapClubScheduleToPublicSchedule),
         { clubId: clubIdNumber }
     );
     const intro = {

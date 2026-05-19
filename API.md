@@ -807,6 +807,7 @@ Authorization: Bearer {accessToken}
 ```json
 {
     "id": 1,
+    "club_id": 1,
     "title": "정기 모임",
     "type": "regular_meeting",
     "start_at": "2026-05-20T10:00:00.000Z",
@@ -828,6 +829,7 @@ Authorization: Bearer {accessToken}
 ```json
 {
     "id": 1,
+    "club_id": 1,
     "title": "정기 모임",
     "type": "regular_meeting",
     "start_at": "2026-05-20T10:00:00.000Z",
@@ -850,6 +852,8 @@ Authorization: Bearer {accessToken}
 **비고**:
 
 -   `type`: `recruitment`, `event`, `regular_meeting`, `notice`
+-   `club_id`: 일정이 속한 동아리 ID입니다. 사용자/회장용 응답에는 `club` 객체 없이 `club_id`만 포함됩니다.
+-   관리자용 응답은 `club_id`와 함께 `club.id`, `club.name`, `club.category`를 포함합니다.
 -   `location`, `description`, `external_url`, `deleted_at`은 `null`일 수 있습니다.
 -   삭제되지 않은 일정 응답의 `deleted_at`은 `null`입니다.
 

@@ -33,8 +33,6 @@ import { ScheduleIsPublicBadge, ScheduleTypeBadge } from "./schedule-badges";
 
 interface ClubScheduleManagerProps {
     clubId: string;
-    clubName: string;
-    clubCategory: string;
     initialSchedules: ClubSchedule[];
 }
 
@@ -56,12 +54,7 @@ const emptyForm: ScheduleFormState = {
     externalUrl: "",
 };
 
-export default function ClubScheduleManager({
-    clubId,
-    clubName,
-    clubCategory,
-    initialSchedules,
-}: ClubScheduleManagerProps) {
+export default function ClubScheduleManager({ clubId, initialSchedules }: ClubScheduleManagerProps) {
     const [schedules, setSchedules] = useState(initialSchedules);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -70,14 +63,6 @@ export default function ClubScheduleManager({
 
     const now = useMemo(() => new Date(), []);
     const clubIdNumber = Number(clubId);
-    const clubMeta = useMemo(
-        () => ({
-            clubId: clubIdNumber,
-            clubName,
-            category: clubCategory,
-        }),
-        [clubCategory, clubIdNumber, clubName]
-    );
     const filteredSchedules = useMemo(() => {
         const filtered = schedules.filter((schedule) => {
             if (statusFilter === "upcoming") {
@@ -135,7 +120,7 @@ export default function ClubScheduleManager({
                 return;
             }
 
-            const updatedSchedule = mapClubScheduleToClubSchedule(result.result, clubMeta);
+            const updatedSchedule = mapClubScheduleToClubSchedule(result.result);
             setSchedules((current) =>
                 current.map((schedule) => (schedule.id === updatedSchedule.id ? updatedSchedule : schedule))
             );
@@ -148,7 +133,7 @@ export default function ClubScheduleManager({
                 return;
             }
 
-            const createdSchedule = mapClubScheduleToClubSchedule(result.result, clubMeta);
+            const createdSchedule = mapClubScheduleToClubSchedule(result.result);
             setSchedules((current) => [...current, createdSchedule]);
         }
 
@@ -179,7 +164,7 @@ export default function ClubScheduleManager({
                     <div>
                         <h1 className="text-2xl font-bold">일정 관리</h1>
                         <p className="mt-2 text-sm text-muted-foreground">
-                            {clubName}의 공개 일정은 사용자 동아리 상세에 노출됩니다.
+                            공개 일정은 사용자 동아리 상세에 노출됩니다.
                         </p>
                     </div>
                     <Button onClick={startCreate} className="h-11 font-semibold">

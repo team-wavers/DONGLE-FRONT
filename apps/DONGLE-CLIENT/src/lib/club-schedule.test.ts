@@ -80,6 +80,7 @@ describe("club schedule", () => {
     it("백엔드 공개 일정 응답을 화면 일정 모델로 변환한다", () => {
         const schedule: ClubSchedule = {
             id: 7,
+            club_id: 12,
             title: "정기 모임",
             type: "regular_meeting",
             start_at: "2026-05-18T10:00:00.000Z",
@@ -93,7 +94,7 @@ describe("club schedule", () => {
             deleted_at: null,
         };
 
-        expect(mapClubScheduleToPublicSchedule(schedule, 12)).toEqual({
+        expect(mapClubScheduleToPublicSchedule(schedule)).toEqual({
             id: 7,
             clubId: 12,
             title: "정기 모임",

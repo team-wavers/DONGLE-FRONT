@@ -42,10 +42,10 @@ export function formatScheduleDateTime(value: string) {
         .replace(/\.$/, "");
 }
 
-export function mapClubScheduleToPublicSchedule(schedule: ClubSchedule, clubId: number): ClubPublicSchedule {
+export function mapClubScheduleToPublicSchedule(schedule: ClubSchedule): ClubPublicSchedule {
     return {
         id: schedule.id,
-        clubId,
+        clubId: schedule.club_id,
         title: schedule.title,
         type: schedule.type,
         start_at: schedule.start_at,

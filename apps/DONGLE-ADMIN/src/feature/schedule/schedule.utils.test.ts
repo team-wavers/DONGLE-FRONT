@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AdminClubSchedule } from "@dongle/types/club/club.schedule";
+import type { AdminClubSchedule, ClubSchedule as ApiClubSchedule } from "@dongle/types/club/club.schedule";
 import type { ClubSchedule } from "./schedule.types";
 import {
     buildClubSchedulePayload,
@@ -10,6 +10,7 @@ import {
     getMonthScheduleQuery,
     getSchedulesForDate,
     mapAdminClubScheduleToClubSchedule,
+    mapClubScheduleToClubSchedule,
     sortSchedulesByStartAt,
 } from "./schedule.utils";
 
@@ -129,6 +130,7 @@ describe("schedule utils", () => {
     it("관리자 일정 응답을 화면 일정 모델로 변환한다", () => {
         const schedule: AdminClubSchedule = {
             id: 7,
+            club_id: 3,
             title: "정기 세미나",
             type: "regular_meeting",
             start_at: "2026-05-18T10:00:00.000Z",
@@ -141,7 +143,7 @@ describe("schedule utils", () => {
             updated_at: "2026-05-01T00:00:00.000Z",
             deleted_at: null,
             club: {
-                id: 3,
+                id: 999,
                 name: "UCDC",
                 category: "학술분과",
             },
@@ -157,6 +159,35 @@ describe("schedule utils", () => {
             startsAt: "2026-05-18T10:00:00.000Z",
             endsAt: "2026-05-18T12:00:00.000Z",
             isPublic: false,
+            location: "",
+            description: "",
+            externalUrl: undefined,
+        });
+    });
+
+    it("회장 일정 응답은 응답의 club_id를 화면 일정 clubId로 변환한다", () => {
+        const schedule: ApiClubSchedule = {
+            id: 8,
+            club_id: 12,
+            title: "회장 등록 일정",
+            type: "event",
+            start_at: "2026-06-01T10:00:00.000Z",
+            end_at: "2026-06-01T12:00:00.000Z",
+            is_public: true,
+            location: null,
+            description: null,
+            external_url: null,
+            created_at: "2026-05-01T00:00:00.000Z",
+            updated_at: "2026-05-01T00:00:00.000Z",
+            deleted_at: null,
+        };
+
+        expect(mapClubScheduleToClubSchedule(schedule)).toMatchObject({
+            id: 8,
+            clubId: 12,
+            clubName: "",
+            category: "",
+            title: "회장 등록 일정",
             location: "",
             description: "",
             externalUrl: undefined,

@@ -116,7 +116,7 @@ export function formatScheduleTime(value: string) {
 export function mapAdminClubScheduleToClubSchedule(schedule: AdminClubSchedule): ClubSchedule {
     return {
         id: schedule.id,
-        clubId: schedule.club.id,
+        clubId: schedule.club_id,
         clubName: schedule.club.name,
         category: schedule.club.category,
         title: schedule.title,
@@ -132,13 +132,13 @@ export function mapAdminClubScheduleToClubSchedule(schedule: AdminClubSchedule):
 
 export function mapClubScheduleToClubSchedule(
     schedule: ApiClubSchedule,
-    club: Pick<ClubSchedule, "clubId" | "clubName" | "category">
+    club?: Partial<Pick<ClubSchedule, "clubName" | "category">>
 ): ClubSchedule {
     return {
         id: schedule.id,
-        clubId: club.clubId,
-        clubName: club.clubName,
-        category: club.category,
+        clubId: schedule.club_id,
+        clubName: club?.clubName ?? "",
+        category: club?.category ?? "",
         title: schedule.title,
         type: schedule.type,
         startsAt: schedule.start_at,

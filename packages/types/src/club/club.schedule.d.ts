@@ -6,6 +6,7 @@ export type ClubScheduleStatusFilter = "all" | "public" | "private" | "upcoming"
 
 export interface ClubSchedule {
     id: number;
+    club_id: number;
     title: string;
     type: ClubScheduleType;
     start_at: string;

@@ -176,6 +176,8 @@
 ### 일정 응답 변환
 
 - 관리자 일정 응답의 `club` 정보는 화면 일정의 `clubId`, `clubName`, `category`로 변환되어야 한다.
+- 관리자 일정 응답은 `club_id`와 `club.id`, `club.name`, `club.category`를 포함해야 한다.
+- 회장 일정 응답은 별도 동아리 상세 조회 없이 응답의 `club_id`를 화면 일정의 `clubId`로 변환해야 한다.
 - 백엔드 일정 응답의 `start_at`, `end_at`, `is_public`, `external_url`은 화면 모델의 날짜/공개/외부 링크 필드로 변환되어야 한다.
 - nullable 문자열 필드는 화면에서 안전하게 렌더링되도록 빈 문자열 또는 `undefined`로 정규화되어야 한다.
 
@@ -303,7 +305,7 @@
 - 비공개 일정은 사용자 동아리 상세 일정에 포함하지 않아야 한다.
 - 일정은 다가오는 일정과 지난 일정으로 분리되어야 한다.
 - 각 일정 그룹은 시작일시 오름차순으로 정렬되어야 한다.
-- 백엔드 공개 일정 응답은 화면 일정 모델로 변환되어야 한다.
+- 백엔드 공개 일정 응답은 응답의 `club_id`를 기준으로 화면 일정 모델의 `clubId`로 변환되어야 한다.
 
 관련 테스트:
 - [club-schedule.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-schedule.test.ts)
