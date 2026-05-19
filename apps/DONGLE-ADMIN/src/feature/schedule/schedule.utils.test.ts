@@ -5,7 +5,12 @@ import {
     buildClubSchedulePayload,
     filterSchedules,
     formatScheduleDateTime,
+    formatScheduleDateTimeRange,
     formatScheduleTime,
+    getScheduleDescriptionLabel,
+    getScheduleExternalUrlError,
+    getScheduleLocationLabel,
+    getScheduleMetaText,
     getMonthCalendarDates,
     getMonthScheduleQuery,
     getSchedulesForDate,
@@ -199,6 +204,29 @@ describe("schedule utils", () => {
         expect(formatScheduleTime("2026-05-20T15:30:00.000Z")).toBe("00:30");
     });
 
+    it("같은 날 일정 기간은 종료 날짜를 반복하지 않고 표시한다", () => {
+        expect(formatScheduleDateTimeRange("2026-05-20T09:00:00.000Z", "2026-05-20T11:30:00.000Z")).toBe(
+            "2026.05.20 18:00 - 20:30"
+        );
+    });
+
+    it("서로 다른 날 일정 기간은 시작과 종료 날짜를 모두 표시한다", () => {
+        expect(formatScheduleDateTimeRange("2026-05-19T01:23:00.000Z", "2026-05-22T01:23:00.000Z")).toBe(
+            "2026.05.19 10:23 - 2026.05.22 10:23"
+        );
+    });
+
+    it("잘못된 일정 기간은 fallback 문구로 표시한다", () => {
+        expect(formatScheduleDateTimeRange("", "2026-05-22T01:23:00.000Z")).toBe("-");
+        expect(formatScheduleDateTimeRange("2026-05-19T01:23:00.000Z", "")).toBe("-");
+    });
+
+    it("빈 장소, 설명, 목록 메타 문자열은 안전한 화면 문구로 정규화한다", () => {
+        expect(getScheduleLocationLabel("  ")).toBe("장소 미정");
+        expect(getScheduleDescriptionLabel("")).toBe("설명이 없습니다.");
+        expect(getScheduleMetaText(["스파이크", "체육분과", ""])).toBe("스파이크 · 체육분과");
+    });
+
     it("회장 일정 저장 payload는 빈 optional 문자열을 null이 아닌 빈 문자열로 보낸다", () => {
         expect(
             buildClubSchedulePayload({
@@ -221,5 +249,42 @@ describe("schedule utils", () => {
             description: "",
             external_url: "",
         });
+    });
+
+    it("회장 일정 저장 payload는 외부 링크를 공통 URL 파서로 정규화한다", () => {
+        expect(
+            buildClubSchedulePayload({
+                title: " CMUX 일정 ",
+                type: "event",
+                startsAt: "2026-06-16T20:00",
+                endsAt: "2026-06-16T22:00",
+                isPublic: true,
+                location: "",
+                description: "",
+                externalUrl: " dongle.kr/schedule ",
+            }).external_url
+        ).toBe("https://dongle.kr/schedule");
+
+        expect(() =>
+            buildClubSchedulePayload({
+                title: " CMUX 일정 ",
+                type: "event",
+                startsAt: "2026-06-16T20:00",
+                endsAt: "2026-06-16T22:00",
+                isPublic: true,
+                location: "",
+                description: "",
+                externalUrl: "javascript:alert(1)",
+            })
+        ).toThrow("외부 링크는 http 또는 https URL로 입력해주세요.");
+    });
+
+    it("회장 일정 외부 링크는 입력값이 있을 때 유효한 외부 URL인지 검증한다", () => {
+        expect(getScheduleExternalUrlError("")).toBeNull();
+        expect(getScheduleExternalUrlError(" dongle.kr/schedule ")).toBeNull();
+        expect(getScheduleExternalUrlError("example.com:8080/path")).toBeNull();
+        expect(getScheduleExternalUrlError("https://dongle.kr/schedule")).toBeNull();
+        expect(getScheduleExternalUrlError("/schedule")).toBe("외부 링크는 http 또는 https URL로 입력해주세요.");
+        expect(getScheduleExternalUrlError("javascript:alert(1)")).toBe("외부 링크는 http 또는 https URL로 입력해주세요.");
     });
 });

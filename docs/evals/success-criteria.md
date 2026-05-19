@@ -181,6 +181,16 @@
 - 백엔드 일정 응답의 `start_at`, `end_at`, `is_public`, `external_url`은 화면 모델의 날짜/공개/외부 링크 필드로 변환되어야 한다.
 - nullable 문자열 필드는 화면에서 안전하게 렌더링되도록 빈 문자열 또는 `undefined`로 정규화되어야 한다.
 
+### 일정 표시 포맷
+
+- 같은 날 시작/종료 일정은 시작 날짜시간과 종료 시간만 표시해야 한다.
+- 서로 다른 날 시작/종료 일정은 시작 날짜시간과 종료 날짜시간을 모두 표시해야 한다.
+- 잘못된 일정 날짜시간은 fallback 문구로 표시해야 한다.
+- 빈 장소는 화면에서 `장소 미정`으로 표시해야 한다.
+- 빈 설명은 화면에서 `설명이 없습니다.`로 표시해야 한다.
+- 목록 메타 문자열은 빈 값을 제외하고 구분자를 조합해야 한다.
+- 회장 일정 외부 링크는 입력값이 있으면 http 또는 https 외부 URL로 검증해야 한다.
+
 관련 테스트:
 - [schedule.utils.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/schedule.utils.test.ts)
 
@@ -306,6 +316,11 @@
 - 일정은 다가오는 일정과 지난 일정으로 분리되어야 한다.
 - 각 일정 그룹은 시작일시 오름차순으로 정렬되어야 한다.
 - 백엔드 공개 일정 응답은 응답의 `club_id`를 기준으로 화면 일정 모델의 `clubId`로 변환되어야 한다.
+- 사용자 동아리 상세의 공개 일정 기간은 Seoul 기준으로 표시해야 한다.
+- 같은 날 시작/종료 일정은 시작 날짜시간과 종료 시간만 표시해야 한다.
+- 서로 다른 날 시작/종료 일정은 시작 날짜시간과 종료 날짜시간을 모두 표시해야 한다.
+- 공개 일정 외부 링크가 있으면 사용자 동아리 상세 일정에 링크 CTA로 표시해야 한다.
+- 공개 일정 외부 링크는 화면 모델 변환 시 공통 URL 정규화를 거쳐야 한다.
 
 관련 테스트:
 - [club-schedule.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-schedule.test.ts)
@@ -321,6 +336,16 @@
 - [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts)
 
 ## Shared Utilities
+
+### URL 정규화
+
+- 일반 외부 링크는 `http` 또는 `https` URL만 허용해야 한다.
+- 프로토콜 없는 외부 호스트는 `https` URL로 정규화해야 한다.
+- protocol-relative 외부 URL은 `https` URL로 정규화해야 한다.
+- credential 포함 URL, 상대 경로, unsupported scheme, 빈 값은 `null`로 정규화해야 한다.
+
+관련 테스트:
+- [url.test.ts](../../packages/utils/src/url.test.ts)
 
 ### Main Banner Display
 

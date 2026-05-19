@@ -4,6 +4,14 @@ import SearchInput from "@/components/molecules/search-input/search-input";
 import { Button } from "@dongle/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@dongle/ui/card";
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@dongle/ui/dialog";
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -21,11 +29,13 @@ import type { ClubSchedule, ScheduleType } from "../schedule.types";
 import { SCHEDULE_TYPE_LABELS } from "../schedule.types";
 import {
     filterSchedules,
-    formatScheduleDateTime,
-    formatScheduleTime,
+    formatScheduleDateTimeRange,
     getMonthCalendarDates,
     getMonthScheduleQuery,
     getSchedulesForDate,
+    getScheduleDescriptionLabel,
+    getScheduleLocationLabel,
+    getScheduleMetaText,
     isSameCalendarDate,
     mapAdminClubScheduleToClubSchedule,
     sortSchedulesByStartAt,
@@ -60,6 +70,7 @@ export default function AdminScheduleDashboard({
     const [isPublic, setIsPublic] = useState<"all" | boolean>("all");
     const [pendingScheduleId, setPendingScheduleId] = useState<number | null>(null);
     const [isMonthPending, setIsMonthPending] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<ClubSchedule | null>(null);
 
     const categories = useMemo(
         () => Array.from(new Set(schedules.map((schedule) => schedule.category))).sort(),
@@ -126,10 +137,6 @@ export default function AdminScheduleDashboard({
     };
 
     const deleteSchedule = async (schedule: ClubSchedule) => {
-        if (!window.confirm("일정을 삭제하시겠습니까?")) {
-            return;
-        }
-
         setPendingScheduleId(schedule.id);
         const result = await deleteAdminClubScheduleAction(schedule.id);
         setPendingScheduleId(null);
@@ -140,6 +147,7 @@ export default function AdminScheduleDashboard({
         }
 
         setSchedules((current) => current.filter((currentSchedule) => currentSchedule.id !== schedule.id));
+        setDeleteTarget(null);
     };
 
     return (
@@ -192,7 +200,7 @@ export default function AdminScheduleDashboard({
                 </CardContent>
             </Card>
 
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
                 <Card className="rounded-lg">
                     <CardHeader className="flex flex-row items-center justify-between gap-4">
                         <CardTitle className="text-xl">{monthLabelFormatter.format(visibleMonth)}</CardTitle>
@@ -225,7 +233,7 @@ export default function AdminScheduleDashboard({
                                         type="button"
                                         onClick={() => setSelectedDate(date)}
                                         className={[
-                                            "min-h-28 border-b border-r bg-white p-2 text-left align-top transition-colors hover:bg-sky-50",
+                                            "min-h-24 border-b border-r bg-white p-2 text-left align-top transition-colors hover:bg-sky-50",
                                             isSelected ? "ring-2 ring-inset ring-sky-500" : "",
                                             isCurrentMonth ? "text-zinc-900" : "text-zinc-300",
                                         ].join(" ")}>
@@ -272,13 +280,15 @@ export default function AdminScheduleDashboard({
                                     <h3 className="mt-3 text-base font-bold">{schedule.title}</h3>
                                     <p className="mt-1 text-sm font-semibold text-zinc-700">{schedule.clubName}</p>
                                     <p className="mt-2 text-sm text-muted-foreground">
-                                        {formatScheduleTime(schedule.startsAt)} - {formatScheduleTime(schedule.endsAt)}
+                                        {formatScheduleDateTimeRange(schedule.startsAt, schedule.endsAt)}
                                     </p>
                                     <p className="mt-2 flex items-center gap-1 text-sm text-zinc-600">
                                         <MapPin className="h-4 w-4" />
-                                        {schedule.location}
+                                        {getScheduleLocationLabel(schedule.location)}
                                     </p>
-                                    <p className="mt-3 text-sm leading-6 text-zinc-600">{schedule.description}</p>
+                                    <p className="mt-3 text-sm leading-6 text-zinc-600">
+                                        {getScheduleDescriptionLabel(schedule.description)}
+                                    </p>
                                     <div className="mt-4 flex flex-wrap gap-2">
                                         <Button
                                             type="button"
@@ -297,7 +307,7 @@ export default function AdminScheduleDashboard({
                                             variant="outline"
                                             size="sm"
                                             disabled={pendingScheduleId === schedule.id}
-                                            onClick={() => deleteSchedule(schedule)}>
+                                            onClick={() => setDeleteTarget(schedule)}>
                                             <Trash2 className="h-4 w-4" />
                                             삭제
                                         </Button>
@@ -333,17 +343,59 @@ export default function AdminScheduleDashboard({
                                 </div>
                                 <h3 className="mt-3 truncate text-base font-bold">{schedule.title}</h3>
                                 <p className="mt-1 text-sm text-muted-foreground">
-                                    {schedule.clubName} · {schedule.category} · {schedule.location}
+                                    {getScheduleMetaText([
+                                        schedule.clubName,
+                                        schedule.category,
+                                        getScheduleLocationLabel(schedule.location),
+                                    ])}
                                 </p>
                             </div>
                             <div className="text-sm font-semibold text-zinc-700 md:text-right">
-                                <p>{formatScheduleDateTime(schedule.startsAt)}</p>
-                                <p className="mt-1 text-muted-foreground">{formatScheduleTime(schedule.endsAt)} 종료</p>
+                                <p>{formatScheduleDateTimeRange(schedule.startsAt, schedule.endsAt)}</p>
                             </div>
                         </div>
                     ))}
                 </CardContent>
             </Card>
+
+            <Dialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open && pendingScheduleId !== deleteTarget?.id) {
+                        setDeleteTarget(null);
+                    }
+                }}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>일정 삭제 확인</DialogTitle>
+                        <DialogDescription>
+                            <strong>{deleteTarget?.title}</strong> 일정을 정말 삭제하시겠습니까?
+                            <br />
+                            <span className="mt-2 block text-sm text-red-600">이 작업은 되돌릴 수 없습니다.</span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setDeleteTarget(null)}
+                            disabled={pendingScheduleId === deleteTarget?.id}>
+                            취소
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={() => {
+                                if (deleteTarget) {
+                                    void deleteSchedule(deleteTarget);
+                                }
+                            }}
+                            disabled={!deleteTarget || pendingScheduleId === deleteTarget.id}>
+                            {deleteTarget && pendingScheduleId === deleteTarget.id ? "삭제 중" : "삭제"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
