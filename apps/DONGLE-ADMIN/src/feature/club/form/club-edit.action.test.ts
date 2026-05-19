@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { updateClubService, uploadClubIconService } from "@dongle/service/club/club.service";
+import { revalidateTag } from "next/cache";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import { submitClubEditAction } from "./club-edit.action";
 import type { ClubEditFormValues } from "./club-edit.schema";
@@ -73,5 +74,7 @@ describe("submitClubEditAction", () => {
                 icon_url: "https://cdn.test/icon.png",
             })
         );
+        expect(revalidateTag).toHaveBeenCalledWith("club");
+        expect(revalidateTag).toHaveBeenCalledWith("club-11");
     });
 });

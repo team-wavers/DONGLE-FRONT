@@ -1,9 +1,10 @@
 "use server";
 
 import { deleteClubService } from "@dongle/service/club/club.service";
-import { revalidateTag } from "next/cache";
+import { clubTagGroups } from "@dongle/service";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 
 function getActionErrorMessage(error: unknown, fallback: string): string {
     return error instanceof Error && error.message ? error.message : fallback;
@@ -26,8 +27,7 @@ export async function deleteClubAction(clubId: number): Promise<{
             };
         }
 
-        revalidateTag("club");
-        revalidateTag(`club-${clubId}`);
+        revalidateTags(clubTagGroups.detail(clubId));
 
         return { success: true };
     } catch (error) {

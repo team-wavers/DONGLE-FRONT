@@ -1,10 +1,11 @@
 "use server";
 
 import { patchUserService } from "@dongle/service/user/user.service";
-import { revalidateTag } from "next/cache";
+import { clubTagGroups, userTagGroups } from "@dongle/service";
 import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 import { clubPresidentSchema, type ClubPresidentField, type ClubPresidentFormValues } from "./club-president.schema";
 
 type ClubPresidentActionResult = ActionResult<ClubPresidentField>;
@@ -49,10 +50,8 @@ export async function submitClubPresidentAction({
             });
         }
 
-        revalidateTag("user");
-        revalidateTag(`user-${presidentId}`);
-        revalidateTag("club");
-        revalidateTag(`club-${normalizedClubId}`);
+        revalidateTags(userTagGroups.detail(presidentId));
+        revalidateTags(clubTagGroups.detail(normalizedClubId));
 
         return actionSuccess({
             message: "회장 정보가 성공적으로 수정되었습니다!",

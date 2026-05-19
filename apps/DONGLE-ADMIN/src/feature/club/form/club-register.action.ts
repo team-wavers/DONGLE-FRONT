@@ -2,6 +2,7 @@
 
 import { createClubService, updateClubService, uploadClubIconService } from "@dongle/service/club/club.service";
 import { createUserService } from "@dongle/service/user/user.service";
+import { clubTagGroups, userTagGroups } from "@dongle/service";
 import type { CreateClubRequest } from "@dongle/types/club/club.response";
 import { normalizeSocialUrl } from "@dongle/ui/utils";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
@@ -9,6 +10,7 @@ import { clubRegisterSchema, splitTags, type ClubRegisterField, type ClubRegiste
 import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 
 export interface ClubRegisterSuccessData {
     tempId: string;
@@ -138,6 +140,13 @@ export async function submitClubRegisterAction(
             } else {
                 warningMessage = "동아리는 등록되었지만 아이콘 업로드에 실패했습니다.";
             }
+        }
+
+        revalidateTags(userTagGroups.detail(user.result.id));
+        if (createdClubId) {
+            revalidateTags(clubTagGroups.detail(createdClubId));
+        } else {
+            revalidateTags(clubTagGroups.list());
         }
 
         return actionSuccess({

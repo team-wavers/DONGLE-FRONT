@@ -1,10 +1,11 @@
 "use server";
 
 import { patchUserService } from "@dongle/service/user/user.service";
+import { clubTagGroups, userTagGroups } from "@dongle/service";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
 import { UpdateUserRequest } from "@dongle/types/user/user";
 import { decodeJwtToken, getUserClubIdFromToken } from "@dongle/api/utils/jwt.util";
-import { revalidateTag } from "next/cache";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
 export interface PresidentInfoActionState {
@@ -119,14 +120,12 @@ export async function presidentInfoFormAction(
     await patchUserService(Number(userId), updateData);
 
     // 사용자 정보 캐시 초기화
-    revalidateTag("user");
-    revalidateTag(`user-${userId}`);
+    revalidateTags(userTagGroups.detail(userId));
 
     // 회장 정보 변경 시 해당 동아리 정보 캐시 초기화
     const clubId = getUserClubIdFromToken(accessToken);
     if (clubId) {
-      revalidateTag("club");
-      revalidateTag(`club-${clubId}`);
+      revalidateTags(clubTagGroups.detail(clubId));
     }
 
     return {

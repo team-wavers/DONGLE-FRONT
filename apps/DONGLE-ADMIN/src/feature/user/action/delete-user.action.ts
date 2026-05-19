@@ -1,9 +1,10 @@
 "use server";
 
 import { deleteUserService } from "@dongle/service/user/user.service";
-import { revalidateTag } from "next/cache";
+import { userTagGroups } from "@dongle/service";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 
 // 사용자 삭제 서버 액션
 export async function deleteUserAction(userId: number): Promise<{
@@ -23,8 +24,7 @@ export async function deleteUserAction(userId: number): Promise<{
         }
 
         // 사용자 정보 캐시 초기화
-        revalidateTag("user");
-        revalidateTag(`user-${userId}`);
+        revalidateTags(userTagGroups.detail(userId));
 
         return { success: true };
     } catch (error: unknown) {

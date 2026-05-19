@@ -1,10 +1,11 @@
 "use server";
 
 import { createUserService, patchUserService } from "@dongle/service/user/user.service";
-import { revalidateTag } from "next/cache";
+import { userTagGroups } from "@dongle/service";
 import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 import {
     buildUserEditPayload,
     userCreateSchema,
@@ -49,7 +50,7 @@ export async function submitUserCreateAction(values: UserCreateFormValues): Prom
             });
         }
 
-        revalidateTag("user");
+        revalidateTags(userTagGroups.list());
 
         return actionSuccess({
             message: "관리자가 성공적으로 생성되었습니다.",
@@ -110,8 +111,7 @@ export async function submitUserEditAction({
             });
         }
 
-        revalidateTag("user");
-        revalidateTag(`user-${userId}`);
+        revalidateTags(userTagGroups.detail(userId));
 
         return actionSuccess({
             message: "사용자 정보가 성공적으로 수정되었습니다.",

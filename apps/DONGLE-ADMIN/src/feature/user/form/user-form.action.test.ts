@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { createUserService } from "@dongle/service/user/user.service";
+import { revalidateTag } from "next/cache";
 import { submitUserCreateAction } from "@/feature/user/form/user-form.action";
 
 vi.mock("@dongle/service/user/user.service", () => ({
@@ -53,4 +54,5 @@ test("submitUserCreateAction은 관리자 계정을 생성한다", async () => {
         role: "admin",
         phone: "010-1234-5678",
     });
+    expect(revalidateTag).toHaveBeenCalledWith("user");
 });
