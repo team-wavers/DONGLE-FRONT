@@ -32,11 +32,11 @@ export default function SidebarLayout({
         <Sidebar variant="sidebar" className={className || "bg-white"}>
             <SidebarHeader
                 className={
-                    headerClassName || "border-b border-border p-4 py-8 h-32 flex flex-col justify-center bg-white"
+                    headerClassName || "border-b border-border px-4 py-5 min-h-24 flex flex-col justify-center bg-white"
                 }>
                 {header}
             </SidebarHeader>
-            <SidebarContent className={contentClassName || "pt-8 bg-white"}>
+            <SidebarContent className={contentClassName || "pt-4 bg-white"}>
                 <SidebarGroup>
                     <SidebarGroupContent>
                         <SidebarMenu>{menu}</SidebarMenu>
@@ -44,7 +44,7 @@ export default function SidebarLayout({
                 </SidebarGroup>
             </SidebarContent>
             {footer && (
-                <SidebarFooter className={footerClassName || "p-4 py-8 bg-white border-t border-border"}>
+                <SidebarFooter className={footerClassName || "px-4 py-5 bg-white border-t border-border"}>
                     {footer}
                 </SidebarFooter>
             )}
