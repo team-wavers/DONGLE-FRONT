@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { ClubSchedule } from "@dongle/types/club/club.schedule";
-import { getClubScheduleGroups, mapClubScheduleToPublicSchedule } from "./club-schedule";
+import {
+    formatScheduleDateTime,
+    formatScheduleDateTimeRange,
+    getClubScheduleGroups,
+    mapClubScheduleToPublicSchedule,
+} from "./club-schedule";
 import type { ClubPublicSchedule } from "./club-schedule.types";
 
 const schedules: ClubPublicSchedule[] = [
@@ -77,7 +82,7 @@ describe("club schedule", () => {
         expect(groups.past.map((schedule) => schedule.title)).toEqual(["지난 공개 일정"]);
     });
 
-    it("백엔드 공개 일정 응답을 화면 일정 모델로 변환한다", () => {
+    it("백엔드 공개 일정 응답을 화면 일정 모델로 변환하고 외부 링크를 정규화한다", () => {
         const schedule: ClubSchedule = {
             id: 7,
             club_id: 12,
@@ -88,7 +93,7 @@ describe("club schedule", () => {
             is_public: true,
             location: null,
             description: null,
-            external_url: null,
+            external_url: "dongle.kr/meeting",
             created_at: "2026-05-01T00:00:00.000Z",
             updated_at: "2026-05-01T00:00:00.000Z",
             deleted_at: null,
@@ -104,7 +109,43 @@ describe("club schedule", () => {
             is_public: true,
             location: "",
             description: "",
-            external_url: null,
+            external_url: "https://dongle.kr/meeting",
         });
+    });
+
+    it("백엔드 공개 일정 응답의 잘못된 외부 링크는 화면 모델에서 제거한다", () => {
+        const schedule: ClubSchedule = {
+            id: 8,
+            club_id: 12,
+            title: "외부 링크 오류 일정",
+            type: "notice",
+            start_at: "2026-05-18T10:00:00.000Z",
+            end_at: "2026-05-18T12:00:00.000Z",
+            is_public: true,
+            location: null,
+            description: null,
+            external_url: "javascript:alert(1)",
+            created_at: "2026-05-01T00:00:00.000Z",
+            updated_at: "2026-05-01T00:00:00.000Z",
+            deleted_at: null,
+        };
+
+        expect(mapClubScheduleToPublicSchedule(schedule).external_url).toBeNull();
+    });
+
+    it("일정 날짜시간은 방문자 로컬 시간대가 아니라 Seoul 기준으로 표시한다", () => {
+        expect(formatScheduleDateTime("2026-05-20T10:00:00.000Z")).toBe("05.20 19:00");
+    });
+
+    it("같은 날 일정 기간은 종료 날짜를 반복하지 않고 표시한다", () => {
+        expect(formatScheduleDateTimeRange("2026-05-20T10:00:00.000Z", "2026-05-20T12:00:00.000Z")).toBe(
+            "05.20 19:00 - 21:00"
+        );
+    });
+
+    it("서로 다른 날 일정 기간은 시작과 종료 날짜를 모두 표시한다", () => {
+        expect(formatScheduleDateTimeRange("2026-05-19T01:23:00.000Z", "2026-05-22T01:23:00.000Z")).toBe(
+            "05.19 10:23 - 05.22 10:23"
+        );
     });
 });

@@ -1,7 +1,8 @@
 "use client";
 
-import { CalendarDays, MapPin } from "lucide-react";
-import { formatScheduleDateTime } from "@/lib/club-schedule";
+import React from "react";
+import { CalendarDays, ExternalLink, MapPin } from "lucide-react";
+import { formatScheduleDateTimeRange } from "@/lib/club-schedule";
 import type { ClubPublicSchedule, ClubScheduleGroups, ClubPublicScheduleType } from "@/lib/club-schedule.types";
 
 interface ClubSchedulesTabContentProps {
@@ -26,7 +27,7 @@ function ScheduleTimelineItem({ schedule, isLast }: { schedule: ClubPublicSchedu
                 <div className="flex flex-wrap items-center gap-2">
                     <span className="flex items-center gap-1 text-sm font-semibold text-zinc-500">
                         <CalendarDays className="size-4" aria-hidden="true" />
-                        {formatScheduleDateTime(schedule.start_at)} - {formatScheduleDateTime(schedule.end_at)}
+                        {formatScheduleDateTimeRange(schedule.start_at, schedule.end_at)}
                     </span>
                     <span className="rounded-md bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-700">
                         {SCHEDULE_TYPE_LABELS[schedule.type]}
@@ -40,6 +41,16 @@ function ScheduleTimelineItem({ schedule, isLast }: { schedule: ClubPublicSchedu
                     </p>
                 ) : null}
                 {schedule.description ? <p className="mt-3 text-sm leading-6 text-zinc-700">{schedule.description}</p> : null}
+                {schedule.external_url ? (
+                    <a
+                        href={schedule.external_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-800 transition-colors hover:border-zinc-300 hover:bg-zinc-50">
+                        <ExternalLink className="size-4" aria-hidden="true" />
+                        자세히 보기
+                    </a>
+                ) : null}
             </article>
         </li>
     );
