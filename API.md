@@ -450,6 +450,11 @@ Authorization: Bearer {accessToken}
 
 -   `file` (File): 이미지 파일
 
+**제한**:
+
+-   허용 MIME 타입: `image/jpeg`, `image/png`, `image/webp`
+-   최대 파일 크기: 10MB
+
 **응답**:
 
 ```json
@@ -481,6 +486,11 @@ Authorization: Bearer {accessToken}
 
 -   `file` (File): 이미지 파일
 
+**제한**:
+
+-   허용 MIME 타입: `image/jpeg`, `image/png`, `image/webp`
+-   최대 파일 크기: 10MB
+
 **응답**:
 
 ```json
@@ -500,6 +510,25 @@ Authorization: Bearer {accessToken}
 -   `id` (number): 동아리 ID
 
 **응답**: 리포트 배열
+
+---
+
+### GET /v1/clubs/:id/reports/:reportId
+
+특정 동아리의 리포트 단건 조회
+
+**인증**: 불필요
+
+**파라미터**:
+
+-   `id` (number): 동아리 ID
+-   `reportId` (number): 리포트 ID
+
+**응답**: 리포트 객체
+
+**에러 응답**:
+
+-   `404 Not Found`: 해당 활동보고서가 존재하지 않습니다.
 
 ---
 
@@ -588,7 +617,186 @@ Authorization: Bearer {accessToken}
 
 ---
 
-## 9. 일정 (Club Schedules)
+## 6. 메인 배너 (Main Banners)
+
+### 공통 응답 스키마
+
+#### MainBanner
+
+```json
+{
+    "id": 1,
+    "image_url": "https://cdn.example.com/banner.png",
+    "link_url": "https://example.com",
+    "publish_start_at": "2026-05-01T00:00:00.000Z",
+    "publish_end_at": "2026-05-31T23:59:59.000Z",
+    "is_active": true,
+    "created_at": "2026-05-01T00:00:00.000Z",
+    "updated_at": "2026-05-01T00:00:00.000Z",
+    "deleted_at": null
+}
+```
+
+**비고**:
+
+-   `link_url`, `deleted_at`은 `null`일 수 있습니다.
+-   공개/관리자 목록은 삭제되지 않은 배너만 반환합니다.
+-   공개 목록은 `is_active`가 `true`이고 현재 시간이 `publish_start_at`과 `publish_end_at` 사이인 배너만 반환합니다.
+
+---
+
+### GET /v1/main-banners
+
+사용자용 활성 메인 배너 목록 조회
+
+**인증**: 불필요
+
+**응답**: `MainBanner[]`
+
+---
+
+### GET /v1/main-banners/admin
+
+관리자용 메인 배너 목록 조회
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**헤더**:
+
+```
+Authorization: Bearer {accessToken}
+```
+
+**응답**: `MainBanner[]`
+
+---
+
+### GET /v1/main-banners/admin/:id
+
+관리자용 메인 배너 단건 조회
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**파라미터**:
+
+-   `id` (number): 메인 배너 ID
+
+**헤더**:
+
+```
+Authorization: Bearer {accessToken}
+```
+
+**응답**: `MainBanner`
+
+**에러 응답**:
+
+-   `404 Not Found`: 해당 배너가 존재하지 않습니다.
+
+---
+
+### POST /v1/main-banners
+
+메인 배너 생성
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**요청 바디**:
+
+```json
+{
+    "image_url": "string",
+    "link_url": "string",
+    "publish_start_at": "2026-05-01 00:00:00",
+    "publish_end_at": "2026-05-31 23:59:59",
+    "is_active": true
+}
+```
+
+**비고**:
+
+-   `image_url`, `publish_start_at`, `publish_end_at`, `is_active`는 필수입니다.
+-   `link_url`은 선택값이며 공백 또는 누락 시 `null`로 저장됩니다.
+-   `link_url`은 최대 2048자입니다.
+-   timezone이 없는 날짜/시간은 Seoul 기준으로 해석됩니다.
+-   공개 시작일은 종료일보다 이전이어야 합니다.
+
+**응답**: `MainBanner`
+
+---
+
+### PUT /v1/main-banners/:id
+
+메인 배너 수정
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**파라미터**:
+
+-   `id` (number): 메인 배너 ID
+
+**요청 바디**: 생성 요청 바디와 동일
+
+**응답**: `MainBanner`
+
+**에러 응답**:
+
+-   `400 Bad Request`: 해당 배너가 존재하지 않습니다.
+
+---
+
+### DELETE /v1/main-banners/:id
+
+메인 배너 삭제
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**파라미터**:
+
+-   `id` (number): 메인 배너 ID
+
+**응답**: 삭제 결과
+
+**에러 응답**:
+
+-   `400 Bad Request`: 해당 배너가 존재하지 않습니다.
+
+---
+
+### POST /v1/main-banners/images
+
+메인 배너 이미지 업로드
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**Content-Type**: `multipart/form-data`
+
+**요청 바디**:
+
+-   `file` (File): 이미지 파일
+
+**제한**:
+
+-   허용 MIME 타입: `image/jpeg`, `image/png`, `image/webp`
+-   최대 파일 크기: 10MB
+
+**응답**:
+
+```json
+{
+    "image_url": "https://s3.ap-northeast-2.amazonaws.com/bucket-name/main-banners/{uuid}"
+}
+```
+
+---
+
+## 7. 일정 (Club Schedules)
 
 ### 공통 응답 스키마
 
@@ -703,6 +911,10 @@ Authorization: Bearer {accessToken}
 -   `type`: `recruitment`, `event`, `regular_meeting`, `notice`
 -   선택값은 `location`, `description`, `external_url`만 지원합니다.
 -   첨부 이미지와 신청 링크 별도 필드는 지원하지 않습니다.
+-   `title`, `location`은 최대 100자입니다.
+-   `external_url`은 최대 2048자이며 공백 또는 누락 시 `null`로 저장됩니다.
+-   timezone이 없는 날짜/시간은 Seoul 기준으로 해석됩니다.
+-   시작일시는 종료일시보다 이전이어야 합니다.
 
 **응답**: `ClubSchedule`
 

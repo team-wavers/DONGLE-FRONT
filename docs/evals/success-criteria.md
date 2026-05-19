@@ -100,9 +100,12 @@
 - 날짜 picker에서 선택한 로컬 날짜는 UTC 변환으로 하루 앞당겨지지 않아야 한다.
 - 시간 포함 날짜 picker 값은 UTC 변환 없이 `YYYY-MM-DD HH:mm:ss` 형식으로 유지되어야 한다.
 - 선택한 날짜가 없으면 빈 문자열로 정규화해야 한다.
+- API 응답 ISO 날짜시간은 지정 timezone 기준의 `datetime-local` 입력값으로 변환되어야 한다.
+- `datetime-local` 입력값은 timezone 변환 없이 API 요청 날짜시간 문자열로 변환되어야 한다.
 
 관련 테스트:
 - [date-picker-value.test.ts](../../apps/DONGLE-ADMIN/src/shared/form/date-picker-value.test.ts)
+- [date.test.ts](../../packages/utils/src/date.test.ts)
 
 ## User Form
 
@@ -136,6 +139,26 @@
 관련 테스트:
 - [filterable-user-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/components/filterable-user-list.test.ts)
 
+## Next Cache Policy
+
+### 캐시 태그 중앙화
+
+- 동아리, 사용자, 활동보고서, 메인 배너, 일정 캐시 태그는 중앙 상수와 tag group helper로 생성되어야 한다.
+- 목록/상세/club scope/item scope 태그 조합은 도메인별 helper를 기준으로 일관되게 계산되어야 한다.
+
+### fetch cache 정책
+
+- 사용자 공개 조회는 `force-cache`, 도메인 태그, 공통 `revalidate` 값을 함께 사용해야 한다.
+- 관리자/회장/사용자 관리 조회는 `no-store`만 사용하고 `next.tags`를 붙이지 않아야 한다.
+- 생성/수정/삭제 service는 fetch cache option을 붙이지 않고, 성공한 server action이 관련 tag group을 초기화해야 한다.
+
+관련 테스트:
+- [cache-tags.test.ts](../../packages/service/src/cache-tags.test.ts)
+- [club.service.test.ts](../../packages/service/src/club/club.service.test.ts)
+- [user.service.test.ts](../../packages/service/src/user/user.service.test.ts)
+- [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts)
+- [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts)
+
 ## Admin Schedule Management
 
 ### 캘린더 날짜 계산
@@ -150,8 +173,34 @@
 - 분과, 일정 유형, 공개 상태 필터가 함께 적용되어야 한다.
 - 일정 목록은 시작일시 오름차순으로 정렬되어야 한다.
 
+### 일정 응답 변환
+
+- 관리자 일정 응답의 `club` 정보는 화면 일정의 `clubId`, `clubName`, `category`로 변환되어야 한다.
+- 백엔드 일정 응답의 `start_at`, `end_at`, `is_public`, `external_url`은 화면 모델의 날짜/공개/외부 링크 필드로 변환되어야 한다.
+- nullable 문자열 필드는 화면에서 안전하게 렌더링되도록 빈 문자열 또는 `undefined`로 정규화되어야 한다.
+
 관련 테스트:
 - [schedule.utils.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/schedule.utils.test.ts)
+
+## Club Schedule Service
+
+### 사용자/회장 일정 엔드포인트
+
+- 사용자 공개 일정 목록은 `/clubs/:clubId/public-schedules`를 호출해야 한다.
+- 회장 일정 목록은 `/clubs/:clubId/schedules`를 호출하고 status filter가 있으면 query string에 반영해야 한다.
+- 회장 일정 생성/수정/삭제는 `/clubs/:clubId/schedules` 하위 엔드포인트를 호출하고 성공한 action이 schedule tag group을 초기화해야 한다.
+- 회장 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+
+### 관리자 일정 엔드포인트
+
+- 관리자 전체 일정 목록은 `/club-schedules`를 호출하고 필터 query string을 보존해야 한다.
+- 관리자 캘린더 목록은 `/club-schedules/calendar`를 호출해야 한다.
+- 관리자 단건 조회, 공개 상태 변경, 삭제는 `/club-schedules/:scheduleId` 하위 엔드포인트를 사용해야 한다.
+- 관리자 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+
+관련 테스트:
+- [club.schedule.service.test.ts](../../packages/service/src/club/club.schedule.service.test.ts)
+- [schedule.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/action/schedule.action.test.ts)
 
 ## Report Create / Update
 
@@ -254,9 +303,11 @@
 - 비공개 일정은 사용자 동아리 상세 일정에 포함하지 않아야 한다.
 - 일정은 다가오는 일정과 지난 일정으로 분리되어야 한다.
 - 각 일정 그룹은 시작일시 오름차순으로 정렬되어야 한다.
+- 백엔드 공개 일정 응답은 화면 일정 모델로 변환되어야 한다.
 
 관련 테스트:
 - [club-schedule.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-schedule.test.ts)
+- [club.schedule.service.test.ts](../../packages/service/src/club/club.schedule.service.test.ts)
 
 ## Club Report Detail Service
 
