@@ -2,7 +2,12 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getClubReportListService, getClubService } from "@/lib/server/cached-services";
+import {
+    getClubPublicScheduleListService,
+    getClubReportListService,
+    getClubService,
+} from "@/lib/server/cached-services";
+import { getClubScheduleGroups, mapClubScheduleToPublicSchedule } from "@/lib/club-schedule";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
 import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
@@ -128,9 +133,10 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         notFound();
     }
 
-    const [clubResponse, reportsResponse] = await Promise.all([
+    const [clubResponse, reportsResponse, scheduleResponse] = await Promise.all([
         getClubService(clubIdNumber),
         getClubReportListService(clubIdNumber),
+        getClubPublicScheduleListService(clubIdNumber),
     ]);
 
     if (!clubResponse.isSuccess || !clubResponse.result) {
@@ -146,6 +152,10 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
               image_urls: report.image_urls,
           }))
         : [];
+    const schedules = getClubScheduleGroups(
+        scheduleResponse.map((schedule) => mapClubScheduleToPublicSchedule(schedule, clubIdNumber)),
+        { clubId: clubIdNumber }
+    );
     const intro = {
         description: club.description,
         main_activities: club.main_activities,
@@ -212,7 +222,7 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
 
                     <ClubSocialLinks instagramUrl={instagramUrl} youtubeUrl={youtubeUrl} className="md:hidden" />
 
-                    <ClubDetailTabs club={intro} clubId={clubId} reports={reports} />
+                    <ClubDetailTabs club={intro} clubId={clubId} schedules={schedules} reports={reports} />
                 </div>
 
                 {hasSocialLinks && (
