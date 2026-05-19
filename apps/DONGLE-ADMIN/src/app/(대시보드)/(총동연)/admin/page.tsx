@@ -53,6 +53,17 @@ export default function AdminPage() {
                                 </span>
                             </Button>
                         </Link>
+
+                        <Link href="/admin/schedule">
+                            <Button
+                                variant="outline"
+                                className="w-full h-24 flex flex-col gap-2 items-center justify-center hover:bg-zinc-50 transition-colors">
+                                <span className="text-lg font-semibold">일정 관리</span>
+                                <span className="text-sm text-muted-foreground text-center">
+                                    동아리 일정 캘린더 및 노출 관리
+                                </span>
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             </div>
