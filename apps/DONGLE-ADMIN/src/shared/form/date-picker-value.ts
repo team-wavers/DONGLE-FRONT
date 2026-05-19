@@ -1,9 +1,5 @@
-import { format } from "date-fns";
+import { formatDateForRequest, formatDateTimeForRequest } from "@dongle/utils";
 
 export function formatDatePickerValue(date: Date | undefined, options?: { includeTime?: boolean }): string {
-    if (!date) {
-        return "";
-    }
-
-    return format(date, options?.includeTime ? "yyyy-MM-dd HH:mm:ss" : "yyyy-MM-dd");
+    return options?.includeTime ? formatDateTimeForRequest(date) : formatDateForRequest(date);
 }
