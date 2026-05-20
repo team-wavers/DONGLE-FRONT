@@ -30,11 +30,12 @@ import { SCHEDULE_TYPE_LABELS } from "../schedule.types";
 import {
     filterSchedules,
     getMonthCalendarDates,
-    getMonthScheduleQuery,
+    getMonthScheduleQueryByMonthKey,
     getSchedulesForDate,
     groupSchedulesByMonth,
     isSameCalendarDate,
     mapAdminClubScheduleToClubSchedule,
+    parseScheduleMonthKey,
     sortSchedulesByStartAt,
 } from "../schedule.utils";
 import { ScheduleListItem } from "./schedule-list-item";
@@ -55,7 +56,7 @@ export default function AdminScheduleDashboard({
     schedules: initialSchedules,
     initialVisibleMonth,
 }: AdminScheduleDashboardProps) {
-    const initialMonthDate = useMemo(() => new Date(initialVisibleMonth), [initialVisibleMonth]);
+    const initialMonthDate = useMemo(() => parseScheduleMonthKey(initialVisibleMonth), [initialVisibleMonth]);
     const [schedules, setSchedules] = useState(initialSchedules);
     const [visibleMonth, setVisibleMonth] = useState(
         () => new Date(initialMonthDate.getFullYear(), initialMonthDate.getMonth(), 1)
@@ -96,8 +97,10 @@ export default function AdminScheduleDashboard({
     const scheduleGroups = useMemo(() => groupSchedulesByMonth(filteredSchedules), [filteredSchedules]);
 
     const loadMonthSchedules = async (monthDate: Date) => {
+        const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, "0")}`;
+
         setIsMonthPending(true);
-        const result = await getAdminClubScheduleCalendarAction(getMonthScheduleQuery(monthDate));
+        const result = await getAdminClubScheduleCalendarAction(getMonthScheduleQueryByMonthKey(monthKey));
         setIsMonthPending(false);
 
         if (!result.ok) {

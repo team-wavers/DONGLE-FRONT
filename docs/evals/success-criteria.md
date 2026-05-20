@@ -102,6 +102,9 @@
 - 선택한 날짜가 없으면 빈 문자열로 정규화해야 한다.
 - API 응답 ISO 날짜시간은 지정 timezone 기준의 `datetime-local` 입력값으로 변환되어야 한다.
 - `datetime-local` 입력값은 timezone 변환 없이 API 요청 날짜시간 문자열로 변환되어야 한다.
+- API 응답 ISO 날짜 표시는 기본적으로 Seoul 기준 날짜를 사용해야 한다.
+- timezone 없는 서버 datetime 문자열은 브라우저 로컬 timezone이 아니라 Seoul 로컬 날짜시간으로 해석해야 한다.
+- 월 상태 key는 지정 timezone 기준 월을 `YYYY-MM`으로 표현하고, timezone 없는 월 첫날 `Date`로 복원할 수 있어야 한다.
 
 관련 테스트:
 - [date-picker-value.test.ts](../../apps/DONGLE-ADMIN/src/shared/form/date-picker-value.test.ts)
@@ -164,7 +167,9 @@
 ### 캘린더 날짜 계산
 
 - 월간 캘린더는 표시 월의 앞뒤 날짜를 포함해 6주 날짜를 안정적으로 계산해야 한다.
-- 선택한 날짜의 일정은 시작일시의 로컬 날짜 기준으로 계산되어야 한다.
+- 선택한 날짜의 일정은 시작일시의 Seoul 기준 날짜로 계산되어야 한다.
+- 관리자 일정 화면의 초기 표시 월은 UTC ISO 문자열이 아니라 timezone 없는 `YYYY-MM` key로 전달되어야 한다.
+- 관리자 월간 일정 조회 query는 표시 월 key에서 Seoul 기준 서버 요청 문자열(`YYYY-MM-DD HH:mm:ss`)로 생성되어야 한다.
 
 ### 일정 필터와 정렬
 

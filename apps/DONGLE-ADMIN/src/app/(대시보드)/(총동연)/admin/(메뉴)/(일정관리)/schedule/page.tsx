@@ -1,6 +1,6 @@
 import AdminPageHeader from "@/components/molecules/layout/admin-page-header/admin-page-header";
 import AdminScheduleDashboard from "@/feature/schedule/components/admin-schedule-dashboard";
-import { getMonthScheduleQuery, mapAdminClubScheduleToClubSchedule } from "@/feature/schedule/schedule.utils";
+import { getMonthScheduleQuery, getScheduleMonthKey, mapAdminClubScheduleToClubSchedule } from "@/feature/schedule/schedule.utils";
 import { getAdminClubScheduleCalendarService } from "@dongle/service";
 
 export default async function AdminSchedulePage() {
@@ -15,7 +15,7 @@ export default async function AdminSchedulePage() {
             />
             <AdminScheduleDashboard
                 schedules={schedules.map(mapAdminClubScheduleToClubSchedule)}
-                initialVisibleMonth={initialVisibleMonth.toISOString()}
+                initialVisibleMonth={getScheduleMonthKey(initialVisibleMonth)}
             />
         </div>
     );

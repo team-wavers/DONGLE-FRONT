@@ -2,7 +2,9 @@ import type { AdminClubSchedule, ClubSchedule as ApiClubSchedule } from "@dongle
 import {
     formatDateForRequest,
     formatDateTimeForInput,
+    formatMonthKey,
     getMonthDateTimeRange,
+    parseMonthKey,
 } from "@dongle/utils";
 import type { ClubSchedule, ScheduleType } from "./schedule.types";
 
@@ -37,7 +39,11 @@ export function isSameCalendarDate(a: Date, b: Date) {
 }
 
 export function getSchedulesForDate(schedules: ClubSchedule[], date: Date) {
-    return schedules.filter((schedule) => isSameCalendarDate(new Date(schedule.startsAt), date));
+    const selectedDate = formatDateForRequest(date, { timeZone: SCHEDULE_TIME_ZONE });
+
+    return schedules.filter(
+        (schedule) => formatDateForRequest(schedule.startsAt, { timeZone: SCHEDULE_TIME_ZONE }) === selectedDate
+    );
 }
 
 export function filterSchedules(schedules: ClubSchedule[], filters: ScheduleFilters) {
@@ -63,6 +69,32 @@ export function sortSchedulesByStartAt(schedules: ClubSchedule[]) {
 
 export function getMonthScheduleQuery(date: Date) {
     return getMonthDateTimeRange(date, { timeZone: SCHEDULE_TIME_ZONE });
+}
+
+export function getScheduleMonthKey(date: Date) {
+    return formatMonthKey(date, { timeZone: SCHEDULE_TIME_ZONE });
+}
+
+export function parseScheduleMonthKey(monthKey: string) {
+    return parseMonthKey(monthKey) ?? new Date();
+}
+
+export function getMonthScheduleQueryByMonthKey(monthKey: string) {
+    const monthDate = parseMonthKey(monthKey);
+
+    if (!monthDate) {
+        return getMonthScheduleQuery(new Date());
+    }
+
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth() + 1;
+    const monthPart = String(month).padStart(2, "0");
+    const lastDay = new Date(year, month, 0).getDate();
+
+    return {
+        from: `${year}-${monthPart}-01 00:00:00`,
+        to: `${year}-${monthPart}-${String(lastDay).padStart(2, "0")} 23:59:59`,
+    };
 }
 
 function isValidScheduleDateTime(value: string) {

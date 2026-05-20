@@ -10,12 +10,15 @@ import {
     formatScheduleDateTimeRange,
     formatScheduleTime,
     groupSchedulesByMonth,
+    getMonthScheduleQueryByMonthKey,
     getScheduleDescriptionLabel,
     getScheduleExternalUrlError,
     getScheduleLocationLabel,
     getScheduleMetaText,
+    getScheduleMonthKey,
     getMonthCalendarDates,
     getMonthScheduleQuery,
+    parseScheduleMonthKey,
     getSchedulesForDate,
     mapAdminClubScheduleToClubSchedule,
     mapClubScheduleToClubSchedule,
@@ -99,6 +102,20 @@ describe("schedule utils", () => {
             from: "2026-05-01 00:00:00",
             to: "2026-05-31 23:59:59",
         });
+    });
+
+    it("월 key 기반 일정 조회 query는 클라이언트 timezone과 무관한 서버 요청 문자열을 반환한다", () => {
+        expect(getMonthScheduleQueryByMonthKey("2026-05")).toEqual({
+            from: "2026-05-01 00:00:00",
+            to: "2026-05-31 23:59:59",
+        });
+    });
+
+    it("월 상태 key는 Seoul 기준 월을 timezone 없는 로컬 월 Date로 복원한다", () => {
+        const monthKey = getScheduleMonthKey(new Date("2026-05-01T00:30:00.000Z"));
+
+        expect(monthKey).toBe("2026-05");
+        expect(parseScheduleMonthKey(monthKey)).toEqual(new Date(2026, 4, 1));
     });
 
     it("선택한 날짜의 일정을 Seoul 기준으로 찾는다", () => {

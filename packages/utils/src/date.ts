@@ -6,10 +6,35 @@ export interface DateTimeRequestFormatOptions extends DateTimeFormatOptions {
     separator?: "space" | "T";
 }
 
+export interface DateDisplayFormatOptions extends DateTimeFormatOptions {
+    locale?: string;
+}
+
 const DEFAULT_TIME_ZONE = "Asia/Seoul";
+const TIME_ZONE_OFFSET_REGEXP = /[zZ]|[+-]\d{2}:?\d{2}$/;
+const DATE_TIME_WITHOUT_TIME_ZONE_REGEXP = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/;
 
 function padDatePart(value: number) {
     return String(value).padStart(2, "0");
+}
+
+function getDateTimeInputParts(value: string) {
+    const [datePart = "", timePart = ""] = value.split(/[T ]/);
+    const [year = "", month = "", day = ""] = datePart.split("-");
+    const [hour = "00", minute = "00", second = "00"] = timePart.split(":");
+
+    return {
+        year,
+        month,
+        day,
+        hour: hour.padStart(2, "0"),
+        minute: minute.padStart(2, "0"),
+        second: second.padStart(2, "0").slice(0, 2),
+    };
+}
+
+function isDateTimeWithoutTimeZone(value: string) {
+    return DATE_TIME_WITHOUT_TIME_ZONE_REGEXP.test(value) && !TIME_ZONE_OFFSET_REGEXP.test(value);
 }
 
 function getLocalDateParts(date: Date) {
@@ -53,6 +78,10 @@ function getTimeZoneDateParts(value: string | Date, timeZone: string) {
 }
 
 function getDateParts(value: Date, timeZone?: string) {
+    if (Number.isNaN(value.getTime())) {
+        return null;
+    }
+
     if (timeZone) {
         return getTimeZoneDateParts(value, timeZone);
     }
@@ -60,76 +89,68 @@ function getDateParts(value: Date, timeZone?: string) {
     return getLocalDateParts(value);
 }
 
-function getTimeZoneOffsetMs(date: Date, timeZone: string) {
-    const parts = getTimeZoneDateParts(date, timeZone);
-
-    if (!parts) {
-        return 0;
+function getStringDateParts(value: string, timeZone?: string) {
+    if (timeZone && isDateTimeWithoutTimeZone(value)) {
+        return getDateTimeInputParts(value);
     }
 
-    const timeZoneAsUtc = Date.UTC(
-        Number(parts.year),
-        Number(parts.month) - 1,
-        Number(parts.day),
-        Number(parts.hour),
-        Number(parts.minute),
-        Number(parts.second)
-    );
+    const date = new Date(value);
 
-    const dateWithoutMilliseconds = Math.trunc(date.getTime() / 1000) * 1000;
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
 
-    return timeZoneAsUtc - dateWithoutMilliseconds;
+    return getDateParts(date, timeZone);
 }
 
-function getDateInTimeZone(parts: {
-    year: number;
-    monthIndex: number;
-    day: number;
-    hour: number;
-    minute: number;
-    second: number;
-    millisecond: number;
-}, timeZone: string) {
-    const utcTime = Date.UTC(
-        parts.year,
-        parts.monthIndex,
-        parts.day,
-        parts.hour,
-        parts.minute,
-        parts.second,
-        parts.millisecond
-    );
-    const firstOffset = getTimeZoneOffsetMs(new Date(utcTime), timeZone);
-    const firstGuess = utcTime - firstOffset;
-    const secondOffset = getTimeZoneOffsetMs(new Date(firstGuess), timeZone);
-
-    return new Date(utcTime - secondOffset);
-}
-
-function normalizeDateTimeInputParts(value: string) {
-    const [datePart = "", timePart = ""] = value.split("T");
-    const [hour = "00", minute = "00", second = "00"] = timePart.split(":");
-
-    return {
-        datePart,
-        hour: hour.padStart(2, "0"),
-        minute: minute.padStart(2, "0"),
-        second: second.padStart(2, "0"),
-    };
-}
-
-export function formatDateForRequest(date: Date | undefined, options?: DateTimeFormatOptions): string {
-    if (!date) {
+export function formatDateForRequest(value: Date | string | undefined, options?: DateTimeFormatOptions): string {
+    if (!value) {
         return "";
     }
 
-    const parts = getDateParts(date, options?.timeZone);
+    const parts = typeof value === "string" ? getStringDateParts(value, options?.timeZone) : getDateParts(value, options?.timeZone);
 
     if (!parts) {
         return "";
     }
 
     return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+export function formatDateByLocale(value: string | Date, options?: DateDisplayFormatOptions) {
+    const timeZone = options?.timeZone ?? DEFAULT_TIME_ZONE;
+
+    if (typeof value === "string" && isDateTimeWithoutTimeZone(value)) {
+        const parts = getDateTimeInputParts(value);
+        return `${parts.year}.${parts.month}.${parts.day}`;
+    }
+
+    const date = typeof value === "string" ? new Date(value) : value;
+
+    if (Number.isNaN(date.getTime())) {
+        return "-";
+    }
+
+    return new Intl.DateTimeFormat(options?.locale ?? "ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone,
+    })
+        .format(date)
+        .replace(/\. /g, ".")
+        .replace(/\.$/, "");
+}
+
+export function formatDateRange(start: string | Date, end: string | Date, options?: DateDisplayFormatOptions) {
+    const startDate = formatDateByLocale(start, options);
+    const endDate = formatDateByLocale(end, options);
+
+    if (startDate === "-" || endDate === "-") {
+        return "-";
+    }
+
+    return `${startDate} ~ ${endDate}`;
 }
 
 export function formatDateTimeForRequest(
@@ -142,13 +163,13 @@ export function formatDateTimeForRequest(
 
     const separator = options?.separator === "T" ? "T" : " ";
 
-    if (typeof value === "string" && value.includes("T") && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(value)) {
-        const parts = normalizeDateTimeInputParts(value);
-        return `${parts.datePart}${separator}${parts.hour}:${parts.minute}:${parts.second}`;
+    if (typeof value === "string" && value.includes("T") && !TIME_ZONE_OFFSET_REGEXP.test(value)) {
+        const parts = getDateTimeInputParts(value);
+        return `${parts.year}-${parts.month}-${parts.day}${separator}${parts.hour}:${parts.minute}:${parts.second}`;
     }
 
     const date = typeof value === "string" ? new Date(value) : value;
-    const parts = getDateParts(date, options?.timeZone);
+    const parts = typeof value === "string" ? getStringDateParts(value, options?.timeZone) : getDateParts(date, options?.timeZone);
 
     if (!parts) {
         return "";
@@ -162,6 +183,11 @@ export function formatDateTimeForInput(value: string | Date | undefined, options
         return "";
     }
 
+    if (typeof value === "string" && options?.timeZone && isDateTimeWithoutTimeZone(value)) {
+        const parts = getDateTimeInputParts(value);
+        return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+    }
+
     const parts = getTimeZoneDateParts(value, options?.timeZone ?? DEFAULT_TIME_ZONE);
 
     if (!parts) {
@@ -171,16 +197,43 @@ export function formatDateTimeForInput(value: string | Date | undefined, options
     return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
 }
 
-export function getMonthDateTimeRange(date: Date, options?: DateTimeFormatOptions) {
-    const formatRangeDateTime = (value: Date) => formatDateTimeForRequest(value, options);
+export function formatMonthKey(date: Date, options?: DateTimeFormatOptions) {
+    const parts = getDateParts(date, options?.timeZone);
 
+    if (!parts) {
+        return "";
+    }
+
+    return `${parts.year}-${parts.month}`;
+}
+
+export function parseMonthKey(monthKey: string) {
+    const match = /^(\d{4})-(\d{2})$/.exec(monthKey);
+
+    if (!match) {
+        return null;
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+        return null;
+    }
+
+    return new Date(year, month - 1, 1);
+}
+
+export function getMonthDateTimeRange(date: Date, options?: DateTimeFormatOptions) {
     if (!options?.timeZone) {
-        const from = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
-        const to = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 0);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const monthPart = padDatePart(month);
+        const lastDay = new Date(year, month, 0).getDate();
 
         return {
-            from: formatRangeDateTime(from),
-            to: formatRangeDateTime(to),
+            from: `${year}-${monthPart}-01 00:00:00`,
+            to: `${year}-${monthPart}-${padDatePart(lastDay)} 23:59:59`,
         };
     }
 
@@ -194,34 +247,12 @@ export function getMonthDateTimeRange(date: Date, options?: DateTimeFormatOption
     }
 
     const year = Number(parts.year);
-    const monthIndex = Number(parts.month) - 1;
-    const from = getDateInTimeZone(
-        {
-            year,
-            monthIndex,
-            day: 1,
-            hour: 0,
-            minute: 0,
-            second: 0,
-            millisecond: 0,
-        },
-        options.timeZone
-    );
-    const to = getDateInTimeZone(
-        {
-            year,
-            monthIndex: monthIndex + 1,
-            day: 0,
-            hour: 23,
-            minute: 59,
-            second: 59,
-            millisecond: 0,
-        },
-        options.timeZone
-    );
+    const month = Number(parts.month);
+    const monthPart = padDatePart(month);
+    const lastDay = new Date(year, month, 0).getDate();
 
     return {
-        from: formatRangeDateTime(from),
-        to: formatRangeDateTime(to),
+        from: `${year}-${monthPart}-01 00:00:00`,
+        to: `${year}-${monthPart}-${padDatePart(lastDay)} 23:59:59`,
     };
 }
