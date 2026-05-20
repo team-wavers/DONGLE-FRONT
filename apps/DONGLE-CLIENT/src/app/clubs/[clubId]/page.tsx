@@ -133,18 +133,25 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         notFound();
     }
 
-    const [clubResponse, reportsResponse, scheduleResponse] = await Promise.all([
+    const [clubResult, reportsResult, scheduleResult] = await Promise.allSettled([
         getClubService(clubIdNumber),
         getClubReportListService(clubIdNumber),
         getClubPublicScheduleListService(clubIdNumber),
     ]);
 
+    if (clubResult.status === "rejected") {
+        notFound();
+    }
+
+    const clubResponse = clubResult.value;
     if (!clubResponse.isSuccess || !clubResponse.result) {
         notFound();
     }
 
     const club = clubResponse.result;
-    const reports = reportsResponse.isSuccess
+    const reportsResponse = reportsResult.status === "fulfilled" ? reportsResult.value : null;
+    const reportLoadFailed = !reportsResponse?.isSuccess;
+    const reports = reportsResponse?.isSuccess
         ? reportsResponse.result.map((report) => ({
               id: report.id,
               title: report.title,
@@ -152,6 +159,8 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
               image_urls: report.image_urls,
           }))
         : [];
+    const scheduleResponse = scheduleResult.status === "fulfilled" ? scheduleResult.value : [];
+    const scheduleLoadFailed = scheduleResult.status === "rejected";
     const schedules = getClubScheduleGroups(
         scheduleResponse.map(mapClubScheduleToPublicSchedule),
         { clubId: clubIdNumber }
@@ -222,7 +231,14 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
 
                     <ClubSocialLinks instagramUrl={instagramUrl} youtubeUrl={youtubeUrl} className="md:hidden" />
 
-                    <ClubDetailTabs club={intro} clubId={clubId} schedules={schedules} reports={reports} />
+                    <ClubDetailTabs
+                        club={intro}
+                        clubId={clubId}
+                        schedules={schedules}
+                        scheduleLoadFailed={scheduleLoadFailed}
+                        reports={reports}
+                        reportLoadFailed={reportLoadFailed}
+                    />
                 </div>
 
                 {hasSocialLinks && (

@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDateByLocale } from "@dongle/ui/utils";
@@ -14,9 +15,22 @@ type ClubReportCardViewModel = {
 interface ClubReportsTabContentProps {
     clubId: string;
     reports: ClubReportCardViewModel[];
+    loadFailed?: boolean;
 }
 
-export default function ClubReportsTabContent({ clubId, reports }: ClubReportsTabContentProps) {
+export default function ClubReportsTabContent({
+    clubId,
+    reports,
+    loadFailed = false,
+}: ClubReportsTabContentProps) {
+    if (loadFailed) {
+        return (
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 py-16 text-center text-zinc-500">
+                활동보고서를 불러오지 못했습니다. 잠시 후 다시 확인해주세요.
+            </div>
+        );
+    }
+
     if (reports.length === 0) {
         return (
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 py-16 text-center text-zinc-500">

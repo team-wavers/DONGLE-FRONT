@@ -58,4 +58,19 @@ describe("ClubSchedulesTabContent", () => {
 
         expect(html).not.toContain("자세히 보기");
     });
+
+    it("일정 조회 실패 상태는 일정 없음 문구 대신 실패 안내를 렌더링한다", () => {
+        const html = renderToStaticMarkup(
+            <ClubSchedulesTabContent
+                loadFailed
+                schedules={{
+                    upcoming: [],
+                    past: [],
+                }}
+            />
+        );
+
+        expect(html).toContain("일정을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.");
+        expect(html).not.toContain("등록된 공개 일정이 없습니다.");
+    });
 });

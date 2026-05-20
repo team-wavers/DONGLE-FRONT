@@ -22,7 +22,9 @@ interface ClubDetailTabsProps {
     club: ClubDetailIntroViewModel;
     clubId: string;
     schedules: ClubScheduleGroups;
+    scheduleLoadFailed?: boolean;
     reports: ClubDetailReportViewModel[];
+    reportLoadFailed?: boolean;
 }
 
 const styles = {
@@ -31,7 +33,14 @@ const styles = {
     tabContent: "pt-8",
 } as const;
 
-export default function ClubDetailTabs({ club, clubId, schedules, reports }: ClubDetailTabsProps) {
+export default function ClubDetailTabs({
+    club,
+    clubId,
+    schedules,
+    scheduleLoadFailed = false,
+    reports,
+    reportLoadFailed = false,
+}: ClubDetailTabsProps) {
     return (
         <Tabs defaultValue="intro" className="w-full">
             <TabsList className="w-full grid grid-cols-3 h-11 rounded-none bg-transparent p-0 border-b border-zinc-200">
@@ -51,11 +60,11 @@ export default function ClubDetailTabs({ club, clubId, schedules, reports }: Clu
             </TabsContent>
 
             <TabsContent value="schedules" className={styles.tabContent}>
-                <ClubSchedulesTabContent schedules={schedules} />
+                <ClubSchedulesTabContent schedules={schedules} loadFailed={scheduleLoadFailed} />
             </TabsContent>
 
             <TabsContent value="reports" className={styles.tabContent}>
-                <ClubReportsTabContent clubId={clubId} reports={reports} />
+                <ClubReportsTabContent clubId={clubId} reports={reports} loadFailed={reportLoadFailed} />
             </TabsContent>
         </Tabs>
     );

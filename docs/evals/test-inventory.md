@@ -41,7 +41,8 @@
 | club report service | [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts) | code-graded | report list cache policy / admin list no-store / report detail endpoint |
 | client search | [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts) | code-graded | filtering / summary / query string parser-builder |
 | client search empty-state | [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts) | code-graded | filter/query/data 조합별 empty-state code/message |
-| client club schedule | [club-schedule.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-schedule.test.ts), [club-schedules-tab-content.test.tsx](../../apps/DONGLE-CLIENT/src/components/club-detail/club-schedules-tab-content.test.tsx) | code-graded | 동아리 상세 공개 일정 필터 / 다가오는 일정과 지난 일정 분리 / 시작일시 정렬 / 백엔드 응답 매핑 / 일정 기간 표시 / 외부 링크 정규화 / 외부 링크 CTA 렌더링 |
+| client club schedule | [club-schedule.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-schedule.test.ts), [club-schedules-tab-content.test.tsx](../../apps/DONGLE-CLIENT/src/components/club-detail/club-schedules-tab-content.test.tsx) | code-graded | 동아리 상세 공개 일정 필터 / 다가오는 일정과 지난 일정 분리 / 시작일시 정렬 / 백엔드 응답 매핑 / 일정 기간 표시 / 외부 링크 정규화 / 외부 링크 CTA 렌더링 / 일정 조회 실패 안내 |
+| client club reports | [club-reports-tab-content.test.tsx](../../apps/DONGLE-CLIENT/src/components/club-detail/club-reports-tab-content.test.tsx) | code-graded | 활동보고서 조회 실패 안내 |
 | club fixture | [club.fixture.test.ts](../../e2e/fixtures/club.fixture.test.ts) | code-graded | fixture util |
 | rich text | [sanitize-rich-text-html.test.ts](../../packages/rich-text/src/sanitize-rich-text-html.test.ts) | code-graded | normalization |
 | date util | [date.test.ts](../../apps/DONGLE-ADMIN/src/lib/format/date.test.ts) | code-graded | formatter |

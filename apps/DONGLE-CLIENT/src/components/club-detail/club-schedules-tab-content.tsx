@@ -7,6 +7,7 @@ import type { ClubPublicSchedule, ClubScheduleGroups, ClubPublicScheduleType } f
 
 interface ClubSchedulesTabContentProps {
     schedules: ClubScheduleGroups;
+    loadFailed?: boolean;
 }
 
 const SCHEDULE_TYPE_LABELS: Record<ClubPublicScheduleType, string> = {
@@ -77,8 +78,16 @@ function ScheduleSection({ title, schedules }: { title: string; schedules: ClubP
     );
 }
 
-export default function ClubSchedulesTabContent({ schedules }: ClubSchedulesTabContentProps) {
+export default function ClubSchedulesTabContent({ schedules, loadFailed = false }: ClubSchedulesTabContentProps) {
     const hasSchedules = schedules.upcoming.length > 0 || schedules.past.length > 0;
+
+    if (loadFailed) {
+        return (
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 py-16 text-center text-zinc-500">
+                일정을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.
+            </div>
+        );
+    }
 
     if (!hasSchedules) {
         return (
