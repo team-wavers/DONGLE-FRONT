@@ -26,7 +26,7 @@ function getDevelopmentFallbackBanners(banners: DisplayMainBannerItem[]) {
 async function HomePageContent() {
     const [clubListResponse, mainBannerResponse] = await Promise.all([
         getClubListService(),
-        getPublicMainBannerListService(false),
+        getPublicMainBannerListService(),
     ]);
 
     const clubs =

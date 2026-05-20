@@ -1,4 +1,4 @@
-import { Building2, FileText, Key } from "lucide-react";
+import { Building2, CalendarDays, FileText, Key } from "lucide-react";
 
 export interface ClubSidebarMenuConfig {
     name: string;
@@ -16,6 +16,11 @@ export const createClubMenuConfig = (clubId: string): Record<string, ClubSidebar
         name: "활동 보고서",
         href: `/${clubId}/report`,
         icon: FileText,
+    },
+    schedule: {
+        name: "일정 관리",
+        href: `/${clubId}/schedule`,
+        icon: CalendarDays,
     },
     account: {
         name: "계정 정보 관리",

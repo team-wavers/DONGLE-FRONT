@@ -100,9 +100,15 @@
 - 날짜 picker에서 선택한 로컬 날짜는 UTC 변환으로 하루 앞당겨지지 않아야 한다.
 - 시간 포함 날짜 picker 값은 UTC 변환 없이 `YYYY-MM-DD HH:mm:ss` 형식으로 유지되어야 한다.
 - 선택한 날짜가 없으면 빈 문자열로 정규화해야 한다.
+- API 응답 ISO 날짜시간은 지정 timezone 기준의 `datetime-local` 입력값으로 변환되어야 한다.
+- `datetime-local` 입력값은 timezone 변환 없이 API 요청 날짜시간 문자열로 변환되어야 한다.
+- API 응답 ISO 날짜 표시는 기본적으로 Seoul 기준 날짜를 사용해야 한다.
+- timezone 없는 서버 datetime 문자열은 브라우저 로컬 timezone이 아니라 Seoul 로컬 날짜시간으로 해석해야 한다.
+- 월 상태 key는 지정 timezone 기준 월을 `YYYY-MM`으로 표현하고, timezone 없는 월 첫날 `Date`로 복원할 수 있어야 한다.
 
 관련 테스트:
 - [date-picker-value.test.ts](../../apps/DONGLE-ADMIN/src/shared/form/date-picker-value.test.ts)
+- [date.test.ts](../../packages/utils/src/date.test.ts)
 
 ## User Form
 
@@ -135,6 +141,102 @@
 
 관련 테스트:
 - [filterable-user-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/components/filterable-user-list.test.ts)
+
+## Next Cache Policy
+
+### 캐시 태그 중앙화
+
+- 동아리, 사용자, 활동보고서, 메인 배너, 일정 캐시 태그는 중앙 상수와 tag group helper로 생성되어야 한다.
+- 목록/상세/club scope/item scope 태그 조합은 도메인별 helper를 기준으로 일관되게 계산되어야 한다.
+
+### fetch cache 정책
+
+- 사용자 공개 조회는 `force-cache`, 도메인 태그, 공통 `revalidate` 값을 함께 사용해야 한다.
+- 관리자/회장/사용자 관리 조회는 `no-store`만 사용하고 `next.tags`를 붙이지 않아야 한다.
+- 생성/수정/삭제 service는 fetch cache option을 붙이지 않고, 성공한 server action이 관련 tag group을 초기화해야 한다.
+
+관련 테스트:
+- [cache-tags.test.ts](../../packages/service/src/cache-tags.test.ts)
+- [club.service.test.ts](../../packages/service/src/club/club.service.test.ts)
+- [user.service.test.ts](../../packages/service/src/user/user.service.test.ts)
+- [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts)
+- [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts)
+
+## Admin Schedule Management
+
+### 캘린더 날짜 계산
+
+- 월간 캘린더는 표시 월의 앞뒤 날짜를 포함해 6주 날짜를 안정적으로 계산해야 한다.
+- 선택한 날짜의 일정은 시작일시의 Seoul 기준 날짜로 계산되어야 한다.
+- 관리자 일정 화면의 초기 표시 월은 UTC ISO 문자열이 아니라 timezone 없는 `YYYY-MM` key로 전달되어야 한다.
+- 관리자 월간 일정 조회 query는 표시 월 key에서 Seoul 기준 서버 요청 문자열(`YYYY-MM-DD HH:mm:ss`)로 생성되어야 한다.
+
+### 일정 필터와 정렬
+
+- 검색어는 trim 후 소문자 기준으로 비교된다.
+- 일정 제목, 동아리명, 분과, 장소가 검색 대상이다.
+- 분과, 일정 유형, 공개 상태 필터가 함께 적용되어야 한다.
+- 일정 목록은 시작일시 오름차순으로 정렬되어야 한다.
+
+### 일정 응답 변환
+
+- 관리자 일정 응답의 `club` 정보는 화면 일정의 `clubId`, `clubName`, `category`로 변환되어야 한다.
+- 관리자 일정 응답은 `club_id`와 `club.id`, `club.name`, `club.category`를 포함해야 한다.
+- 회장 일정 응답은 별도 동아리 상세 조회 없이 응답의 `club_id`를 화면 일정의 `clubId`로 변환해야 한다.
+- 백엔드 일정 응답의 `start_at`, `end_at`, `is_public`, `external_url`은 화면 모델의 날짜/공개/외부 링크 필드로 변환되어야 한다.
+- nullable 문자열 필드는 화면에서 안전하게 렌더링되도록 빈 문자열 또는 `undefined`로 정규화되어야 한다.
+
+### 일정 표시 포맷
+
+- 같은 날 시작/종료 일정은 시작 날짜시간과 종료 시간만 표시해야 한다.
+- 서로 다른 날 시작/종료 일정은 시작 날짜시간과 종료 날짜시간을 모두 표시해야 한다.
+- 잘못된 일정 날짜시간은 fallback 문구로 표시해야 한다.
+- 빈 장소는 화면에서 `장소 미정`으로 표시해야 한다.
+- 빈 설명은 화면에서 `설명이 없습니다.`로 표시해야 한다.
+- 목록 메타 문자열은 빈 값을 제외하고 구분자를 조합해야 한다.
+- 일정 목록용 날짜 배지는 시작일시의 Seoul 기준 월, 일, 요일을 표시해야 한다.
+- 일정 목록용 기간은 같은 날과 여러 날 일정을 스캔하기 쉬운 날짜/시간 조합으로 나눠 표시해야 한다.
+- 일정 목록 그룹은 시작일시 오름차순을 유지하며 Seoul 기준 시작 월별로 묶여야 한다.
+- 회장 일정 외부 링크는 입력값이 있으면 http 또는 https 외부 URL로 검증해야 한다.
+
+### 회장 일정 폼
+
+- 일정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
+- 일정 제목, 시작일시, 종료일시는 필수다.
+- 종료일시는 시작일시보다 늦어야 한다.
+- 외부 링크는 입력값이 있으면 http 또는 https 외부 URL로 검증해야 한다.
+- 일정 저장 payload는 화면 폼 값을 trim 정규화하고 API 필드명으로 변환해야 한다.
+
+### 일정 action result
+
+- 일정 생성, 수정, 삭제, 관리자 공개 상태 변경, 관리자 월간 조회 action은 공통 `ActionResult` 형태로 성공/실패를 표현해야 한다.
+- 일정 생성/수정 action은 스키마 검증 실패 시 field error와 form error를 반환해야 한다.
+- 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+
+관련 테스트:
+- [schedule.utils.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/schedule.utils.test.ts)
+- [schedule-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/form/schedule-form.schema.test.ts)
+- [schedule.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/action/schedule.action.test.ts)
+
+## Club Schedule Service
+
+### 사용자/회장 일정 엔드포인트
+
+- 사용자 공개 일정 목록은 `/clubs/:clubId/public-schedules`를 호출해야 한다.
+- 회장 일정 목록은 `/clubs/:clubId/schedules`를 호출하고 status filter가 있으면 query string에 반영해야 한다.
+- 회장 일정 생성/수정/삭제는 `/clubs/:clubId/schedules` 하위 엔드포인트를 호출하고 성공한 action이 schedule tag group을 초기화해야 한다.
+- 회장 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+
+### 관리자 일정 엔드포인트
+
+- 관리자 전체 일정 목록은 `/club-schedules`를 호출하고 필터 query string을 보존해야 한다.
+- 관리자 캘린더 목록은 `/club-schedules/calendar`를 호출해야 한다.
+- 관리자 단건 조회, 공개 상태 변경, 삭제는 `/club-schedules/:scheduleId` 하위 엔드포인트를 사용해야 한다.
+- 관리자 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+
+관련 테스트:
+- [club.schedule.service.test.ts](../../packages/service/src/club/club.schedule.service.test.ts)
+- [schedule.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/action/schedule.action.test.ts)
 
 ## Report Create / Update
 
@@ -229,6 +331,30 @@
 - [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts)
 - [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts)
 
+## Client Club Schedule
+
+### 동아리 상세 일정
+
+- 사용자 동아리 상세 일정은 해당 동아리의 공개 일정만 포함해야 한다.
+- 비공개 일정은 사용자 동아리 상세 일정에 포함하지 않아야 한다.
+- 일정은 다가오는 일정과 지난 일정으로 분리되어야 한다.
+- 각 일정 그룹은 시작일시 오름차순으로 정렬되어야 한다.
+- 백엔드 공개 일정 응답은 응답의 `club_id`를 기준으로 화면 일정 모델의 `clubId`로 변환되어야 한다.
+- 사용자 동아리 상세의 공개 일정 기간은 Seoul 기준으로 표시해야 한다.
+- 같은 날 시작/종료 일정은 시작 날짜시간과 종료 시간만 표시해야 한다.
+- 서로 다른 날 시작/종료 일정은 시작 날짜시간과 종료 날짜시간을 모두 표시해야 한다.
+- 공개 일정 외부 링크가 있으면 사용자 동아리 상세 일정에 링크 CTA로 표시해야 한다.
+- 공개 일정 외부 링크는 화면 모델 변환 시 공통 URL 정규화를 거쳐야 한다.
+- 공개 일정 조회가 실패해도 동아리 상세 페이지는 중단되지 않아야 하며, 일정 탭에는 일정 없음과 구분되는 실패 안내가 표시되어야 한다.
+
+### 동아리 상세 활동보고서
+
+- 활동보고서 목록 조회가 실패해도 동아리 상세 페이지는 중단되지 않아야 하며, 활동보고서 탭에는 활동보고서 없음과 구분되는 실패 안내가 표시되어야 한다.
+
+관련 테스트:
+- [club-schedule.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-schedule.test.ts)
+- [club.schedule.service.test.ts](../../packages/service/src/club/club.schedule.service.test.ts)
+
 ## Club Report Detail Service
 
 ### 단건 조회
@@ -239,6 +365,16 @@
 - [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts)
 
 ## Shared Utilities
+
+### URL 정규화
+
+- 일반 외부 링크는 `http` 또는 `https` URL만 허용해야 한다.
+- 프로토콜 없는 외부 호스트는 `https` URL로 정규화해야 한다.
+- protocol-relative 외부 URL은 `https` URL로 정규화해야 한다.
+- credential 포함 URL, 상대 경로, unsupported scheme, 빈 값은 `null`로 정규화해야 한다.
+
+관련 테스트:
+- [url.test.ts](../../packages/utils/src/url.test.ts)
 
 ### Main Banner Display
 

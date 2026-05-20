@@ -11,8 +11,8 @@ export default async function AdminSidber() {
     const header = (
         <div className="flex items-center">
             <div className="flex flex-col gap-2">
-                <h1 className="text-2xl font-bold text-zinc-900">총동아리연합회</h1>
-                <p className="text-lg font-semibold text-muted-foreground">관리자</p>
+                <h1 className="text-xl font-bold text-zinc-900">총동아리연합회</h1>
+                <p className="text-base font-semibold text-muted-foreground">관리자</p>
             </div>
         </div>
     );

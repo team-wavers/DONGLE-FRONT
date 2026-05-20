@@ -1,10 +1,11 @@
 "use client";
 
 import type { SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hook-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@dongle/ui/card";
 import { Users } from "lucide-react";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
-import { FormRoot, RHFTextField } from "@/shared/form";
+import { AdminFormActions, AdminFormSection } from "@/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { FormRoot } from "@/shared/form/form-root";
+import { RHFTextField } from "@/shared/form/rhf-text-field";
 import type { ClubPresidentFormValues } from "@/feature/club/form/club-president.schema";
 
 interface ClubPresidentEditFormProps {
@@ -32,39 +33,33 @@ export function ClubPresidentEditForm({
                 </div>
             ) : null}
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-primary" />
-                        회장 정보 관리
-                    </CardTitle>
-                    <CardDescription>동아리 회장의 정보를 관리합니다</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <RHFTextField<ClubPresidentFormValues>
-                        id="presidentName"
-                        name="presidentName"
-                        label="회장 이름"
-                        type="text"
-                        placeholder="회장님의 이름을 입력하세요"
-                        required
-                    />
-                    <RHFTextField<ClubPresidentFormValues>
-                        id="presidentContact"
-                        name="presidentContact"
-                        label="회장 연락처"
-                        type="tel"
-                        placeholder="010-0000-0000"
-                        required
-                    />
-                </CardContent>
-            </Card>
+            <AdminFormSection
+                title="회장 정보 관리"
+                description="동아리 회장의 정보를 관리합니다."
+                icon={<Users className="h-5 w-5 text-primary" />}>
+                <RHFTextField<ClubPresidentFormValues>
+                    id="presidentName"
+                    name="presidentName"
+                    label="회장 이름"
+                    type="text"
+                    placeholder="회장님의 이름을 입력하세요"
+                    required
+                />
+                <RHFTextField<ClubPresidentFormValues>
+                    id="presidentContact"
+                    name="presidentContact"
+                    label="회장 연락처"
+                    type="tel"
+                    placeholder="010-0000-0000"
+                    required
+                />
+            </AdminFormSection>
 
-            <div className="flex justify-end gap-2 pt-4 items-center">
+            <AdminFormActions>
                 <LoadingButton type="submit" loading={isPending} loadingText="수정 중..." className="min-w-32">
                     회장 정보 수정
                 </LoadingButton>
-            </div>
+            </AdminFormActions>
         </FormRoot>
     );
 }

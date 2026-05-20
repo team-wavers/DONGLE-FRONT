@@ -28,9 +28,19 @@ describe("club report service endpoints", () => {
         await getClubReportListService(1);
 
         expect(fetchInstanceMock.get).toHaveBeenCalledWith("/clubs/1/reports", {
+            cache: "force-cache",
             next: {
-                tags: ["report", "report-1"],
+                tags: ["report", "report-club-1"],
+                revalidate: 60,
             },
+        });
+    });
+
+    test("관리자 활동보고서 목록은 no-store로 호출한다", async () => {
+        await getClubReportListService(1, "admin");
+
+        expect(fetchInstanceMock.get).toHaveBeenCalledWith("/clubs/1/reports", {
+            cache: "no-store",
         });
     });
 

@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { reportTagGroups } from "@dongle/service";
 import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 import { reportActionNetwork } from "@/feature/report/action/report-action-network";
 import { buildReportActionError, isUnauthorizedError } from "@/feature/report/action/report-action-error-policy";
 import {
@@ -69,7 +70,7 @@ export async function submitActivityReportCreateAction({
             return toActionFailure(buildReportActionError({ branch: "service", actionLabel: "create" }));
         }
 
-        revalidateTag("report");
+        revalidateTags(reportTagGroups.club(clubId));
         return actionSuccess({ message: "활동 보고서가 성공적으로 등록되었습니다!" });
     } catch (error) {
         if (isUnauthorizedError(error)) {
@@ -142,7 +143,7 @@ export async function submitActivityReportUpdateAction({
             return toActionFailure(buildReportActionError({ branch: "service", actionLabel: "update" }));
         }
 
-        revalidateTag(`report-${reportId}`);
+        revalidateTags(reportTagGroups.item(clubId, reportId));
         return actionSuccess({ message: "활동 보고서가 성공적으로 수정되었습니다!" });
     } catch (error) {
         if (isUnauthorizedError(error)) {

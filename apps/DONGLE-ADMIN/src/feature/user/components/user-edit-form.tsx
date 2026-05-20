@@ -5,9 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { User } from "@dongle/types/user/user.d";
 import { Button } from "@dongle/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
-import { FormRoot, RHFTextField } from "@/shared/form";
+import { AdminFormActions } from "@/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { FormRoot } from "@/shared/form/form-root";
+import { RHFTextField } from "@/shared/form/rhf-text-field";
 import {
     createUserEditDefaultValues,
     userEditSchema,
@@ -55,8 +57,8 @@ export default function UserEditForm({ user, isOpen, onClose, onSuccess }: UserE
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
+            <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-lg">
+                <DialogHeader className="border-b px-6 py-5">
                     <DialogTitle>사용자 정보 수정</DialogTitle>
                 </DialogHeader>
                 <FormRoot
@@ -64,51 +66,49 @@ export default function UserEditForm({ user, isOpen, onClose, onSuccess }: UserE
                     onSubmit={onSubmit}
                     onInvalid={onInvalid}
                     formError={formError}
-                    className="space-y-4">
-                    {/* 이름 */}
-                    <RHFTextField<UserEditFormValues>
-                        id="name"
-                        name="name"
-                        label="이름"
-                        type="text"
-                        required
-                    />
+                    className="flex flex-col">
+                    <div className="flex flex-col gap-4 px-6 py-5">
+                        <RHFTextField<UserEditFormValues>
+                            id="name"
+                            name="name"
+                            label="이름"
+                            type="text"
+                            required
+                        />
 
-                    {/* 로그인 ID */}
-                    <RHFTextField<UserEditFormValues>
-                        id="login_id"
-                        name="login_id"
-                        label="로그인 ID"
-                        type="text"
-                        required
-                    />
+                        <RHFTextField<UserEditFormValues>
+                            id="login_id"
+                            name="login_id"
+                            label="로그인 ID"
+                            type="text"
+                            required
+                        />
 
-                    {/* 비밀번호 */}
-                    <RHFTextField<UserEditFormValues>
-                        id="password"
-                        name="password"
-                        label="비밀번호 (변경시에만 입력)"
-                        type="password"
-                        placeholder="새 비밀번호를 입력하세요"
-                    />
+                        <RHFTextField<UserEditFormValues>
+                            id="password"
+                            name="password"
+                            label="비밀번호 (변경시에만 입력)"
+                            type="password"
+                            placeholder="새 비밀번호를 입력하세요"
+                        />
 
-                    {/* 전화번호 */}
-                    <RHFTextField<UserEditFormValues>
-                        id="phone"
-                        name="phone"
-                        label="전화번호"
-                        type="tel"
-                        required
-                    />
+                        <RHFTextField<UserEditFormValues>
+                            id="phone"
+                            name="phone"
+                            label="전화번호"
+                            type="tel"
+                            required
+                        />
+                    </div>
 
-                    <DialogFooter className="w-full">
+                    <AdminFormActions className="px-6 py-4">
                         <Button type="button" variant="outline" onClick={onClose}>
                             취소
                         </Button>
                         <LoadingButton type="submit" loading={isSubmitting} loadingText="수정 중...">
                             수정
                         </LoadingButton>
-                    </DialogFooter>
+                    </AdminFormActions>
                 </FormRoot>
             </DialogContent>
         </Dialog>

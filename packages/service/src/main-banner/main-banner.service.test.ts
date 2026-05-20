@@ -45,9 +45,6 @@ describe("main banner service endpoints", () => {
 
         expect(fetchInstanceMock.get).toHaveBeenCalledWith("/main-banners", {
             cache: "no-store",
-            next: {
-                tags: ["main-banner"],
-            },
         });
     });
 

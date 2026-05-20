@@ -14,46 +14,30 @@ const instance = FetchInstance.getInstance();
 
 export const getUserService = async (id: number): Promise<GetUserResponse> => {
     const response = await instance.get(`/users/${id}`, {
-        next: {
-            tags: ["user", `${id}`],
-        },
+        cache: "no-store",
     });
     return response as GetUserResponse;
 };
 
 export const createUserService = async (user: CreateUserRequest): Promise<CreateUserResponse> => {
-    const response = await instance.post("/users", user, {
-        next: {
-            tags: ["user"],
-        },
-    });
+    const response = await instance.post("/users", user);
     return response as CreateUserResponse;
 };
 
 export const getUserListService = async (): Promise<GetUserListResponse> => {
     const response = await instance.get("/users", {
-        next: {
-            tags: ["user"],
-        },
+        cache: "no-store",
     });
 
     return response as GetUserListResponse;
 };
 
 export const patchUserService = async (id: number, user: UpdateUserRequest): Promise<UpdateUserResponse> => {
-    const response = await instance.patch(`/users/${id}`, user, {
-        next: {
-            tags: ["user", `${id}`],
-        },
-    });
+    const response = await instance.patch(`/users/${id}`, user);
     return response as UpdateUserResponse;
 };
 
 export const deleteUserService = async (id: number): Promise<Response<null>> => {
-    const response = await instance.delete(`/users/${id}`, {
-        next: {
-            tags: ["user", `${id}`],
-        },
-    });
+    const response = await instance.delete(`/users/${id}`);
     return response as Response<null>;
 };

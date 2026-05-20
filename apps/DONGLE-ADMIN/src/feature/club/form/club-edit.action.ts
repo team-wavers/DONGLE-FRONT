@@ -1,10 +1,11 @@
 "use server";
 
 import { updateClubService, uploadClubIconService } from "@dongle/service/club/club.service";
-import { revalidateTag } from "next/cache";
+import { clubTagGroups } from "@dongle/service";
 import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 import { clubEditSchema, type ClubEditField, type ClubEditFormValues } from "./club-edit.schema";
 import { buildClubEditPayload } from "./club-edit-payload";
 
@@ -97,8 +98,7 @@ export async function submitClubEditAction({
             });
         }
 
-        revalidateTag("club");
-        revalidateTag(`club-${normalizedClubId}`);
+        revalidateTags(clubTagGroups.detail(normalizedClubId));
 
         return actionSuccess({
             data: iconUrl !== undefined ? { iconUrl } : undefined,

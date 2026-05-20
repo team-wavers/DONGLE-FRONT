@@ -2,7 +2,12 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getClubReportListService, getClubService } from "@/lib/server/cached-services";
+import {
+    getClubPublicScheduleListService,
+    getClubReportListService,
+    getClubService,
+} from "@/lib/server/cached-services";
+import { getClubScheduleGroups, mapClubScheduleToPublicSchedule } from "@/lib/club-schedule";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
 import { formatMobilePhoneNumber } from "@dongle/utils";
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
@@ -129,17 +134,25 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         notFound();
     }
 
-    const [clubResponse, reportsResponse] = await Promise.all([
+    const [clubResult, reportsResult, scheduleResult] = await Promise.allSettled([
         getClubService(clubIdNumber),
         getClubReportListService(clubIdNumber),
+        getClubPublicScheduleListService(clubIdNumber),
     ]);
 
+    if (clubResult.status === "rejected") {
+        notFound();
+    }
+
+    const clubResponse = clubResult.value;
     if (!clubResponse.isSuccess || !clubResponse.result) {
         notFound();
     }
 
     const club = clubResponse.result;
-    const reports = reportsResponse.isSuccess
+    const reportsResponse = reportsResult.status === "fulfilled" ? reportsResult.value : null;
+    const reportLoadFailed = !reportsResponse?.isSuccess;
+    const reports = reportsResponse?.isSuccess
         ? reportsResponse.result.map((report) => ({
               id: report.id,
               title: report.title,
@@ -147,6 +160,12 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
               image_urls: report.image_urls,
           }))
         : [];
+    const scheduleResponse = scheduleResult.status === "fulfilled" ? scheduleResult.value : [];
+    const scheduleLoadFailed = scheduleResult.status === "rejected";
+    const schedules = getClubScheduleGroups(
+        scheduleResponse.map(mapClubScheduleToPublicSchedule),
+        { clubId: clubIdNumber }
+    );
     const intro = {
         description: club.description,
         main_activities: club.main_activities,
@@ -215,7 +234,14 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
 
                     <ClubSocialLinks instagramUrl={instagramUrl} youtubeUrl={youtubeUrl} className="md:hidden" />
 
-                    <ClubDetailTabs club={intro} clubId={clubId} reports={reports} />
+                    <ClubDetailTabs
+                        club={intro}
+                        clubId={clubId}
+                        schedules={schedules}
+                        scheduleLoadFailed={scheduleLoadFailed}
+                        reports={reports}
+                        reportLoadFailed={reportLoadFailed}
+                    />
                 </div>
 
                 {hasSocialLinks && (

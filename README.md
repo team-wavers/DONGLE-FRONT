@@ -97,6 +97,10 @@ pnpm exec playwright install chromium
 - 관리자 활동보고서 작성은 `Tiptap` 기반 에디터를 사용합니다.
 - 리치 텍스트 읽기 렌더링은 `packages/rich-text` 공용 viewer를 사용합니다.
 
+## 제품 기획
+
+- 압축된 제품 기획 문서는 [docs/product](docs/product/README.md)에 정리합니다.
+
 ## 검증
 
 ```bash

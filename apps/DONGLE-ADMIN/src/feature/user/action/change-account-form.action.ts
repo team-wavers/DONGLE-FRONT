@@ -1,10 +1,11 @@
 "use server";
 
 import { patchUserService, getUserService } from "@dongle/service/user/user.service";
+import { userTagGroups } from "@dongle/service";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
 import { UpdateUserRequest } from "@dongle/types/user/user.d";
 import { getUserIdFromToken } from "@dongle/api/utils/jwt.util";
-import { revalidateTag } from "next/cache";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 import { loginService } from "@dongle/service/auth/auth.service";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 
@@ -123,8 +124,7 @@ export async function changeAccountFormAction(
         await patchUserService(Number(userId), updateData);
 
         // 사용자 정보 캐시 초기화
-        revalidateTag("user");
-        revalidateTag(`user-${userId}`);
+        revalidateTags(userTagGroups.detail(userId));
 
         return {
             success: true,

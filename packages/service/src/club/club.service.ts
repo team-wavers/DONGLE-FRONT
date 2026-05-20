@@ -10,51 +10,51 @@ import {
 } from "@dongle/types/club/club.response";
 import FetchInstance from "@dongle/api/instance";
 import { Response } from "@dongle/types/response";
+import type { FetchOptions } from "@dongle/api/fetch-types";
+import { clubTagGroups, PUBLIC_REVALIDATE_SECONDS } from "../cache-tags";
 
 const instance = FetchInstance.getInstance();
 
-export const getClubListService = async (): Promise<ClubListResponse> => {
-    const response = await instance.get(`/clubs`, {
+export type ServiceFetchPolicy = "public" | "admin";
+
+function getFetchOptions(tags: string[], policy: ServiceFetchPolicy = "public"): FetchOptions {
+    if (policy === "admin") {
+        return {
+            cache: "no-store",
+        };
+    }
+
+    return {
+        cache: "force-cache",
         next: {
-            tags: ["club"],
+            tags,
+            revalidate: PUBLIC_REVALIDATE_SECONDS,
         },
-    });
+    };
+}
+
+export const getClubListService = async (policy: ServiceFetchPolicy = "public"): Promise<ClubListResponse> => {
+    const response = await instance.get(`/clubs`, getFetchOptions(clubTagGroups.list(), policy));
     return response as ClubListResponse;
 };
 
-export const getClubService = async (id: number): Promise<ClubResponse> => {
-    const response = await instance.get(`/clubs/${id}`, {
-        next: {
-            tags: ["club", `club-${id}`],
-        },
-    });
+export const getClubService = async (id: number, policy: ServiceFetchPolicy = "public"): Promise<ClubResponse> => {
+    const response = await instance.get(`/clubs/${id}`, getFetchOptions(clubTagGroups.detail(id), policy));
     return response as ClubResponse;
 };
 
 export const createClubService = async (club: CreateClubRequest): Promise<ClubCreateResponse> => {
-    const response = await instance.post(`/clubs`, club, {
-        next: {
-            tags: ["club"],
-        },
-    });
+    const response = await instance.post(`/clubs`, club);
     return response as ClubCreateResponse;
 };
 
 export const updateClubService = async (id: number, club: UpdateClubRequest): Promise<ClubUpdateResponse> => {
-    const response = await instance.put(`/clubs/${id}`, club, {
-        next: {
-            tags: ["club", `club-${id}`],
-        },
-    });
+    const response = await instance.put(`/clubs/${id}`, club);
     return response as ClubUpdateResponse;
 };
 
 export const deleteClubService = async (id: number): Promise<ClubDeleteResponse> => {
-    const response = await instance.delete(`/clubs/${id}`, {
-        next: {
-            tags: ["club", `club-${id}`],
-        },
-    });
+    const response = await instance.delete(`/clubs/${id}`);
     return response as ClubDeleteResponse;
 };
 

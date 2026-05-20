@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
-import { applyServerFieldErrors } from "@/shared/form";
+import { applyServerFieldErrors } from "@/shared/form/server-errors";
 import { submitActivityReportCreateAction, submitActivityReportUpdateAction } from "./activity-report.action";
 import type { ActivityReportFormValues } from "./activity-report.schema";
 

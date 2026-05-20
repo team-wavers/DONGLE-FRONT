@@ -1,9 +1,10 @@
 "use server";
 
 import { deleteClubReportService } from "@dongle/service/club/club.report.service";
-import { revalidateTag } from "next/cache";
+import { reportTagGroups } from "@dongle/service";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 
 /** 활동 보고서 삭제 서버 액션 */
 export async function deleteReportAction(
@@ -22,8 +23,7 @@ export async function deleteReportAction(
             };
         }
 
-        revalidateTag("report");
-        revalidateTag(`report-${clubId}`);
+        revalidateTags(reportTagGroups.item(clubId, reportId));
 
         return { success: true };
     } catch (error) {

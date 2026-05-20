@@ -39,9 +39,8 @@ async function ClubListSection() {
 function ClubListFallback() {
     return (
         <div className="grid gap-4">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-52 w-full" />
         </div>
     );
 }

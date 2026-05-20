@@ -23,9 +23,8 @@ function UserListFallback() {
                 <Skeleton className="mt-2 h-5 w-44" />
             </div>
             <div className="grid gap-4">
-                <Skeleton className="h-36 w-full" />
-                <Skeleton className="h-36 w-full" />
-                <Skeleton className="h-36 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-64 w-full" />
             </div>
         </>
     );

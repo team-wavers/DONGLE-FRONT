@@ -70,7 +70,7 @@ export default function FilterableUserList({ users }: FilterableUserListProps) {
     }
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between gap-4">
                 <div className="text-sm text-gray-600">
                     총 <span className="font-semibold text-blue-600">{users.length}</span>
@@ -91,7 +91,15 @@ export default function FilterableUserList({ users }: FilterableUserListProps) {
                     <p>검색 결과가 없습니다.</p>
                 </div>
             ) : (
-                <div className="grid gap-4">
+                <div className="overflow-hidden rounded-lg border bg-white">
+                    <div className="hidden grid-cols-[minmax(0,1.3fr)_100px_minmax(130px,0.75fr)_150px_120px_170px] gap-4 border-b bg-zinc-50 px-5 py-3 text-xs font-semibold text-muted-foreground lg:grid">
+                        <span>사용자</span>
+                        <span>역할</span>
+                        <span>로그인 ID</span>
+                        <span>연락처</span>
+                        <span>가입일</span>
+                        <span className="text-right">관리</span>
+                    </div>
                     {filteredUsers.map((user) => (
                         <UserCard key={user.id} user={user} />
                     ))}

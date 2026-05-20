@@ -10,9 +10,9 @@ import {
     getUserService as getUserServiceBase,
 } from "@dongle/service";
 
-export const getClubListService = cache(getClubListServiceBase);
-export const getClubService = cache(getClubServiceBase);
-export const getClubReportListService = cache(getClubReportListServiceBase);
+export const getClubListService = cache(() => getClubListServiceBase("admin"));
+export const getClubService = cache((clubId: number) => getClubServiceBase(clubId, "admin"));
+export const getClubReportListService = cache((clubId: number) => getClubReportListServiceBase(clubId, "admin"));
 export const getUserListService = cache(getUserListServiceBase);
 export const getUserService = cache(getUserServiceBase);
 export const getAdminMainBannerListService = cache(getAdminMainBannerListServiceBase);

@@ -16,18 +16,18 @@ function ClubSidebarFallback() {
     return (
         <div className="hidden md:flex fixed inset-y-0 left-0 z-10 h-svh w-3xs border-r bg-white">
             <div className="flex w-full flex-col">
-                <div className="border-b border-border p-4 py-8 h-32 flex flex-col justify-center">
+                <div className="border-b border-border px-4 py-5 min-h-24 flex flex-col justify-center">
                     <Skeleton className="h-8 w-32" />
                     <Skeleton className="mt-2 h-5 w-12" />
                 </div>
-                <div className="flex-1 p-4 pt-8">
+                <div className="flex-1 p-4 pt-4">
                     <div className="space-y-4">
                         <Skeleton className="h-8 w-full" />
                         <Skeleton className="h-8 w-full" />
                         <Skeleton className="h-8 w-full" />
                     </div>
                 </div>
-                <div className="border-t border-border p-4 py-8">
+                <div className="border-t border-border px-4 py-5">
                     <Skeleton className="h-8 w-full" />
                 </div>
             </div>
@@ -54,9 +54,11 @@ export default async function ClubLayout({
             <Suspense fallback={<ClubSidebarFallback />}>
                 <ClubSidebarAsync clubId={clubId} />
             </Suspense>
-            <SidebarInset className="flex flex-col justify-start items-center min-h-screen w-full gap-8">
+            <SidebarInset className="flex flex-col justify-start items-center min-h-screen w-full gap-6">
                 <SidebarCloseOnNavigate />
-                <div className="flex justify-center items-start max-w-5xl w-full md:py-24 py-16 px-8">{children}</div>
+                <div className="flex justify-center items-start max-w-7xl w-full px-6 py-6 md:px-8 md:py-10">
+                    {children}
+                </div>
             </SidebarInset>
         </>
     );

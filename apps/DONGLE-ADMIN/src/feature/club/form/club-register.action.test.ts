@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { createClubService, updateClubService, uploadClubIconService } from "@dongle/service/club/club.service";
 import { createUserService } from "@dongle/service/user/user.service";
+import { revalidateTag } from "next/cache";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import { submitClubRegisterAction } from "./club-register.action";
 import type { ClubRegisterFormValues } from "./club-register.schema";
@@ -13,6 +14,10 @@ vi.mock("@dongle/service/club/club.service", () => ({
 
 vi.mock("@dongle/service/user/user.service", () => ({
     createUserService: vi.fn(),
+}));
+
+vi.mock("next/cache", () => ({
+    revalidateTag: vi.fn(),
 }));
 
 vi.mock("@/shared/action/server-action-auth", () => ({
@@ -76,5 +81,9 @@ describe("submitClubRegisterAction", () => {
         expect(updateClubService).toHaveBeenCalledWith(11, {
             icon_url: "https://cdn.test/icon.png",
         });
+        expect(revalidateTag).toHaveBeenCalledWith("user");
+        expect(revalidateTag).toHaveBeenCalledWith("user-7");
+        expect(revalidateTag).toHaveBeenCalledWith("club");
+        expect(revalidateTag).toHaveBeenCalledWith("club-11");
     });
 });

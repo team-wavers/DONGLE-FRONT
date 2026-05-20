@@ -5,10 +5,11 @@ import {
     updateMainBannerService,
     uploadMainBannerImageService,
 } from "@dongle/service/main-banner/main-banner.service";
-import { revalidateTag } from "next/cache";
+import { mainBannerTagGroups } from "@dongle/service";
 import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 import {
     buildMainBannerPayload,
     mainBannerSchema,
@@ -82,7 +83,7 @@ export async function submitMainBannerCreateAction(values: MainBannerFormValues)
             });
         }
 
-        revalidateTag("main-banner");
+        revalidateTags(mainBannerTagGroups.list());
         return actionSuccess({
             message: "배너가 등록되었습니다.",
             redirectTo: "/admin/banner",
@@ -140,8 +141,7 @@ export async function submitMainBannerUpdateAction({
             });
         }
 
-        revalidateTag("main-banner");
-        revalidateTag(`main-banner-${bannerId}`);
+        revalidateTags(mainBannerTagGroups.detail(bannerId));
         return actionSuccess({
             message: "배너가 수정되었습니다.",
             redirectTo: "/admin/banner",

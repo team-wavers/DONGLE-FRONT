@@ -31,11 +31,9 @@ function getDevelopmentFallbackBanners(banners: MainBanner[]) {
 
 function BannerPageActions() {
     return (
-        <div className="flex justify-end mb-4">
-            <Link href="/admin/banner/create">
-                <Button className="h-11 px-6 text-base font-semibold">신규등록</Button>
-            </Link>
-        </div>
+        <Button asChild className="h-10 px-5 font-semibold">
+            <Link href="/admin/banner/create">신규등록</Link>
+        </Button>
     );
 }
 
@@ -87,19 +85,21 @@ async function BannerListSection() {
 function BannerListFallback() {
     return (
         <div className="grid gap-4">
-            <Skeleton className="h-40 w-full" />
-            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-72 w-full" />
+            <Skeleton className="h-72 w-full" />
         </div>
     );
 }
 
 export default function BannerManagementPage() {
     return (
-        <>
-            <BannerPageActions />
+        <div className="flex w-full flex-col gap-4">
+            <div className="flex justify-end">
+                <BannerPageActions />
+            </div>
             <Suspense fallback={<BannerListFallback />}>
                 <BannerListSection />
             </Suspense>
-        </>
+        </div>
     );
 }

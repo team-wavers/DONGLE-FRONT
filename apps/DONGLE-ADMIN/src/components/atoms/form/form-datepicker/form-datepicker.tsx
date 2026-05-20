@@ -8,8 +8,9 @@ import { Button } from "@dongle/ui/button";
 import { Calendar } from "@dongle/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@dongle/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@dongle/ui/select";
-import { useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Label } from "@dongle/ui/label";
+import { cn } from "@dongle/ui/utils";
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
 const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, "0"));
@@ -26,6 +27,7 @@ interface FormDatePickerProps {
     defaultValue?: Date;
     value?: Date;
     includeTime?: boolean;
+    triggerClassName?: string;
     onSelect?: (date: Date | undefined) => void;
 }
 
@@ -63,7 +65,7 @@ function getDisplayValue(date: Date | undefined, includeTime: boolean) {
     return format(date, includeTime ? "PPP HH:mm" : "PPP", { locale: ko });
 }
 
-export function FormDatePicker({
+export const FormDatePicker = memo(function FormDatePicker({
     label,
     id,
     name,
@@ -75,33 +77,59 @@ export function FormDatePicker({
     defaultValue,
     value,
     includeTime = false,
+    triggerClassName,
     onSelect,
 }: FormDatePickerProps) {
-    const [date, setDate] = useState<Date | undefined>(value || defaultValue);
+    const isControlled = value !== undefined;
+    const [date, setDate] = useState<Date | undefined>(value ?? defaultValue);
+    const selectedDate = isControlled ? value : date;
 
     useEffect(() => {
-        setDate(value || defaultValue);
-    }, [defaultValue, value]);
+        if (!isControlled) {
+            setDate(defaultValue);
+        }
+    }, [defaultValue, isControlled]);
 
-    const handleDateSelect = (selectedDate: Date | undefined) => {
-        const nextDate =
-            selectedDate && includeTime && date ? mergeDateWithTime(selectedDate, format(date, "HH:mm")) : selectedDate;
+    const hiddenValue = useMemo(() => getHiddenValue(selectedDate, includeTime), [includeTime, selectedDate]);
+    const displayValue = useMemo(() => getDisplayValue(selectedDate, includeTime), [includeTime, selectedDate]);
+    const selectedHour = useMemo(() => (selectedDate ? format(selectedDate, "HH") : undefined), [selectedDate]);
+    const selectedMinute = useMemo(() => (selectedDate ? format(selectedDate, "mm") : undefined), [selectedDate]);
 
-        setDate(nextDate);
-        onSelect?.(nextDate);
-    };
+    const commitDate = useCallback(
+        (nextDate: Date | undefined) => {
+            if (!isControlled) {
+                setDate(nextDate);
+            }
 
-    const handleTimePartChange = (part: "hour" | "minute", nextValue: string) => {
-        if (!date) return;
+            onSelect?.(nextDate);
+        },
+        [isControlled, onSelect]
+    );
 
-        const nextDate = mergeDateWithTimePart(date, part, nextValue);
-        setDate(nextDate);
-        onSelect?.(nextDate);
-    };
+    const handleDateSelect = useCallback(
+        (nextSelectedDate: Date | undefined) => {
+            const nextDate =
+                nextSelectedDate && includeTime && selectedDate
+                    ? mergeDateWithTime(nextSelectedDate, format(selectedDate, "HH:mm"))
+                    : nextSelectedDate;
+
+            commitDate(nextDate);
+        },
+        [commitDate, includeTime, selectedDate]
+    );
+
+    const handleTimePartChange = useCallback(
+        (part: "hour" | "minute", nextValue: string) => {
+            if (!selectedDate) return;
+
+            commitDate(mergeDateWithTimePart(selectedDate, part, nextValue));
+        },
+        [commitDate, selectedDate]
+    );
 
     return (
         <div className="flex flex-col gap-2">
-            <input type="hidden" name={name ?? id} value={getHiddenValue(date, includeTime)} />
+            <input type="hidden" name={name ?? id} value={hiddenValue} />
             {label && (
                 <Label htmlFor={id} className="font-semibold text-zinc-700 text-base">
                     {icon && <span className="mr-2 inline-flex">{icon}</span>}
@@ -114,10 +142,13 @@ export function FormDatePicker({
                     <Button
                         type="button"
                         variant="outline"
-                        data-empty={!date}
-                        className="data-[empty=true]:text-muted-foreground w-[280px] justify-start text-left font-normal">
+                        data-empty={!selectedDate}
+                        className={cn(
+                            "w-[280px] justify-start text-left font-normal data-[empty=true]:text-muted-foreground",
+                            triggerClassName
+                        )}>
                         <CalendarIcon />
-                        <span>{getDisplayValue(date, includeTime)}</span>
+                        <span>{displayValue}</span>
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -126,7 +157,7 @@ export function FormDatePicker({
                         id={id}
                         mode="single"
                         buttonVariant="outline"
-                        selected={date}
+                        selected={selectedDate}
                         locale={ko}
                         onSelect={handleDateSelect}
                     />
@@ -137,9 +168,9 @@ export function FormDatePicker({
                             </Label>
                             <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                                 <Select
-                                    value={date ? format(date, "HH") : undefined}
+                                    value={selectedHour}
                                     onValueChange={(nextValue) => handleTimePartChange("hour", nextValue)}
-                                    disabled={!date}>
+                                    disabled={!selectedDate}>
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="시" />
                                     </SelectTrigger>
@@ -153,9 +184,9 @@ export function FormDatePicker({
                                 </Select>
                                 <span className="text-sm text-zinc-500">:</span>
                                 <Select
-                                    value={date ? format(date, "mm") : undefined}
+                                    value={selectedMinute}
                                     onValueChange={(nextValue) => handleTimePartChange("minute", nextValue)}
-                                    disabled={!date}>
+                                    disabled={!selectedDate}>
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="분" />
                                     </SelectTrigger>
@@ -178,4 +209,4 @@ export function FormDatePicker({
             {success && <p className="text-sm text-sky-500">{success}</p>}
         </div>
     );
-}
+});

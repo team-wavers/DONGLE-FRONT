@@ -1,4 +1,4 @@
-import { Building2, Home, Image, UserPlus, Users } from "lucide-react";
+import { Building2, CalendarDays, Home, Image, UserPlus, Users } from "lucide-react";
 
 export const MENU_CONFIG = {
     home: {
@@ -20,6 +20,11 @@ export const MENU_CONFIG = {
         name: "배너 관리",
         href: "/admin/banner",
         icon: Image,
+    },
+    schedule: {
+        name: "일정 관리",
+        href: "/admin/schedule",
+        icon: CalendarDays,
     },
     user: {
         name: "사용자 관리",

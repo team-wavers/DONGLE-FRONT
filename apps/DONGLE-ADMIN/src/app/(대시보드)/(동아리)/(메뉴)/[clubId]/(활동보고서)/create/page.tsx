@@ -1,5 +1,4 @@
 import ActivityReportForm from "@/feature/report/components/activity-report-form/activity-report-form";
-import GoBackButton from "@/components/atoms/button/go-back-button/go-back-button";
 
 interface CreateReportPageProps {
     params: Promise<{
@@ -11,20 +10,13 @@ export default async function CreateReportPage({ params }: CreateReportPageProps
     const { clubId } = await params;
 
     return (
-        <div className="flex flex-col w-full items-center gap-4">
-            <div className="pt-12 justify-start w-full">
-                <GoBackButton fallbackHref={`/${clubId}/report`} />
-            </div>
-            <div className="w-full">
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold mb-2">활동보고서 작성</h1>
-                </div>
-                <ActivityReportForm
-                    clubId={clubId}
-                    successRedirectHref={`/${clubId}/report`}
-                    successMessage="활동 보고서가 성공적으로 등록되었습니다!"
-                />
-            </div>
-        </div>
+        <ActivityReportForm
+            clubId={clubId}
+            successRedirectHref={`/${clubId}/report`}
+            successMessage="활동 보고서가 성공적으로 등록되었습니다!"
+            backHref={`/${clubId}/report`}
+            headingTitle="활동보고서 작성"
+            headingDescription="동아리 활동 내용을 등록합니다."
+        />
     );
 }

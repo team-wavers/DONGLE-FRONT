@@ -2,7 +2,9 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@dongle/utils": ["../utils/src/index.ts"],
+      "@dongle/utils/*": ["../utils/src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
