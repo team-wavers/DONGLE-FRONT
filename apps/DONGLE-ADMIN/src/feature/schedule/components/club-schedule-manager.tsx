@@ -1,35 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { Button } from "@dongle/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@dongle/ui/card";
-import { Input } from "@dongle/ui/input";
-import { Label } from "@dongle/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@dongle/ui/select";
-import { FormTextarea } from "@/components/atoms/form/form-textarea/form-textarea";
+import { Card, CardContent } from "@dongle/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
 import { CalendarPlus, Pencil, Trash2 } from "lucide-react";
-import type { UpdateClubScheduleRequest } from "@dongle/types/club/club.schedule";
-import { formatDateTimeForInput } from "@dongle/utils";
+import { memo, useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { deleteClubScheduleAction } from "../action/schedule.action";
+import type { ClubSchedule } from "../schedule.types";
 import {
-    createClubScheduleAction,
-    deleteClubScheduleAction,
-    updateClubScheduleAction,
-} from "../action/schedule.action";
-import type { ClubSchedule, ScheduleType } from "../schedule.types";
-import { SCHEDULE_TYPE_LABELS } from "../schedule.types";
-import {
-    buildClubSchedulePayload,
-    formatScheduleDateTime,
+    formatScheduleDateTimeRange,
+    getScheduleDescriptionLabel,
+    getScheduleLocationLabel,
     mapClubScheduleToClubSchedule,
     sortSchedulesByStartAt,
 } from "../schedule.utils";
 import { ScheduleIsPublicBadge, ScheduleTypeBadge } from "./schedule-badges";
+import { ScheduleFormDialog } from "./schedule-form-dialog";
 
 interface ClubScheduleManagerProps {
     clubId: string;
@@ -38,28 +25,61 @@ interface ClubScheduleManagerProps {
 
 type StatusFilter = "all" | "public" | "private" | "upcoming" | "past";
 
-type ScheduleFormState = Pick<
-    ClubSchedule,
-    "title" | "type" | "startsAt" | "endsAt" | "location" | "description" | "isPublic" | "externalUrl"
->;
+interface ScheduleCardProps {
+    schedule: ClubSchedule;
+    isDeleting: boolean;
+    onEdit: (schedule: ClubSchedule) => void;
+    onDelete: (schedule: ClubSchedule) => void;
+}
 
-const emptyForm: ScheduleFormState = {
-    title: "",
-    type: "event",
-    startsAt: "",
-    endsAt: "",
-    location: "",
-    description: "",
-    isPublic: true,
-    externalUrl: "",
-};
+const statusFilterOptions = [
+    ["all", "전체"],
+    ["public", "공개"],
+    ["private", "비공개"],
+    ["upcoming", "다가오는 일정"],
+    ["past", "지난 일정"],
+] as const satisfies ReadonlyArray<readonly [StatusFilter, string]>;
+
+const ScheduleCard = memo(function ScheduleCard({ schedule, isDeleting, onEdit, onDelete }: ScheduleCardProps) {
+    return (
+        <Card className="rounded-lg">
+            <CardContent className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <ScheduleTypeBadge type={schedule.type} />
+                        <ScheduleIsPublicBadge isPublic={schedule.isPublic} />
+                    </div>
+                    <h2 className="mt-3 truncate text-lg font-bold">{schedule.title}</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                        {formatScheduleDateTimeRange(schedule.startsAt, schedule.endsAt)}
+                    </p>
+                    <p className="mt-1 text-sm text-zinc-600">{getScheduleLocationLabel(schedule.location)}</p>
+                    <p className="mt-3 line-clamp-2 text-sm leading-6 text-zinc-600">
+                        {getScheduleDescriptionLabel(schedule.description)}
+                    </p>
+                </div>
+                <div className="flex gap-2 md:flex-col">
+                    <Button variant="outline" onClick={() => onEdit(schedule)}>
+                        <Pencil className="h-4 w-4" />
+                        수정
+                    </Button>
+                    <Button variant="destructive" disabled={isDeleting} onClick={() => onDelete(schedule)}>
+                        <Trash2 className="h-4 w-4" />
+                        삭제
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+    );
+});
 
 export default function ClubScheduleManager({ clubId, initialSchedules }: ClubScheduleManagerProps) {
     const [schedules, setSchedules] = useState(initialSchedules);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-    const [editingId, setEditingId] = useState<number | null>(null);
-    const [form, setForm] = useState<ScheduleFormState>(emptyForm);
-    const [pendingAction, setPendingAction] = useState<"save" | "delete" | null>(null);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingSchedule, setEditingSchedule] = useState<ClubSchedule | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<ClubSchedule | null>(null);
+    const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
     const now = useMemo(() => new Date(), []);
     const clubIdNumber = Number(clubId);
@@ -79,86 +99,41 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
         return sortSchedulesByStartAt(filtered);
     }, [now, schedules, statusFilter]);
 
-    const updateForm = <K extends keyof ScheduleFormState>(key: K, value: ScheduleFormState[K]) => {
-        setForm((current) => ({ ...current, [key]: value }));
-    };
+    const startCreate = useCallback(() => {
+        setEditingSchedule(null);
+        setIsFormOpen(true);
+    }, []);
 
-    const startCreate = () => {
-        setEditingId(null);
-        setForm(emptyForm);
-    };
+    const startEdit = useCallback((schedule: ClubSchedule) => {
+        setEditingSchedule(schedule);
+        setIsFormOpen(true);
+    }, []);
 
-    const startEdit = (schedule: ClubSchedule) => {
-        setEditingId(schedule.id);
-        setForm({
-            title: schedule.title,
-            type: schedule.type,
-            startsAt: formatDateTimeForInput(schedule.startsAt),
-            endsAt: formatDateTimeForInput(schedule.endsAt),
-            location: schedule.location,
-            description: schedule.description,
-            isPublic: schedule.isPublic,
-            externalUrl: schedule.externalUrl ?? "",
-        });
-    };
-
-    const saveSchedule = async () => {
-        if (!form.title?.trim() || !form.startsAt || !form.endsAt) {
-            return;
-        }
-
-        const payload = buildClubSchedulePayload(form);
-
-        setPendingAction("save");
-
-        if (editingId) {
-            const result = await updateClubScheduleAction(clubIdNumber, editingId, payload as UpdateClubScheduleRequest);
-            setPendingAction(null);
-
-            if (!result.success || !result.result) {
-                window.alert(result.error ?? "일정 수정 중 오류가 발생했습니다. 다시 시도해주세요.");
-                return;
-            }
-
-            const updatedSchedule = mapClubScheduleToClubSchedule(result.result);
-            setSchedules((current) =>
-                current.map((schedule) => (schedule.id === updatedSchedule.id ? updatedSchedule : schedule))
-            );
-        } else {
-            const result = await createClubScheduleAction(clubIdNumber, payload);
-            setPendingAction(null);
-
-            if (!result.success || !result.result) {
-                window.alert(result.error ?? "일정 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
-                return;
-            }
-
-            const createdSchedule = mapClubScheduleToClubSchedule(result.result);
-            setSchedules((current) => [...current, createdSchedule]);
-        }
-
-        setEditingId(null);
-        setForm(emptyForm);
-    };
+    const closeForm = useCallback(() => {
+        setIsFormOpen(false);
+        setEditingSchedule(null);
+    }, []);
 
     const deleteSchedule = async (id: number) => {
-        setPendingAction("delete");
+        setPendingDeleteId(id);
         const result = await deleteClubScheduleAction(clubIdNumber, id);
-        setPendingAction(null);
+        setPendingDeleteId(null);
 
-        if (!result.success) {
-            window.alert(result.error ?? "일정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
+        if (!result.ok) {
+            window.alert(result.formError ?? "일정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
 
         setSchedules((current) => current.filter((schedule) => schedule.id !== id));
-        if (editingId === id) {
-            startCreate();
+        toast.success(result.message ?? "일정이 삭제되었습니다.");
+        setDeleteTarget(null);
+        if (editingSchedule?.id === id) {
+            closeForm();
         }
     };
 
     return (
-        <div className="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
+        <div className="grid w-full gap-6">
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
@@ -174,15 +149,7 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    {(
-                        [
-                            ["all", "전체"],
-                            ["public", "공개"],
-                            ["private", "비공개"],
-                            ["upcoming", "다가오는 일정"],
-                            ["past", "지난 일정"],
-                        ] as [StatusFilter, string][]
-                    ).map(([value, label]) => (
+                    {statusFilterOptions.map(([value, label]) => (
                         <Button
                             key={value}
                             type="button"
@@ -201,163 +168,83 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
                         </div>
                     ) : (
                         filteredSchedules.map((schedule) => (
-                            <Card key={schedule.id} className="rounded-lg">
-                                <CardContent className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-                                    <div className="min-w-0">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <ScheduleTypeBadge type={schedule.type} />
-                                            <ScheduleIsPublicBadge isPublic={schedule.isPublic} />
-                                        </div>
-                                        <h2 className="mt-3 truncate text-lg font-bold">{schedule.title}</h2>
-                                        <p className="mt-2 text-sm text-muted-foreground">
-                                            {formatScheduleDateTime(schedule.startsAt)} -{" "}
-                                            {formatScheduleDateTime(schedule.endsAt)}
-                                        </p>
-                                        <p className="mt-1 text-sm text-zinc-600">{schedule.location || "장소 미정"}</p>
-                                        <p className="mt-3 line-clamp-2 text-sm leading-6 text-zinc-600">
-                                            {schedule.description || "설명이 없습니다."}
-                                        </p>
-                                    </div>
-                                    <div className="flex gap-2 md:flex-col">
-                                        <Button variant="outline" size="sm" onClick={() => startEdit(schedule)}>
-                                            <Pencil className="h-4 w-4" />
-                                            수정
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={pendingAction === "delete"}
-                                            onClick={() => deleteSchedule(schedule.id)}>
-                                            <Trash2 className="h-4 w-4" />
-                                            삭제
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <ScheduleCard
+                                key={schedule.id}
+                                schedule={schedule}
+                                isDeleting={pendingDeleteId === schedule.id}
+                                onEdit={startEdit}
+                                onDelete={setDeleteTarget}
+                            />
                         ))
                     )}
                 </div>
             </div>
 
-            <Card className="rounded-lg">
-                <CardHeader>
-                    <CardTitle className="text-lg">{editingId ? "일정 수정" : "일정 등록"}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="schedule-title">일정 제목 *</Label>
-                        <Input
-                            id="schedule-title"
-                            value={form.title}
-                            onChange={(event) => updateForm("title", event.target.value)}
-                            placeholder="신입 부원 오리엔테이션"
-                            className="h-11 rounded-xl"
-                        />
-                    </div>
+            <ScheduleFormDialog
+                clubId={clubIdNumber}
+                open={isFormOpen}
+                schedule={editingSchedule}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        closeForm();
+                        return;
+                    }
 
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
-                        <div className="flex flex-col gap-2">
-                            <Label>일정 유형 *</Label>
-                            <Select value={form.type} onValueChange={(value) => updateForm("type", value as ScheduleType)}>
-                                <SelectTrigger className="h-11 w-full rounded-xl bg-white">
-                                    <SelectValue placeholder="유형 선택" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.entries(SCHEDULE_TYPE_LABELS).map(([value, label]) => (
-                                        <SelectItem key={value} value={value}>
-                                            {label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                    setIsFormOpen(true);
+                }}
+                onSuccess={(schedule) => {
+                    const nextSchedule = mapClubScheduleToClubSchedule(schedule, editingSchedule ?? undefined);
+                    setSchedules((current) => {
+                        if (editingSchedule) {
+                            return current.map((item) => (item.id === nextSchedule.id ? nextSchedule : item));
+                        }
 
-                        <div className="flex flex-col gap-2">
-                            <Label>공개 여부 *</Label>
-                            <Select
-                                value={form.isPublic ? "true" : "false"}
-                                onValueChange={(value) => updateForm("isPublic", value === "true")}>
-                                <SelectTrigger className="h-11 w-full rounded-xl bg-white">
-                                    <SelectValue placeholder="공개 여부" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="true">공개</SelectItem>
-                                    <SelectItem value="false">비공개</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
+                        return [...current, nextSchedule];
+                    });
+                    closeForm();
+                }}
+            />
 
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
-                        <div className="flex flex-col gap-2">
-                            <Label htmlFor="schedule-starts-at">시작일시 *</Label>
-                            <Input
-                                id="schedule-starts-at"
-                                type="datetime-local"
-                                value={form.startsAt}
-                                onChange={(event) => updateForm("startsAt", event.target.value)}
-                                className="h-11 rounded-xl"
-                            />
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <Label htmlFor="schedule-ends-at">종료일시 *</Label>
-                            <Input
-                                id="schedule-ends-at"
-                                type="datetime-local"
-                                value={form.endsAt}
-                                onChange={(event) => updateForm("endsAt", event.target.value)}
-                                className="h-11 rounded-xl"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="schedule-location">장소</Label>
-                        <Input
-                            id="schedule-location"
-                            value={form.location}
-                            onChange={(event) => updateForm("location", event.target.value)}
-                            placeholder="학생회관 302호"
-                            className="h-11 rounded-xl"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="schedule-description">설명</Label>
-                        <FormTextarea
-                            id="schedule-description"
-                            value={form.description}
-                            onChange={(event) => updateForm("description", event.target.value)}
-                            placeholder="사용자에게 보여줄 일정 설명을 입력하세요."
-                            className="min-h-28 rounded-xl"
-                            rows={4}
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="schedule-external-url">외부 링크</Label>
-                        <Input
-                            id="schedule-external-url"
-                            value={form.externalUrl}
-                            onChange={(event) => updateForm("externalUrl", event.target.value)}
-                            placeholder="https://example.com"
-                            className="h-11 rounded-xl"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                        <Button type="button" variant="outline" onClick={startCreate}>
+            <Dialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open && pendingDeleteId !== deleteTarget?.id) {
+                        setDeleteTarget(null);
+                    }
+                }}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>일정 삭제 확인</DialogTitle>
+                        <DialogDescription>
+                            <strong>{deleteTarget?.title}</strong> 일정을 정말 삭제하시겠습니까?
+                            <br />
+                            <span className="mt-2 block text-sm text-red-600">이 작업은 되돌릴 수 없습니다.</span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="lg"
+                            onClick={() => setDeleteTarget(null)}
+                            disabled={pendingDeleteId === deleteTarget?.id}>
                             취소
                         </Button>
                         <Button
                             type="button"
-                            onClick={saveSchedule}
-                            disabled={!form.title.trim() || !form.startsAt || !form.endsAt || pendingAction === "save"}>
-                            {pendingAction === "save" ? "저장 중" : editingId ? "수정" : "등록"}
+                            variant="destructive"
+                            size="lg"
+                            onClick={() => {
+                                if (deleteTarget) {
+                                    void deleteSchedule(deleteTarget.id);
+                                }
+                            }}
+                            disabled={!deleteTarget || pendingDeleteId === deleteTarget.id}>
+                            {deleteTarget && pendingDeleteId === deleteTarget.id ? "삭제 중" : "삭제"}
                         </Button>
-                    </div>
-                </CardContent>
-            </Card>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

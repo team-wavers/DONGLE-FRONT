@@ -1,12 +1,19 @@
 "use client";
 
-import { Controller, useFormContext, type FieldValues, type Path } from "react-hook-form";
+import { useCallback, useMemo } from "react";
+import {
+    Controller,
+    useFormContext,
+    type ControllerRenderProps,
+    type FieldValues,
+    type Path,
+} from "react-hook-form";
 import { FormField, type FormFieldProps } from "@/components/atoms/form/form-field/form-field";
 import { FormSelect, type SelectOption } from "@/components/atoms/form/form-select/form-select";
 import { RichTextEditor, type RichTextEditorProps } from "@/components/atoms/form/rich-text-editor/rich-text-editor";
 import { FormDatePicker } from "@/components/atoms/form/form-datepicker/form-datepicker";
 import { FileUpload, type FileUploadProps } from "@/components/atoms/form/file-upload/file-upload";
-import { formatDatePickerValue } from "./date-picker-value";
+import { formatDatePickerValue, parseDatePickerValue } from "./date-picker-value";
 
 type BaseFieldProps<TValues extends FieldValues> = {
     name: Path<TValues>;
@@ -70,6 +77,36 @@ interface RHFDatePickerProps<TValues extends FieldValues> extends BaseFieldProps
     includeTime?: boolean;
 }
 
+interface RHFDatePickerControlProps<TValues extends FieldValues> {
+    field: ControllerRenderProps<TValues, Path<TValues>>;
+    pickerProps: RHFDatePickerProps<TValues>;
+    error?: string;
+}
+
+function RHFDatePickerControl<TValues extends FieldValues>({
+    field,
+    pickerProps,
+    error,
+}: RHFDatePickerControlProps<TValues>) {
+    const dateValue = useMemo(() => parseDatePickerValue(field.value), [field.value]);
+    const handleSelect = useCallback(
+        (date: Date | undefined) => {
+            field.onChange(formatDatePickerValue(date, { includeTime: pickerProps.includeTime }));
+        },
+        [field.onChange, pickerProps.includeTime]
+    );
+
+    return (
+        <FormDatePicker
+            {...pickerProps}
+            name={field.name}
+            value={dateValue}
+            onSelect={handleSelect}
+            error={error}
+        />
+    );
+}
+
 export function RHFDatePicker<TValues extends FieldValues>({
     name,
     ...props
@@ -85,11 +122,9 @@ export function RHFDatePicker<TValues extends FieldValues>({
             control={control}
             name={name}
             render={({ field }) => (
-                <FormDatePicker
-                    {...props}
-                    name={field.name}
-                    value={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) => field.onChange(formatDatePickerValue(date, { includeTime: props.includeTime }))}
+                <RHFDatePickerControl
+                    field={field}
+                    pickerProps={{ ...props, name }}
                     error={typeof error === "string" ? error : undefined}
                 />
             )}

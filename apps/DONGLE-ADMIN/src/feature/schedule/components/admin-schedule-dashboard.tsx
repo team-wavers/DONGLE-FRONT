@@ -102,12 +102,17 @@ export default function AdminScheduleDashboard({
         const result = await getAdminClubScheduleCalendarAction(getMonthScheduleQuery(monthDate));
         setIsMonthPending(false);
 
-        if (!result.success || !result.result) {
-            window.alert(result.error ?? "월간 일정 조회 중 오류가 발생했습니다. 다시 시도해주세요.");
+        if (!result.ok) {
+            window.alert(result.formError ?? "월간 일정 조회 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
 
-        setSchedules(result.result.map(mapAdminClubScheduleToClubSchedule));
+        if (!result.data) {
+            window.alert("월간 일정 조회 중 오류가 발생했습니다. 다시 시도해주세요.");
+            return;
+        }
+
+        setSchedules(result.data.map(mapAdminClubScheduleToClubSchedule));
     };
 
     const moveMonth = (amount: number) => {
@@ -123,12 +128,17 @@ export default function AdminScheduleDashboard({
         const result = await updateAdminClubScheduleStatusAction(schedule.id, !schedule.isPublic);
         setPendingScheduleId(null);
 
-        if (!result.success || !result.result) {
-            window.alert(result.error ?? "공개 상태 변경 중 오류가 발생했습니다. 다시 시도해주세요.");
+        if (!result.ok) {
+            window.alert(result.formError ?? "공개 상태 변경 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
 
-        const updatedSchedule = mapAdminClubScheduleToClubSchedule(result.result);
+        if (!result.data) {
+            window.alert("공개 상태 변경 중 오류가 발생했습니다. 다시 시도해주세요.");
+            return;
+        }
+
+        const updatedSchedule = mapAdminClubScheduleToClubSchedule(result.data);
         setSchedules((current) =>
             current.map((currentSchedule) =>
                 currentSchedule.id === updatedSchedule.id ? updatedSchedule : currentSchedule
@@ -141,8 +151,8 @@ export default function AdminScheduleDashboard({
         const result = await deleteAdminClubScheduleAction(schedule.id);
         setPendingScheduleId(null);
 
-        if (!result.success) {
-            window.alert(result.error ?? "일정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
+        if (!result.ok) {
+            window.alert(result.formError ?? "일정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
 

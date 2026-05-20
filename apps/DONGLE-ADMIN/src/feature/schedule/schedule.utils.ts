@@ -1,79 +1,20 @@
-import type {
-    AdminClubSchedule,
-    ClubSchedule as ApiClubSchedule,
-    CreateClubScheduleRequest,
-} from "@dongle/types/club/club.schedule";
+import type { AdminClubSchedule, ClubSchedule as ApiClubSchedule } from "@dongle/types/club/club.schedule";
 import {
     formatDateForRequest,
     formatDateTimeForInput,
-    formatDateTimeForRequest,
     getMonthDateTimeRange,
-    normalizeExternalUrl,
 } from "@dongle/utils";
 import type { ClubSchedule, ScheduleType } from "./schedule.types";
 
 const SCHEDULE_TIME_ZONE = "Asia/Seoul";
-const SCHEDULE_EXTERNAL_URL_ERROR = "외부 링크는 http 또는 https URL로 입력해주세요.";
+
+export { buildClubSchedulePayload, getScheduleExternalUrlError } from "./form/schedule-form.schema";
 
 export interface ScheduleFilters {
     keyword: string;
     category: string;
     type: "all" | ScheduleType;
     isPublic: "all" | boolean;
-}
-
-export interface ClubSchedulePayloadForm {
-    title: string | null | undefined;
-    type: ScheduleType;
-    startsAt: string;
-    endsAt: string;
-    location: string | null | undefined;
-    description: string | null | undefined;
-    isPublic: boolean;
-    externalUrl?: string | null | undefined;
-}
-
-function toSchedulePayloadText(value: string | null | undefined) {
-    return value?.trim() ?? "";
-}
-
-export function getScheduleExternalUrlError(value: string | null | undefined) {
-    const trimmedValue = value?.trim();
-
-    if (!trimmedValue) {
-        return null;
-    }
-
-    return normalizeExternalUrl(trimmedValue) ? null : SCHEDULE_EXTERNAL_URL_ERROR;
-}
-
-function getScheduleExternalUrlPayloadValue(value: string | null | undefined) {
-    const trimmedValue = value?.trim();
-
-    if (!trimmedValue) {
-        return "";
-    }
-
-    const normalizedUrl = normalizeExternalUrl(trimmedValue);
-
-    if (!normalizedUrl) {
-        throw new Error(SCHEDULE_EXTERNAL_URL_ERROR);
-    }
-
-    return normalizedUrl;
-}
-
-export function buildClubSchedulePayload(form: ClubSchedulePayloadForm): CreateClubScheduleRequest {
-    return {
-        title: toSchedulePayloadText(form.title),
-        type: form.type,
-        start_at: formatDateTimeForRequest(form.startsAt),
-        end_at: formatDateTimeForRequest(form.endsAt),
-        is_public: form.isPublic,
-        location: toSchedulePayloadText(form.location),
-        description: toSchedulePayloadText(form.description),
-        external_url: getScheduleExternalUrlPayloadValue(form.externalUrl),
-    };
 }
 
 export function getMonthCalendarDates(year: number, monthIndex: number) {

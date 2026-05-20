@@ -191,8 +191,24 @@
 - 목록 메타 문자열은 빈 값을 제외하고 구분자를 조합해야 한다.
 - 회장 일정 외부 링크는 입력값이 있으면 http 또는 https 외부 URL로 검증해야 한다.
 
+### 회장 일정 폼
+
+- 일정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
+- 일정 제목, 시작일시, 종료일시는 필수다.
+- 종료일시는 시작일시보다 늦어야 한다.
+- 외부 링크는 입력값이 있으면 http 또는 https 외부 URL로 검증해야 한다.
+- 일정 저장 payload는 화면 폼 값을 trim 정규화하고 API 필드명으로 변환해야 한다.
+
+### 일정 action result
+
+- 일정 생성, 수정, 삭제, 관리자 공개 상태 변경, 관리자 월간 조회 action은 공통 `ActionResult` 형태로 성공/실패를 표현해야 한다.
+- 일정 생성/수정 action은 스키마 검증 실패 시 field error와 form error를 반환해야 한다.
+- 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+
 관련 테스트:
 - [schedule.utils.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/schedule.utils.test.ts)
+- [schedule-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/form/schedule-form.schema.test.ts)
+- [schedule.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/action/schedule.action.test.ts)
 
 ## Club Schedule Service
 
