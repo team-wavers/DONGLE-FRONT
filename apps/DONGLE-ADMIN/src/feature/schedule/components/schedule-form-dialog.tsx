@@ -2,10 +2,14 @@
 
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
 import { FormTextarea } from "@/components/atoms/form/form-textarea/form-textarea";
-import { FormRoot, RHFDatePicker, RHFSelectField, RHFTextField } from "@/shared/form";
+import { AdminFormActions } from "@/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { FormRoot } from "@/shared/form/form-root";
+import { RHFDatePicker } from "@/shared/form/rhf-date-picker";
+import { RHFSelectField } from "@/shared/form/rhf-select-field";
+import { RHFTextField } from "@/shared/form/rhf-text-field";
 import type { ClubSchedule as ApiClubSchedule } from "@dongle/types/club/club.schedule";
 import { Button } from "@dongle/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
 import { Label } from "@dongle/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@dongle/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -177,14 +181,14 @@ export function ScheduleFormDialog({ clubId, open, schedule, onOpenChange, onSuc
                         />
                     </div>
 
-                    <DialogFooter className="sticky bottom-0 gap-2 border-t bg-white px-6 py-4">
+                    <AdminFormActions className="sticky bottom-0 px-6 py-4">
                         <Button type="button" size="lg" variant="outline" onClick={() => handleOpenChange(false)}>
                             취소
                         </Button>
                         <LoadingButton size="lg" type="submit" loading={isSubmitting} loadingText="저장 중">
                             {schedule ? "수정" : "등록"}
                         </LoadingButton>
-                    </DialogFooter>
+                    </AdminFormActions>
                 </FormRoot>
             </DialogContent>
         </Dialog>

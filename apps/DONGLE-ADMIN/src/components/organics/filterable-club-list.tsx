@@ -2,9 +2,9 @@
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users } from "lucide-react";
+import { ArrowRight, Building2, Users } from "lucide-react";
 import { Club } from "@dongle/types/club/club.d";
-import { ClubInfoCard } from "@dongle/ui/cards/club-info-card";
+import { Badge } from "@dongle/ui/badge";
 import SearchInput from "@/components/molecules/search-input/search-input";
 
 interface FilterableClubListProps {
@@ -63,10 +63,12 @@ export default function FilterableClubList({
     }
 
     return (
-        <div className="flex flex-col gap-8">
-            <div className="text-sm text-gray-600">
-                총 <span className="font-semibold text-blue-600">{clubs.length}</span>
-                개의 동아리
+        <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-gray-600">
+                    총 <span className="font-semibold text-blue-600">{clubs.length}</span>
+                    개의 동아리
+                </div>
             </div>
 
             <SearchInput value={inputValue} onChange={setInputValue} placeholder={searchPlaceholder} />
@@ -77,15 +79,37 @@ export default function FilterableClubList({
                     <p>{emptySearchMessage}</p>
                 </div>
             ) : (
-                <div className="grid gap-4">
+                <div className="overflow-hidden rounded-lg border bg-white">
                     {filteredClubs.map((club) => (
-                        <ClubInfoCard
+                        <button
                             key={club.id}
-                            name={club.name}
-                            category={club.category}
-                            isRecruiting={club.is_recruiting}
+                            type="button"
                             onClick={() => router.push(`/admin/club/${club.id}`)}
-                        />
+                            className="grid w-full cursor-pointer grid-cols-1 items-center gap-4 border-b px-5 py-4 text-left transition-colors last:border-b-0 hover:bg-zinc-50 md:grid-cols-[minmax(0,1fr)_140px_120px_40px]">
+                            <div className="flex min-w-0 items-center gap-3">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                                    <Building2 className="h-5 w-5" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="truncate text-base font-semibold text-zinc-900">{club.name}</p>
+                                    <p className="mt-1 text-xs text-muted-foreground md:hidden">{club.category}</p>
+                                </div>
+                            </div>
+                            <Badge variant="secondary" className="hidden w-fit font-semibold md:inline-flex">
+                                {club.category}
+                            </Badge>
+                            <Badge
+                                className={
+                                    club.is_recruiting
+                                        ? "w-fit border-emerald-200 bg-emerald-50 text-emerald-700"
+                                        : "w-fit border-zinc-200 bg-zinc-100 text-zinc-600"
+                                }>
+                                {club.is_recruiting ? "모집중" : "모집마감"}
+                            </Badge>
+                            <div className="hidden justify-self-end text-muted-foreground md:block">
+                                <ArrowRight className="h-5 w-5" />
+                            </div>
+                        </button>
                     ))}
                 </div>
             )}

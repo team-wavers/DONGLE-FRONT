@@ -21,8 +21,8 @@ export default function UrlGenerator() {
   };
 
   return (
-    <Card className="w-full max-w-2xl">
-      <CardHeader>
+    <Card className="w-full max-w-3xl">
+      <CardHeader className="gap-2">
         <CardTitle className="flex items-center gap-2">
           <Link className="w-5 h-5 text-primary" />
           동아리 등록 URL 발급
@@ -32,11 +32,11 @@ export default function UrlGenerator() {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-5">
         {/* URL 생성 버튼 */}
         <Button
           onClick={generateUrl}
-          className="w-full bg-primary hover:bg-primary/90"
+          className="h-12 w-full bg-primary text-base font-semibold hover:bg-primary/90"
           disabled={isPending}
         >
           {isPending ? (

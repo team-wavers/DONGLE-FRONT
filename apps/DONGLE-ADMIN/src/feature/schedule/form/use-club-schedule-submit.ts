@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import type { ClubSchedule as ApiClubSchedule } from "@dongle/types/club/club.schedule";
-import { applyServerFieldErrors } from "@/shared/form";
+import { applyServerFieldErrors } from "@/shared/form/server-errors";
 import { createClubScheduleAction, updateClubScheduleAction } from "../action/schedule.action";
 import type { ClubScheduleFormValues } from "./schedule-form.schema";
 

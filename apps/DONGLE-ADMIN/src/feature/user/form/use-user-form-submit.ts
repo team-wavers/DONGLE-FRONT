@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
-import { applyServerFieldErrors } from "@/shared/form";
+import { applyServerFieldErrors } from "@/shared/form/server-errors";
 import { submitUserCreateAction, submitUserEditAction } from "./user-form.action";
 import type { UserCreateFormValues, UserEditFormValues } from "./user-form.schema";
 

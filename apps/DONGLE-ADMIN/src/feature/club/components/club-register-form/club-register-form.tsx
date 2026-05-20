@@ -4,7 +4,12 @@ import { useClubRegisterForm } from "@/feature/club/form/use-club-register-form"
 import { RECRUITMENT_STATUS, RECRUITMENT_STATUS_LABEL } from "@/feature/club/constants/club.constants";
 import type { ClubRegisterFormValues } from "@/feature/club/form/club-register.schema";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
-import { FormRoot, RHFDatePicker, RHFFileUpload, RHFRichTextEditor, RHFSelectField, RHFTextField } from "@/shared/form";
+import { FormRoot } from "@/shared/form/form-root";
+import { RHFDatePicker } from "@/shared/form/rhf-date-picker";
+import { RHFFileUpload } from "@/shared/form/rhf-file-upload";
+import { RHFRichTextEditor } from "@/shared/form/rhf-rich-text-editor";
+import { RHFSelectField } from "@/shared/form/rhf-select-field";
+import { RHFTextField } from "@/shared/form/rhf-text-field";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@dongle/ui/card";
 import { Calendar, Mail, Tag, Users } from "lucide-react";
 

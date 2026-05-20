@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
-import { applyServerFieldErrors } from "@/shared/form";
+import { applyServerFieldErrors } from "@/shared/form/server-errors";
 import { submitClubEditAction } from "./club-edit.action";
 import { createClubEditSavedValues, type ClubEditFormValues } from "./club-edit.schema";
 

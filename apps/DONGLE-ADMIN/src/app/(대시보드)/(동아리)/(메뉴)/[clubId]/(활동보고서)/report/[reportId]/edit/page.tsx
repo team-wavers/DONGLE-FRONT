@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { getClubReportService } from "@/lib/server/cached-services";
 import ActivityReportForm from "@/feature/report/components/activity-report-form/activity-report-form";
-import GoBackButton from "@/components/atoms/button/go-back-button/go-back-button";
 import { Skeleton } from "@dongle/ui/skeleton";
+import { AdminFormShell } from "@/components/molecules/layout/admin-form-layout/admin-form-layout";
 
 async function EditReportContent({ clubId, reportId }: { clubId: string; reportId: string }) {
     const { result, isSuccess } = await getClubReportService(Number(clubId), Number(reportId));
@@ -16,39 +16,28 @@ async function EditReportContent({ clubId, reportId }: { clubId: string; reportI
     }
 
     return (
-        <div className="flex flex-col gap-4 w-full">
-            <div className="mb-4">
-                <GoBackButton fallbackHref={`/${clubId}/report/${reportId}`} />
-            </div>
-
-            <div className="max-w-4xl w-full">
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold mb-2">활동보고서 수정</h1>
-                </div>
-
-                <ActivityReportForm
-                    title={result.title}
-                    content={result.content}
-                    clubId={clubId}
-                    images={result.image_urls}
-                    reportId={reportId}
-                    successRedirectHref={`/${clubId}/report/${reportId}`}
-                    successMessage="활동 보고서가 성공적으로 수정되었습니다!"
-                />
-            </div>
-        </div>
+        <ActivityReportForm
+            title={result.title}
+            content={result.content}
+            clubId={clubId}
+            images={result.image_urls}
+            reportId={reportId}
+            successRedirectHref={`/${clubId}/report/${reportId}`}
+            successMessage="활동 보고서가 성공적으로 수정되었습니다!"
+            backHref={`/${clubId}/report/${reportId}`}
+            headingTitle="활동보고서 수정"
+            headingDescription="등록된 활동보고서 내용을 수정합니다."
+        />
     );
 }
 
 function EditReportFallback() {
     return (
-        <div className="flex flex-col gap-4 w-full">
+        <AdminFormShell>
             <Skeleton className="h-10 w-24" />
-            <div className="max-w-4xl w-full space-y-6">
-                <Skeleton className="h-10 w-40" />
-                <Skeleton className="h-[34rem] w-full rounded-2xl" />
-            </div>
-        </div>
+            <Skeleton className="h-10 w-40" />
+            <Skeleton className="h-[34rem] w-full rounded-2xl" />
+        </AdminFormShell>
     );
 }
 

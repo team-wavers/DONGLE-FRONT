@@ -13,12 +13,12 @@ async function AdminClubDetailHeader({ clubId }: { clubId: string }) {
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center">
-                <Link href="/admin/club">
-                    <Button variant="outline" size="sm">
+                <Button asChild variant="outline" size="sm">
+                    <Link href="/admin/club">
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         목록으로
-                    </Button>
-                </Link>
+                    </Link>
+                </Button>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -60,7 +60,7 @@ export default async function AdminClubDetailLayout({
                 <AdminClubDetailHeader clubId={clubId} />
             </Suspense>
             <AdminClubDetailTabs clubId={clubId} />
-            <div className="flex w-full justify-start py-2">{children}</div>
+            <div className="flex w-full justify-center py-2">{children}</div>
         </div>
     );
 }

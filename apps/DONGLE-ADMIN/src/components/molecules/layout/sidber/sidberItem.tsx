@@ -1,6 +1,6 @@
 "use client";
 
-import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
+import { Button } from "@dongle/ui/button";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -22,10 +22,10 @@ export default function SidberItem({ children, href }: { children: React.ReactNo
     })();
 
     return (
-        <Link href={href} className="flex items-center gap-2 cursor-pointer w-full">
-            <LoadingButton variant={isActive ? "default" : "ghost"} className="w-full">
+        <Button asChild variant={isActive ? "default" : "ghost"} className="w-full font-bold">
+            <Link href={href} className="flex items-center gap-2 cursor-pointer w-full">
                 {children}
-            </LoadingButton>
-        </Link>
+            </Link>
+        </Button>
     );
 }

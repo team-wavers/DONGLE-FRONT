@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
+import { AdminFormActions } from "@/components/molecules/layout/admin-form-layout/admin-form-layout";
 import type { MainBanner } from "@dongle/types/main-banner/main-banner";
 import MainBannerDeleteButton from "./main-banner-delete-button";
 import MainBannerForm from "./main-banner-form";
@@ -32,7 +33,7 @@ export default function MainBannerEditSection({ banner }: MainBannerEditSectionP
                 onLoadingChange={handleLoadingChange}
             />
 
-            <div className="grid grid-cols-2 gap-3 pt-2">
+            <AdminFormActions className="mx-auto w-full max-w-4xl">
                 <MainBannerDeleteButton bannerId={banner.id} />
                 <LoadingButton
                     type="submit"
@@ -42,7 +43,7 @@ export default function MainBannerEditSection({ banner }: MainBannerEditSectionP
                     className="w-full">
                     수정
                 </LoadingButton>
-            </div>
+            </AdminFormActions>
         </div>
     );
 }

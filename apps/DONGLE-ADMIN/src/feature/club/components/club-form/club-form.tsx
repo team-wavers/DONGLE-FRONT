@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { Club } from "@dongle/types/club/club.d";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@dongle/ui/card";
 import { Calendar, Mail, Tag } from "lucide-react";
 import { RECRUITMENT_STATUS, RECRUITMENT_STATUS_LABEL } from "@/feature/club/constants/club.constants";
 import {
@@ -25,7 +24,17 @@ import { useClubPresidentSubmit } from "@/feature/club/form/use-club-president-s
 import ClubDeleteButton from "../club-delete-button";
 import { ClubPresidentEditForm } from "./club-president-edit-form";
 import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
-import { FormRoot, RHFDatePicker, RHFFileUpload, RHFRichTextEditor, RHFSelectField, RHFTextField } from "@/shared/form";
+import {
+    AdminFormActions,
+    AdminFormSection,
+    AdminFormShell,
+} from "@/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { FormRoot } from "@/shared/form/form-root";
+import { RHFDatePicker } from "@/shared/form/rhf-date-picker";
+import { RHFFileUpload } from "@/shared/form/rhf-file-upload";
+import { RHFRichTextEditor } from "@/shared/form/rhf-rich-text-editor";
+import { RHFSelectField } from "@/shared/form/rhf-select-field";
+import { RHFTextField } from "@/shared/form/rhf-text-field";
 import { useSessionStorageDraft } from "@/hooks/use-session-storage-draft";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 
@@ -206,7 +215,7 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
     }, [clearPresidentDraft, didSubmitPresident]);
 
     return (
-        <div className="flex w-full max-w-full min-w-2xs flex-col gap-6">
+        <AdminFormShell>
             <FormRoot
                 form={mainForm}
                 onSubmit={onMainSubmit}
@@ -220,15 +229,10 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
                     </div>
                 ) : null}
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <Tag className="w-5 h-5 text-primary" />
-                            동아리 정보
-                        </CardTitle>
-                        <CardDescription>동아리의 기본적인 정보를 입력해주세요</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                <AdminFormSection
+                    title="동아리 정보"
+                    description="동아리의 기본 정보를 관리합니다."
+                    icon={<Tag className="h-5 w-5 text-primary" />}>
                         {/* 동아리 이름 */}
                         <RHFTextField<ClubEditFormValues>
                             id="clubName"
@@ -293,18 +297,12 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
                             selectionMode="replace"
                             presentation="club-icon"
                         />
-                    </CardContent>
-                </Card>
+                </AdminFormSection>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <Tag className="w-5 h-5 text-primary" />
-                            동아리 소개
-                        </CardTitle>
-                        <CardDescription>동아리에 대한 자세한 설명을 입력해주세요</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                <AdminFormSection
+                    title="동아리 소개"
+                    description="사용자에게 노출되는 소개와 주요 활동을 관리합니다."
+                    icon={<Tag className="h-5 w-5 text-primary" />}>
                         {/* 동아리 설명 */}
                         <RHFRichTextEditor<ClubEditFormValues>
                             id="description"
@@ -335,18 +333,12 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
                             placeholder="태그를 입력하세요 (예: 개발, 디자인)"
                             description="여러 태그는 쉼표(,)로 구분해주세요"
                         />
-                    </CardContent>
-                </Card>
+                </AdminFormSection>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Calendar className="w-5 h-5 text-primary" />
-                            활동 정보
-                        </CardTitle>
-                        <CardDescription>동아리 활동 관련 정보입니다</CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                <AdminFormSection
+                    title="활동 정보"
+                    description="모집 기간 등 활동 관련 정보를 관리합니다."
+                    icon={<Calendar className="h-5 w-5 text-primary" />}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* 모집 시작일 */}
                             <RHFDatePicker<ClubEditFormValues>
@@ -362,18 +354,12 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
                                 label="모집 마감일"
                             />
                         </div>
-                    </CardContent>
-                </Card>
+                </AdminFormSection>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Mail className="w-5 h-5 text-primary" />
-                            연락처 정보
-                        </CardTitle>
-                        <CardDescription>동아리 연락처 정보를 입력해주세요</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                <AdminFormSection
+                    title="연락처 정보"
+                    description="동아리 SNS와 연락 채널 정보를 관리합니다."
+                    icon={<Mail className="h-5 w-5 text-primary" />}>
                         <div className="space-y-4">
                             <label className="text-base font-medium">SNS</label>
                             <div className="space-y-3">
@@ -396,15 +382,14 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
                                 />
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
+                </AdminFormSection>
 
-                <div className="flex justify-end gap-2 pt-4 items-center">
+                <AdminFormActions>
                     {club ? <ClubDeleteButton clubId={Number(clubId)} clubName={club.name} /> : null}
                     <LoadingButton type="submit" loading={isMainPending} loadingText="수정 중..." className="min-w-32">
                         동아리 정보 수정
                     </LoadingButton>
-                </div>
+                </AdminFormActions>
             </FormRoot>
 
             <ClubPresidentEditForm
@@ -415,6 +400,6 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
                 isPending={isPresidentPending}
                 didRestoreDraft={didRestorePresidentDraft}
             />
-        </div>
+        </AdminFormShell>
     );
 }
