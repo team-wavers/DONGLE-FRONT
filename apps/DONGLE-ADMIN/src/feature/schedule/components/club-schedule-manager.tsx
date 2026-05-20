@@ -1,22 +1,19 @@
 "use client";
 
 import { Button } from "@dongle/ui/button";
-import { Card, CardContent } from "@dongle/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
-import { CalendarPlus, Pencil, Trash2 } from "lucide-react";
-import { memo, useCallback, useMemo, useState } from "react";
+import { CalendarPlus } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { deleteClubScheduleAction } from "../action/schedule.action";
 import type { ClubSchedule } from "../schedule.types";
 import {
-    formatScheduleDateTimeRange,
-    getScheduleDescriptionLabel,
-    getScheduleLocationLabel,
+    groupSchedulesByMonth,
     mapClubScheduleToClubSchedule,
     sortSchedulesByStartAt,
 } from "../schedule.utils";
-import { ScheduleIsPublicBadge, ScheduleTypeBadge } from "./schedule-badges";
 import { ScheduleFormDialog } from "./schedule-form-dialog";
+import { ScheduleListItem } from "./schedule-list-item";
 
 interface ClubScheduleManagerProps {
     clubId: string;
@@ -25,13 +22,6 @@ interface ClubScheduleManagerProps {
 
 type StatusFilter = "all" | "public" | "private" | "upcoming" | "past";
 
-interface ScheduleCardProps {
-    schedule: ClubSchedule;
-    isDeleting: boolean;
-    onEdit: (schedule: ClubSchedule) => void;
-    onDelete: (schedule: ClubSchedule) => void;
-}
-
 const statusFilterOptions = [
     ["all", "전체"],
     ["public", "공개"],
@@ -39,39 +29,6 @@ const statusFilterOptions = [
     ["upcoming", "다가오는 일정"],
     ["past", "지난 일정"],
 ] as const satisfies ReadonlyArray<readonly [StatusFilter, string]>;
-
-const ScheduleCard = memo(function ScheduleCard({ schedule, isDeleting, onEdit, onDelete }: ScheduleCardProps) {
-    return (
-        <Card className="rounded-lg">
-            <CardContent className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-                <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <ScheduleTypeBadge type={schedule.type} />
-                        <ScheduleIsPublicBadge isPublic={schedule.isPublic} />
-                    </div>
-                    <h2 className="mt-3 truncate text-lg font-bold">{schedule.title}</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                        {formatScheduleDateTimeRange(schedule.startsAt, schedule.endsAt)}
-                    </p>
-                    <p className="mt-1 text-sm text-zinc-600">{getScheduleLocationLabel(schedule.location)}</p>
-                    <p className="mt-3 line-clamp-2 text-sm leading-6 text-zinc-600">
-                        {getScheduleDescriptionLabel(schedule.description)}
-                    </p>
-                </div>
-                <div className="flex gap-2 md:flex-col">
-                    <Button variant="outline" onClick={() => onEdit(schedule)}>
-                        <Pencil className="h-4 w-4" />
-                        수정
-                    </Button>
-                    <Button variant="destructive" disabled={isDeleting} onClick={() => onDelete(schedule)}>
-                        <Trash2 className="h-4 w-4" />
-                        삭제
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
-    );
-});
 
 export default function ClubScheduleManager({ clubId, initialSchedules }: ClubScheduleManagerProps) {
     const [schedules, setSchedules] = useState(initialSchedules);
@@ -98,6 +55,7 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
 
         return sortSchedulesByStartAt(filtered);
     }, [now, schedules, statusFilter]);
+    const scheduleGroups = useMemo(() => groupSchedulesByMonth(filteredSchedules), [filteredSchedules]);
 
     const startCreate = useCallback(() => {
         setEditingSchedule(null);
@@ -135,7 +93,7 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
     return (
         <div className="grid w-full gap-6">
             <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">일정 관리</h1>
                         <p className="mt-2 text-sm text-muted-foreground">
@@ -148,33 +106,41 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
                     </Button>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 border-b border-zinc-100 pb-3">
                     {statusFilterOptions.map(([value, label]) => (
                         <Button
                             key={value}
                             type="button"
                             variant={statusFilter === value ? "default" : "outline"}
                             onClick={() => setStatusFilter(value)}
-                            className="h-9 rounded-full">
+                            className="h-9 rounded-full px-4">
                             {label}
                         </Button>
                     ))}
                 </div>
 
-                <div className="grid gap-3">
+                <div className="overflow-hidden rounded-lg border bg-white">
                     {filteredSchedules.length === 0 ? (
-                        <div className="rounded-lg border border-dashed py-16 text-center text-sm text-muted-foreground">
+                        <div className="py-16 text-center text-sm text-muted-foreground">
                             조건에 맞는 일정이 없습니다.
                         </div>
                     ) : (
-                        filteredSchedules.map((schedule) => (
-                            <ScheduleCard
-                                key={schedule.id}
-                                schedule={schedule}
-                                isDeleting={pendingDeleteId === schedule.id}
-                                onEdit={startEdit}
-                                onDelete={setDeleteTarget}
-                            />
+                        scheduleGroups.map((group) => (
+                            <section key={group.key}>
+                                <div className="border-b border-zinc-100 bg-zinc-50 px-4 py-2 text-sm font-bold text-zinc-700">
+                                    {group.label}
+                                </div>
+                                {group.schedules.map((schedule) => (
+                                    <ScheduleListItem
+                                        key={schedule.id}
+                                        schedule={schedule}
+                                        isPending={pendingDeleteId === schedule.id}
+                                        onEdit={startEdit}
+                                        onDelete={setDeleteTarget}
+                                        metaItems={[]}
+                                    />
+                                ))}
+                            </section>
                         ))
                     )}
                 </div>

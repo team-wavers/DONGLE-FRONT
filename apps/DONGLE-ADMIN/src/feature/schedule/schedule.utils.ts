@@ -94,6 +94,45 @@ export function formatScheduleTime(value: string) {
     return `${hour}:${minute}`;
 }
 
+function getScheduleDateParts(value: string) {
+    if (!isValidScheduleDateTime(value)) {
+        return null;
+    }
+
+    const valueForInput = formatDateTimeForInput(value, { timeZone: SCHEDULE_TIME_ZONE });
+    const [datePart = "", timePart = ""] = valueForInput.split("T");
+    const [year = "", month = "", day = ""] = datePart.split("-");
+    const [hour = "", minute = ""] = timePart.split(":");
+    const weekday = new Intl.DateTimeFormat("ko-KR", {
+        weekday: "short",
+        timeZone: SCHEDULE_TIME_ZONE,
+    }).format(new Date(value));
+
+    return {
+        key: `${year}-${month}`,
+        month: `${Number(month)}월`,
+        monthLabel: `${year}년 ${Number(month)}월`,
+        day,
+        weekday,
+        date: `${year}.${month}.${day}`,
+        time: `${hour}:${minute}`,
+    };
+}
+
+export function formatScheduleDateBadge(value: string) {
+    const parts = getScheduleDateParts(value);
+
+    if (!parts) {
+        return { month: "-", day: "-", weekday: "-" };
+    }
+
+    return {
+        month: parts.month,
+        day: parts.day,
+        weekday: parts.weekday,
+    };
+}
+
 export function formatScheduleDateTimeRange(startAt: string, endAt: string) {
     const startDateTime = formatScheduleDateTime(startAt);
     const endDateTime = formatScheduleDateTime(endAt);
@@ -110,6 +149,44 @@ export function formatScheduleDateTimeRange(startAt: string, endAt: string) {
     }
 
     return `${startDateTime} - ${endDateTime}`;
+}
+
+export function formatScheduleDisplayRange(startAt: string, endAt: string) {
+    const start = getScheduleDateParts(startAt);
+    const end = getScheduleDateParts(endAt);
+
+    if (!start || !end) {
+        return { date: "-", time: "-" };
+    }
+
+    return {
+        date: start.date === end.date ? start.date : `${start.date} - ${end.date}`,
+        time: `${start.time} - ${end.time}`,
+    };
+}
+
+export function groupSchedulesByMonth(schedules: ClubSchedule[]) {
+    const groups = new Map<string, { key: string; label: string; schedules: ClubSchedule[] }>();
+
+    for (const schedule of sortSchedulesByStartAt(schedules)) {
+        const parts = getScheduleDateParts(schedule.startsAt);
+        const key = parts?.key ?? "invalid";
+        const label = parts?.monthLabel ?? "날짜 미정";
+        const current = groups.get(key);
+
+        if (current) {
+            current.schedules.push(schedule);
+            continue;
+        }
+
+        groups.set(key, {
+            key,
+            label,
+            schedules: [schedule],
+        });
+    }
+
+    return Array.from(groups.values());
 }
 
 export function getScheduleLocationLabel(location: string | null | undefined) {

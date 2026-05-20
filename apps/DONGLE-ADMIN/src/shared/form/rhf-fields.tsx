@@ -75,6 +75,7 @@ interface RHFDatePickerProps<TValues extends FieldValues> extends BaseFieldProps
     required?: boolean;
     description?: string;
     includeTime?: boolean;
+    triggerClassName?: string;
 }
 
 interface RHFDatePickerControlProps<TValues extends FieldValues> {

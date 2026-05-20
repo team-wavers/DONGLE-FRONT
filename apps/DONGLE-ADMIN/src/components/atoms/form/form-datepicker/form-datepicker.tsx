@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@dongle/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@dongle/ui/select";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Label } from "@dongle/ui/label";
+import { cn } from "@dongle/ui/utils";
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
 const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, "0"));
@@ -26,6 +27,7 @@ interface FormDatePickerProps {
     defaultValue?: Date;
     value?: Date;
     includeTime?: boolean;
+    triggerClassName?: string;
     onSelect?: (date: Date | undefined) => void;
 }
 
@@ -75,6 +77,7 @@ export const FormDatePicker = memo(function FormDatePicker({
     defaultValue,
     value,
     includeTime = false,
+    triggerClassName,
     onSelect,
 }: FormDatePickerProps) {
     const isControlled = value !== undefined;
@@ -140,7 +143,10 @@ export const FormDatePicker = memo(function FormDatePicker({
                         type="button"
                         variant="outline"
                         data-empty={!selectedDate}
-                        className="data-[empty=true]:text-muted-foreground w-[280px] justify-start text-left font-normal">
+                        className={cn(
+                            "w-[280px] justify-start text-left font-normal data-[empty=true]:text-muted-foreground",
+                            triggerClassName
+                        )}>
                         <CalendarIcon />
                         <span>{displayValue}</span>
                     </Button>

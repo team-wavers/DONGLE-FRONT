@@ -18,7 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@dongle/ui/select";
-import { ChevronLeft, ChevronRight, ExternalLink, MapPin, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
     deleteAdminClubScheduleAction,
@@ -29,18 +29,15 @@ import type { ClubSchedule, ScheduleType } from "../schedule.types";
 import { SCHEDULE_TYPE_LABELS } from "../schedule.types";
 import {
     filterSchedules,
-    formatScheduleDateTimeRange,
     getMonthCalendarDates,
     getMonthScheduleQuery,
     getSchedulesForDate,
-    getScheduleDescriptionLabel,
-    getScheduleLocationLabel,
-    getScheduleMetaText,
+    groupSchedulesByMonth,
     isSameCalendarDate,
     mapAdminClubScheduleToClubSchedule,
     sortSchedulesByStartAt,
 } from "../schedule.utils";
-import { ScheduleIsPublicBadge, ScheduleTypeBadge } from "./schedule-badges";
+import { ScheduleListItem } from "./schedule-list-item";
 
 interface AdminScheduleDashboardProps {
     schedules: ClubSchedule[];
@@ -96,6 +93,7 @@ export default function AdminScheduleDashboard({
         () => sortSchedulesByStartAt(getSchedulesForDate(filteredSchedules, selectedDate)),
         [filteredSchedules, selectedDate]
     );
+    const scheduleGroups = useMemo(() => groupSchedulesByMonth(filteredSchedules), [filteredSchedules]);
 
     const loadMonthSchedules = async (monthDate: Date) => {
         setIsMonthPending(true);
@@ -162,7 +160,7 @@ export default function AdminScheduleDashboard({
 
     return (
         <div className="flex w-full flex-col gap-6">
-            <Card className="rounded-lg">
+            <Card className="rounded-lg border-zinc-200 shadow-xs">
                 <CardContent className="flex flex-col gap-3">
                     <SearchInput value={keyword} onChange={setKeyword} placeholder="동아리명, 일정명, 장소 검색" />
                     <div className="grid gap-3 md:grid-cols-3">
@@ -211,7 +209,7 @@ export default function AdminScheduleDashboard({
             </Card>
 
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-                <Card className="rounded-lg">
+                <Card className="rounded-lg border-zinc-200 shadow-xs">
                     <CardHeader className="flex flex-row items-center justify-between gap-4">
                         <CardTitle className="text-xl">{monthLabelFormatter.format(visibleMonth)}</CardTitle>
                         <div className="flex items-center gap-2">
@@ -226,9 +224,9 @@ export default function AdminScheduleDashboard({
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-7 border-l border-t text-center text-sm font-semibold text-zinc-500">
+                        <div className="grid grid-cols-7 overflow-hidden rounded-lg border border-zinc-200 bg-white text-center text-sm font-semibold text-zinc-500">
                             {weekdayLabels.map((weekday) => (
-                                <div key={weekday} className="border-b border-r py-2">
+                                <div key={weekday} className="border-b border-r border-zinc-100 bg-zinc-50 py-2 last:border-r-0">
                                     {weekday}
                                 </div>
                             ))}
@@ -243,8 +241,8 @@ export default function AdminScheduleDashboard({
                                         type="button"
                                         onClick={() => setSelectedDate(date)}
                                         className={[
-                                            "min-h-24 border-b border-r bg-white p-2 text-left align-top transition-colors hover:bg-sky-50",
-                                            isSelected ? "ring-2 ring-inset ring-sky-500" : "",
+                                            "min-h-24 border-b border-r border-zinc-100 bg-white p-2 text-left align-top transition-colors hover:bg-sky-50/70",
+                                            isSelected ? "bg-sky-50 ring-2 ring-inset ring-sky-500" : "",
                                             isCurrentMonth ? "text-zinc-900" : "text-zinc-300",
                                         ].join(" ")}>
                                         <span className="text-sm font-semibold">{date.getDate()}</span>
@@ -269,7 +267,7 @@ export default function AdminScheduleDashboard({
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-lg">
+                <Card className="rounded-lg border-zinc-200 shadow-xs">
                     <CardHeader>
                         <CardTitle className="text-lg">
                             {selectedDate.getMonth() + 1}월 {selectedDate.getDate()}일 일정
@@ -282,89 +280,51 @@ export default function AdminScheduleDashboard({
                             </div>
                         ) : (
                             selectedSchedules.map((schedule) => (
-                                <div key={schedule.id} className="rounded-lg border p-4">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <ScheduleTypeBadge type={schedule.type} />
-                                        <ScheduleIsPublicBadge isPublic={schedule.isPublic} />
-                                    </div>
-                                    <h3 className="mt-3 text-base font-bold">{schedule.title}</h3>
-                                    <p className="mt-1 text-sm font-semibold text-zinc-700">{schedule.clubName}</p>
-                                    <p className="mt-2 text-sm text-muted-foreground">
-                                        {formatScheduleDateTimeRange(schedule.startsAt, schedule.endsAt)}
-                                    </p>
-                                    <p className="mt-2 flex items-center gap-1 text-sm text-zinc-600">
-                                        <MapPin className="h-4 w-4" />
-                                        {getScheduleLocationLabel(schedule.location)}
-                                    </p>
-                                    <p className="mt-3 text-sm leading-6 text-zinc-600">
-                                        {getScheduleDescriptionLabel(schedule.description)}
-                                    </p>
-                                    <div className="mt-4 flex flex-wrap gap-2">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={pendingScheduleId === schedule.id}
-                                            onClick={() => toggleScheduleVisibility(schedule)}>
-                                            {pendingScheduleId === schedule.id
-                                                ? "변경 중"
-                                                : schedule.isPublic
-                                                  ? "비공개로 전환"
-                                                  : "공개로 전환"}
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={pendingScheduleId === schedule.id}
-                                            onClick={() => setDeleteTarget(schedule)}>
-                                            <Trash2 className="h-4 w-4" />
-                                            삭제
-                                        </Button>
-                                        {schedule.externalUrl ? (
-                                            <Button variant="outline" size="sm" asChild>
-                                                <a href={schedule.externalUrl} target="_blank" rel="noreferrer">
-                                                    <ExternalLink className="h-4 w-4" />
-                                                    외부 링크 열기
-                                                </a>
-                                            </Button>
-                                        ) : null}
-                                    </div>
-                                </div>
+                                <ScheduleListItem
+                                    key={schedule.id}
+                                    schedule={schedule}
+                                    className="rounded-lg border"
+                                    isPending={pendingScheduleId === schedule.id}
+                                    onToggleVisibility={toggleScheduleVisibility}
+                                    onDelete={setDeleteTarget}
+                                    metaItems={[schedule.clubName, schedule.category]}
+                                />
                             ))
                         )}
                     </CardContent>
                 </Card>
             </div>
 
-            <Card className="rounded-lg">
+            <Card className="rounded-lg border-zinc-200 shadow-xs">
                 <CardHeader>
                     <CardTitle className="text-lg">월간 일정 목록</CardTitle>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-3">
-                    {filteredSchedules.map((schedule) => (
-                        <div
-                            key={schedule.id}
-                            className="grid gap-4 rounded-lg border p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-                            <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <ScheduleTypeBadge type={schedule.type} />
-                                    <ScheduleIsPublicBadge isPublic={schedule.isPublic} />
-                                </div>
-                                <h3 className="mt-3 truncate text-base font-bold">{schedule.title}</h3>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    {getScheduleMetaText([
-                                        schedule.clubName,
-                                        schedule.category,
-                                        getScheduleLocationLabel(schedule.location),
-                                    ])}
-                                </p>
-                            </div>
-                            <div className="text-sm font-semibold text-zinc-700 md:text-right">
-                                <p>{formatScheduleDateTimeRange(schedule.startsAt, schedule.endsAt)}</p>
-                            </div>
+                <CardContent>
+                    {filteredSchedules.length === 0 ? (
+                        <div className="rounded-lg border border-dashed py-12 text-center text-sm text-muted-foreground">
+                            조건에 맞는 일정이 없습니다.
                         </div>
-                    ))}
+                    ) : (
+                        <div className="overflow-hidden rounded-lg border bg-white">
+                            {scheduleGroups.map((group) => (
+                                <section key={group.key}>
+                                    <div className="border-b border-zinc-100 bg-zinc-50 px-4 py-2 text-sm font-bold text-zinc-700">
+                                        {group.label}
+                                    </div>
+                                    {group.schedules.map((schedule) => (
+                                        <ScheduleListItem
+                                            key={schedule.id}
+                                            schedule={schedule}
+                                            isPending={pendingScheduleId === schedule.id}
+                                            onToggleVisibility={toggleScheduleVisibility}
+                                            onDelete={setDeleteTarget}
+                                            metaItems={[schedule.clubName, schedule.category]}
+                                        />
+                                    ))}
+                                </section>
+                            ))}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
