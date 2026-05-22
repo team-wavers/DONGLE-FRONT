@@ -23,12 +23,12 @@ import { useClubEditSubmit } from "@/feature/club/form/use-club-edit-submit";
 import { useClubPresidentSubmit } from "@/feature/club/form/use-club-president-submit";
 import ClubDeleteButton from "../club-delete-button";
 import { ClubPresidentEditForm } from "./club-president-edit-form";
-import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
+import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
 import {
     AdminFormActions,
     AdminFormSection,
     AdminFormShell,
-} from "@/components/molecules/layout/admin-form-layout/admin-form-layout";
+} from "@/shared/components/molecules/layout/admin-form-layout/admin-form-layout";
 import { FormRoot } from "@/shared/form/form-root";
 import { RHFDatePicker } from "@/shared/form/rhf-date-picker";
 import { RHFFileUpload } from "@/shared/form/rhf-file-upload";

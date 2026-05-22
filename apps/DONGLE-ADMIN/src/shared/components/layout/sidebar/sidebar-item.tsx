@@ -4,7 +4,7 @@ import { Button } from "@dongle/ui/button";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
-export default function SidberItem({ children, href }: { children: React.ReactNode; href: string }) {
+export default function SidebarItem({ children, href }: { children: React.ReactNode; href: string }) {
     const pathname = usePathname();
 
     const isActive = (() => {

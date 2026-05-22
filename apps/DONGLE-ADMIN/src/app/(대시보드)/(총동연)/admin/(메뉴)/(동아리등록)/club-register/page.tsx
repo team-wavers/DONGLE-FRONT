@@ -1,6 +1,6 @@
-import UrlGenerator from "@/components/molecules/layout/url-generator/url-generator";
+import UrlGenerator from "@/feature/club/components/registration-url-generator/registration-url-generator";
 import { AlertCircle } from "lucide-react";
-import AdminPageHeader from "@/components/molecules/layout/admin-page-header/admin-page-header";
+import AdminPageHeader from "@/shared/components/molecules/layout/admin-page-header/admin-page-header";
 
 export default function ClubRegisterPage() {
     return (

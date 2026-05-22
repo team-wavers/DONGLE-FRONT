@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
 import { Toaster } from "@dongle/ui/toaster";
-import Footer from "@/components/molecules/layout/footer/footer";
-import { GlobalErrorHandler } from "@/components/providers/global-error-handler";
+import Footer from "@/shared/components/molecules/layout/footer/footer";
+import { GlobalErrorHandler } from "@/shared/components/providers/global-error-handler";
 
 const pretendard = localFont({
     src: "../assets/fonts/PretendardVariable.woff2",

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import ClubSideber from "@/components/molecules/layout/sidber/ClubSidber/ClubSideber";
-import SidebarCloseOnNavigate from "@/components/molecules/layout/sidber/sidebar-close-on-navigate";
+import ClubSidebar from "@/shared/components/layout/sidebar/club-sidebar";
+import SidebarCloseOnNavigate from "@/shared/components/layout/sidebar/sidebar-close-on-navigate";
 import { getClubService } from "@/lib/server/cached-services";
 import { Skeleton } from "@dongle/ui/skeleton";
 import { SidebarInset } from "@dongle/ui/sidebar";
@@ -9,7 +9,7 @@ import NotFound from "./not-found";
 async function ClubSidebarAsync({ clubId }: { clubId: string }) {
     const { result } = await getClubService(Number(clubId));
 
-    return <ClubSideber clubId={clubId} clubName={result?.name} />;
+    return <ClubSidebar clubId={clubId} clubName={result?.name} />;
 }
 
 function ClubSidebarFallback() {

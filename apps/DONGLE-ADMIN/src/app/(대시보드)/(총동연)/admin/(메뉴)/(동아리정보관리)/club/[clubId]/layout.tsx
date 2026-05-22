@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@dongle/ui/button";
 import { Skeleton } from "@dongle/ui/skeleton";
-import AdminClubDetailTabs from "@/components/molecules/layout/admin-club-detail-tabs/admin-club-detail-tabs";
+import AdminClubDetailTabs from "@/feature/club/components/club-detail-tabs/club-detail-tabs";
 import { getClubService } from "@/lib/server/cached-services";
 
 async function AdminClubDetailHeader({ clubId }: { clubId: string }) {

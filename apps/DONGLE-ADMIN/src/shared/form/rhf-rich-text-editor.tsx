@@ -1,7 +1,7 @@
 "use client";
 
 import { Controller, useFormContext, type FieldValues } from "react-hook-form";
-import { RichTextEditor, type RichTextEditorProps } from "@/components/atoms/form/rich-text-editor/rich-text-editor";
+import { RichTextEditor, type RichTextEditorProps } from "@/shared/components/atoms/form/rich-text-editor/rich-text-editor";
 import type { BaseFieldProps } from "./rhf-field-types";
 
 export function RHFRichTextEditor<TValues extends FieldValues>({

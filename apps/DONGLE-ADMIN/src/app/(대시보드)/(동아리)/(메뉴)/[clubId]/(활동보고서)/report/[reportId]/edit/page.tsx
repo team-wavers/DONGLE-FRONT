@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { getClubReportService } from "@/lib/server/cached-services";
 import ActivityReportForm from "@/feature/report/components/activity-report-form/activity-report-form";
 import { Skeleton } from "@dongle/ui/skeleton";
-import { AdminFormShell } from "@/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { AdminFormShell } from "@/shared/components/molecules/layout/admin-form-layout/admin-form-layout";
 
 async function EditReportContent({ clubId, reportId }: { clubId: string; reportId: string }) {
     const { result, isSuccess } = await getClubReportService(Number(clubId), Number(reportId));

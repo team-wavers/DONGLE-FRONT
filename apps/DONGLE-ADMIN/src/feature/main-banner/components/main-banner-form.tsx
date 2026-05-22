@@ -7,13 +7,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { MainBanner } from "@dongle/types/main-banner/main-banner";
 import { Label } from "@dongle/ui/label";
 import { RadioGroup, RadioGroupItem } from "@dongle/ui/radio-group";
-import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
+import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
 import {
     AdminBackAction,
     AdminFormActions,
     AdminFormSection,
     AdminFormShell,
-} from "@/components/molecules/layout/admin-form-layout/admin-form-layout";
+} from "@/shared/components/molecules/layout/admin-form-layout/admin-form-layout";
 import { FormRoot } from "@/shared/form/form-root";
 import { RHFDatePicker } from "@/shared/form/rhf-date-picker";
 import { RHFFileUpload } from "@/shared/form/rhf-file-upload";

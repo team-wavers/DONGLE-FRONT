@@ -1,4 +1,4 @@
-import AdminPageHeader from "@/components/molecules/layout/admin-page-header/admin-page-header";
+import AdminPageHeader from "@/shared/components/molecules/layout/admin-page-header/admin-page-header";
 
 export default function ClubFormLayout({ children }: { children: React.ReactNode }) {
     return (

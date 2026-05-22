@@ -5,8 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
-import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
-import { AdminFormActions } from "@/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
+import { AdminFormActions } from "@/shared/components/molecules/layout/admin-form-layout/admin-form-layout";
 import { FormRoot } from "@/shared/form/form-root";
 import { RHFTextField } from "@/shared/form/rhf-text-field";
 import {

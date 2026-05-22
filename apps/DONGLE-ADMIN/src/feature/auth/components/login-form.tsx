@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, Suspense } from "react";
-import { FormField } from "@/components/atoms/form/form-field/form-field";
-import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
+import { FormField } from "@/shared/components/atoms/form/form-field/form-field";
+import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
 import { toast } from "sonner";
 import { loginFormAction } from "@/feature/auth/action/login-form.action";
 import { normalizeInternalReturnTo } from "@/feature/auth/utils/normalize-internal-return-to";

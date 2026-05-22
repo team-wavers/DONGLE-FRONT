@@ -12,7 +12,7 @@
 
 | 영역 | 파일 | 검증 방식 | 비고 |
 | --- | --- | --- | --- |
-| admin club management | [filterable-club-list.test.ts](../../apps/DONGLE-ADMIN/src/components/organics/filterable-club-list.test.ts) | code-graded | 검색 필터 로직 |
+| admin club management | [filterable-club-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/components/filterable-club-list/filterable-club-list.test.ts) | code-graded | 검색 필터 로직 |
 | admin shared action | [action-result.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/action-result.test.ts), [zod-field-errors.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/zod-field-errors.test.ts) | code-graded | typed action result helper / zod field error mapper |
 | admin shared form | [date-picker-value.test.ts](../../apps/DONGLE-ADMIN/src/shared/form/date-picker-value.test.ts) | code-graded | date picker local date/datetime formatter |
 | club register form | [club-register.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-register.schema.test.ts), [club-register.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-register.action.test.ts) | code-graded | shared RHF/server action schema / 모집 상태 라벨 정규화 / create 후 icon upload 저장 |
