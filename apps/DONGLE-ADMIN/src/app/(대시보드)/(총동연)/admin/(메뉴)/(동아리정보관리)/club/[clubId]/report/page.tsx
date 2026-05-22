@@ -3,7 +3,7 @@ import ReportCard from "@/feature/report/components/report-card/report-card";
 import { getClubReportListService } from "@/lib/server/cached-services";
 import { ClubReport } from "@dongle/types/club/club.report.d";
 import { Skeleton } from "@dongle/ui/skeleton";
-import { AdminFormShell } from "@/shared/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { AdminFormShell } from "@/shared/layout/form-page/admin-form-layout";
 
 async function AdminClubReportList({ clubId }: { clubId: string }) {
     const { result, isSuccess } = await getClubReportListService(Number(clubId));

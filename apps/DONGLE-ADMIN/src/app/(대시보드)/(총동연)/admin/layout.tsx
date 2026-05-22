@@ -1,5 +1,5 @@
-import AdminSidebar from "@/shared/components/layout/sidebar/admin-sidebar";
-import SidebarCloseOnNavigate from "@/shared/components/layout/sidebar/sidebar-close-on-navigate";
+import AdminSidebar from "@/shared/layout/sidebar/admin-sidebar";
+import SidebarCloseOnNavigate from "@/shared/layout/sidebar/sidebar-close-on-navigate";
 import { SidebarInset } from "@dongle/ui/sidebar";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {

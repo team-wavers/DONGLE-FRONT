@@ -6,8 +6,8 @@ import { useForm } from "react-hook-form";
 import type { User } from "@dongle/types/user/user.d";
 import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
-import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
-import { AdminFormActions } from "@/shared/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
+import { AdminFormActions } from "@/shared/layout/form-page/admin-form-layout";
 import { FormRoot } from "@/shared/form/form-root";
 import { RHFTextField } from "@/shared/form/rhf-text-field";
 import {

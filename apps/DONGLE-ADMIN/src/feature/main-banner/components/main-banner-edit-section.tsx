@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
-import { AdminFormActions } from "@/shared/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
+import { AdminFormActions } from "@/shared/layout/form-page/admin-form-layout";
 import type { MainBanner } from "@dongle/types/main-banner/main-banner";
 import MainBannerDeleteButton from "./main-banner-delete-button";
 import MainBannerForm from "./main-banner-form";

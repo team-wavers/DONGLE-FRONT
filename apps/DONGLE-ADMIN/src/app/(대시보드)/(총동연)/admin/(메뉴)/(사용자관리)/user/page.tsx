@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { getUserListService } from "@/lib/server/cached-services";
 import { Skeleton } from "@dongle/ui/skeleton";
 import FilterableUserList from "@/feature/user/components/filterable-user-list";
-import AdminPageHeader from "@/shared/components/molecules/layout/admin-page-header/admin-page-header";
+import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
 
 async function UserListSection() {
     const userListResponse = await getUserListService();

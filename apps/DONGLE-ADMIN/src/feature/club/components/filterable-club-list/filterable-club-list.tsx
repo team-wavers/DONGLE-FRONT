@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Building2, Users } from "lucide-react";
 import { Club } from "@dongle/types/club/club.d";
 import { Badge } from "@dongle/ui/badge";
-import SearchInput from "@/shared/components/molecules/search-input/search-input";
+import SearchInput from "@/shared/ui/navigation/search-input/search-input";
 
 interface FilterableClubListProps {
     clubs: Club[];

@@ -1,7 +1,7 @@
 "use client";
 
 import { Controller, useFormContext, type FieldValues, type Path } from "react-hook-form";
-import { FileUpload, type FileUploadProps } from "@/shared/components/atoms/form/file-upload/file-upload";
+import { FileUpload, type FileUploadProps } from "@/shared/ui/form/file-upload/file-upload";
 
 type RHFFileUploadProps<TValues extends FieldValues> = Omit<
     FileUploadProps,

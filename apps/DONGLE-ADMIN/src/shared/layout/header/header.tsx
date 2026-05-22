@@ -1,4 +1,4 @@
-import Logo from "@/shared/components/atoms/logo/logo";
+import Logo from "@/shared/ui/navigation/logo/logo";
 import { AppHeader } from "@dongle/ui/headers/app-header";
 import HeaderSidebarTrigger from "./header-sidebar-trigger";
 

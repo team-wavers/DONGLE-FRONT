@@ -4,7 +4,7 @@ import { logoutAction } from "@/feature/auth/action/logout-form.action";
 import { LogOutIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useTransition } from "react";
-import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 import { useRouter } from "next/navigation";
 
 interface LogoutButtonProps {

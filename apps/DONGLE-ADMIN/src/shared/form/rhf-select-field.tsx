@@ -1,7 +1,7 @@
 "use client";
 
 import { Controller, useFormContext, type FieldValues } from "react-hook-form";
-import { FormSelect, type SelectOption } from "@/shared/components/atoms/form/form-select/form-select";
+import { FormSelect, type SelectOption } from "@/shared/ui/form/form-select/form-select";
 import type { BaseFieldProps } from "./rhf-field-types";
 
 interface RHFSelectFieldProps<TValues extends FieldValues> extends BaseFieldProps<TValues> {
