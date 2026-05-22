@@ -6,7 +6,7 @@ import { Button } from "@dongle/ui/button";
 import { Pencil } from "lucide-react";
 import { ClubReport } from "@dongle/types/club/club.report.d";
 import { Skeleton } from "@dongle/ui/skeleton";
-import { AdminFormShell } from "@/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { AdminFormShell } from "@/shared/components/molecules/layout/admin-form-layout/admin-form-layout";
 
 async function ClubReportListContent({ clubId }: { clubId: string }) {
     // 서버에서 데이터 가져오기

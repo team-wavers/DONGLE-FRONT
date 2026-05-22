@@ -1,6 +1,6 @@
 "use client";
 
-import SearchInput from "@/components/molecules/search-input/search-input";
+import SearchInput from "@/shared/components/molecules/search-input/search-input";
 import { Button } from "@dongle/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@dongle/ui/card";
 import {

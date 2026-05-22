@@ -1,11 +1,11 @@
 import { MENU_CONFIG } from "./AdminSidebar.config";
 import { SidebarMenuButton, SidebarMenuItem } from "@dongle/ui/sidebar";
-import SidberItem from "../sidberItem";
+import SidebarItem from "../sidebar-item";
 import LogoutButton from "@/feature/auth/components/logout-button";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
 import SidebarLayout from "../sidebar-layout";
 
-export default async function AdminSidber() {
+export default async function AdminSidebar() {
     const accessToken = await getAccessTokenFromServerCookie();
 
     const header = (
@@ -20,10 +20,10 @@ export default async function AdminSidber() {
     const menu = Object.values(MENU_CONFIG).map((item) => (
         <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-                <SidberItem href={item.href}>
+                <SidebarItem href={item.href}>
                     {item.icon && <item.icon className="w-4 h-4" />}
                     {item.name}
-                </SidberItem>
+                </SidebarItem>
             </SidebarMenuButton>
         </SidebarMenuItem>
     ));

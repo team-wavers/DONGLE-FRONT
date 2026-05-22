@@ -4,7 +4,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import type { User } from "@dongle/types/user/user.d";
 import { Card, CardContent } from "@dongle/ui/card";
 import { User as UserIcon } from "lucide-react";
-import SearchInput from "@/components/molecules/search-input/search-input";
+import SearchInput from "@/shared/components/molecules/search-input/search-input";
 import UserCard from "@/feature/user/components/user-card";
 import UserCreateButton from "@/feature/user/components/user-create-button";
 

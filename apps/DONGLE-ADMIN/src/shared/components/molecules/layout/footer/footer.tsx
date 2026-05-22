@@ -1,4 +1,4 @@
-import Logo from "@/components/atoms/logo/logo";
+import Logo from "@/shared/components/atoms/logo/logo";
 import Link from "next/link";
 
 export default function Footer() {

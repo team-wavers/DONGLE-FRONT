@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
 import { SidebarProvider } from "@dongle/ui/sidebar";
 import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
-import AdminSidber from "./AdminSideber";
+import AdminSidebar from "./AdminSidebar";
 
-const meta: Meta<typeof AdminSidber> = {
-    title: "layout/dashboard/AdminSidber",
-    component: AdminSidber,
+const meta: Meta<typeof AdminSidebar> = {
+    title: "layout/dashboard/AdminSidebar",
+    component: AdminSidebar,
     parameters: {
         layout: "fullscreen", // 사이드바는 전체 화면에서 보는 것이 좋습니다
     },
@@ -36,7 +36,7 @@ export const ClubManager: Story = {
     },
     render: () => (
         <SidebarProvider>
-            <AdminSidber />
+            <AdminSidebar />
         </SidebarProvider>
     ),
 };
@@ -55,7 +55,7 @@ export const SystemAdmin: Story = {
     },
     render: () => (
         <SidebarProvider>
-            <AdminSidber />
+            <AdminSidebar />
         </SidebarProvider>
     ),
 };

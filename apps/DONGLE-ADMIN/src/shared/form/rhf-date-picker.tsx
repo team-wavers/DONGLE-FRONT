@@ -8,7 +8,7 @@ import {
     type FieldValues,
     type Path,
 } from "react-hook-form";
-import { FormDatePicker } from "@/components/atoms/form/form-datepicker/form-datepicker";
+import { FormDatePicker } from "@/shared/components/atoms/form/form-datepicker/form-datepicker";
 import { formatDatePickerValue, parseDatePickerValue } from "./date-picker-value";
 import type { BaseFieldProps } from "./rhf-field-types";
 

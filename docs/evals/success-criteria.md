@@ -17,7 +17,7 @@
 - 검색 결과는 일관된 deterministic 로직으로 계산된다.
 
 관련 테스트:
-- [filterable-club-list.test.ts](../../apps/DONGLE-ADMIN/src/components/organics/filterable-club-list.test.ts)
+- [filterable-club-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/components/filterable-club-list/filterable-club-list.test.ts)
 
 ## Club Form
 

@@ -1,4 +1,4 @@
-import Header from "@/components/molecules/layout/header/header";
+import Header from "@/shared/components/molecules/layout/header/header";
 import { SidebarProvider } from "@dongle/ui/sidebar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

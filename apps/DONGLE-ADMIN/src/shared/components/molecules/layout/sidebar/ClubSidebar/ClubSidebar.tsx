@@ -1,5 +1,5 @@
 import { SidebarMenuButton, SidebarMenuItem } from "@dongle/ui/sidebar";
-import SidberItem from "../sidberItem";
+import SidebarItem from "../sidebar-item";
 import LogoutButton from "@/feature/auth/components/logout-button";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
 import SidebarLayout from "../sidebar-layout";
@@ -10,7 +10,7 @@ interface ClubSidebarProps {
     clubName?: React.ReactNode;
 }
 
-export default async function ClubSideber({ clubId, clubName }: ClubSidebarProps) {
+export default async function ClubSidebar({ clubId, clubName }: ClubSidebarProps) {
     const accessToken = await getAccessTokenFromServerCookie();
     const MENU_CONFIG = createClubMenuConfig(clubId);
 
@@ -26,10 +26,10 @@ export default async function ClubSideber({ clubId, clubName }: ClubSidebarProps
     const menu = Object.values(MENU_CONFIG).map((item) => (
         <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-                <SidberItem href={item.href}>
+                <SidebarItem href={item.href}>
                     {item.icon && <item.icon className="w-4 h-4" />}
                     {item.name}
-                </SidberItem>
+                </SidebarItem>
             </SidebarMenuButton>
         </SidebarMenuItem>
     ));

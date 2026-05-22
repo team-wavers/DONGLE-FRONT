@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getClubReportService } from "@/lib/server/cached-services";
-import ReportView from "@/components/molecules/layout/report-view/report-view";
+import ReportView from "@/feature/report/components/report-view/report-view";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
 import { Pencil } from "lucide-react";
