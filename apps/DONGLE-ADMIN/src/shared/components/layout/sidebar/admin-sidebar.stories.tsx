@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
 import { SidebarProvider } from "@dongle/ui/sidebar";
 import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
-import AdminSidebar from "./AdminSidebar";
+import AdminSidebar from "./admin-sidebar";
 
 const meta: Meta<typeof AdminSidebar> = {
     title: "layout/dashboard/AdminSidebar",

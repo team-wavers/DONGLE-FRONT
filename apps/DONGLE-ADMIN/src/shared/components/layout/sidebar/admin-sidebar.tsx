@@ -1,24 +1,18 @@
+import { MENU_CONFIG } from "./admin-sidebar.config";
 import { SidebarMenuButton, SidebarMenuItem } from "@dongle/ui/sidebar";
-import SidebarItem from "../sidebar-item";
+import SidebarItem from "./sidebar-item";
 import LogoutButton from "@/feature/auth/components/logout-button";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
-import SidebarLayout from "../sidebar-layout";
-import { createClubMenuConfig } from "./ClubSidebar.config";
+import SidebarLayout from "./sidebar-layout";
 
-interface ClubSidebarProps {
-    clubId: string;
-    clubName?: React.ReactNode;
-}
-
-export default async function ClubSidebar({ clubId, clubName }: ClubSidebarProps) {
+export default async function AdminSidebar() {
     const accessToken = await getAccessTokenFromServerCookie();
-    const MENU_CONFIG = createClubMenuConfig(clubId);
 
     const header = (
-        <div className="flex items-center px-2">
+        <div className="flex items-center">
             <div className="flex flex-col gap-2">
-                <h1 className="text-xl font-bold text-zinc-900">{clubName || "동아리"}</h1>
-                <p className="text-base font-semibold text-muted-foreground">회장</p>
+                <h1 className="text-xl font-bold text-zinc-900">총동아리연합회</h1>
+                <p className="text-base font-semibold text-muted-foreground">관리자</p>
             </div>
         </div>
     );
