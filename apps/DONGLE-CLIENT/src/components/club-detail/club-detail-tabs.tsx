@@ -47,11 +47,11 @@ export default function ClubDetailTabs({
                 <TabsTrigger value="intro" className={styles.tabTrigger}>
                     동아리 소개
                 </TabsTrigger>
-                <TabsTrigger value="schedules" className={styles.tabTrigger}>
-                    일정
-                </TabsTrigger>
                 <TabsTrigger value="reports" className={styles.tabTrigger}>
                     동아리 활동보고서
+                </TabsTrigger>
+                <TabsTrigger value="schedules" className={styles.tabTrigger}>
+                    일정
                 </TabsTrigger>
             </TabsList>
 
@@ -59,12 +59,12 @@ export default function ClubDetailTabs({
                 <ClubIntroTabContent club={club} />
             </TabsContent>
 
-            <TabsContent value="schedules" className={styles.tabContent}>
-                <ClubSchedulesTabContent schedules={schedules} loadFailed={scheduleLoadFailed} />
-            </TabsContent>
-
             <TabsContent value="reports" className={styles.tabContent}>
                 <ClubReportsTabContent clubId={clubId} reports={reports} loadFailed={reportLoadFailed} />
+            </TabsContent>
+
+            <TabsContent value="schedules" className={styles.tabContent}>
+                <ClubSchedulesTabContent schedules={schedules} loadFailed={scheduleLoadFailed} />
             </TabsContent>
         </Tabs>
     );
