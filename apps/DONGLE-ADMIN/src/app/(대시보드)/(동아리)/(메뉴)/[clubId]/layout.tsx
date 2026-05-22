@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import ClubSidebar from "@/shared/components/layout/sidebar/club-sidebar";
-import SidebarCloseOnNavigate from "@/shared/components/layout/sidebar/sidebar-close-on-navigate";
+import ClubSidebar from "@/shared/layout/sidebar/club-sidebar";
+import SidebarCloseOnNavigate from "@/shared/layout/sidebar/sidebar-close-on-navigate";
 import { getClubService } from "@/lib/server/cached-services";
 import { Skeleton } from "@dongle/ui/skeleton";
 import { SidebarInset } from "@dongle/ui/sidebar";

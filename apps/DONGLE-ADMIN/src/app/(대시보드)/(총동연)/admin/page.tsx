@@ -16,7 +16,7 @@ import {
     getClubListService,
     getUserListService,
 } from "@/lib/server/cached-services";
-import AdminPageHeader from "@/shared/components/molecules/layout/admin-page-header/admin-page-header";
+import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
 import { getAdminClubScheduleCalendarService } from "@dongle/service";
 import { getMonthScheduleQuery } from "@/feature/schedule/schedule.utils";
 import { formatKoreanDate } from "@/lib/format/date";

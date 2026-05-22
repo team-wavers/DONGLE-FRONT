@@ -1,8 +1,8 @@
 "use client";
 
-import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
-import { FormTextarea } from "@/shared/components/atoms/form/form-textarea/form-textarea";
-import { AdminFormActions } from "@/shared/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
+import { FormTextarea } from "@/shared/ui/form/form-textarea/form-textarea";
+import { AdminFormActions } from "@/shared/layout/form-page/admin-form-layout";
 import { FormRoot } from "@/shared/form/form-root";
 import { RHFDatePicker } from "@/shared/form/rhf-date-picker";
 import { RHFSelectField } from "@/shared/form/rhf-select-field";

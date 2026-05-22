@@ -3,7 +3,7 @@
 import { useClubRegisterForm } from "@/feature/club/form/use-club-register-form";
 import { RECRUITMENT_STATUS, RECRUITMENT_STATUS_LABEL } from "@/feature/club/constants/club.constants";
 import type { ClubRegisterFormValues } from "@/feature/club/form/club-register.schema";
-import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 import { FormRoot } from "@/shared/form/form-root";
 import { RHFDatePicker } from "@/shared/form/rhf-date-picker";
 import { RHFFileUpload } from "@/shared/form/rhf-file-upload";

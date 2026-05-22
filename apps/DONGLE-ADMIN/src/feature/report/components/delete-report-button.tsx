@@ -3,7 +3,7 @@
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useTransition } from "react";
-import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 import {
   Dialog,
   DialogContent,

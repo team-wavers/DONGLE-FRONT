@@ -2,8 +2,8 @@
 
 import type { SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Users } from "lucide-react";
-import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
-import { AdminFormActions, AdminFormSection } from "@/shared/components/molecules/layout/admin-form-layout/admin-form-layout";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
+import { AdminFormActions, AdminFormSection } from "@/shared/layout/form-page/admin-form-layout";
 import { FormRoot } from "@/shared/form/form-root";
 import { RHFTextField } from "@/shared/form/rhf-text-field";
 import type { ClubPresidentFormValues } from "@/feature/club/form/club-president.schema";

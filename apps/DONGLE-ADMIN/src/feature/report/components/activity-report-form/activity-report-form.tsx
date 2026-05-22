@@ -5,13 +5,13 @@ import { usePathname } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 import {
     AdminBackAction,
     AdminFormActions,
     AdminFormSection,
     AdminFormShell,
-} from "@/shared/components/molecules/layout/admin-form-layout/admin-form-layout";
+} from "@/shared/layout/form-page/admin-form-layout";
 import { FormRoot } from "@/shared/form/form-root";
 import { RHFFileUpload } from "@/shared/form/rhf-file-upload";
 import { RHFRichTextEditor } from "@/shared/form/rhf-rich-text-editor";

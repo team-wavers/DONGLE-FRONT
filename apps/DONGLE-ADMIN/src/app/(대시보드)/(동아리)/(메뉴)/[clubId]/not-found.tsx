@@ -5,7 +5,7 @@ import { logoutAction } from "@/feature/auth/action/logout-form.action";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { LoadingButton } from "@/shared/components/atoms/button/loading-button/loading-button";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 
 export default function NotFound() {
     const router = useRouter();

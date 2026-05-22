@@ -1,4 +1,4 @@
-import AdminPageHeader from "@/shared/components/molecules/layout/admin-page-header/admin-page-header";
+import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
 
 export default function ReportLayout({ children }: { children: React.ReactNode }) {
     return (

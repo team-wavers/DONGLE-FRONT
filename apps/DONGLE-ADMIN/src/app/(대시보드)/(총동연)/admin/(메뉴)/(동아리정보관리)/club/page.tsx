@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import FilterableClubList from "@/feature/club/components/filterable-club-list/filterable-club-list";
 import { getClubListService } from "@/lib/server/cached-services";
 import { Users } from "lucide-react";
-import AdminPageHeader from "@/shared/components/molecules/layout/admin-page-header/admin-page-header";
+import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
 import { Skeleton } from "@dongle/ui/skeleton";
 
 async function ClubListSection() {
