@@ -3,18 +3,17 @@
 import { cookies } from "next/headers";
 import { logoutService } from "@dongle/service/auth/auth.service";
 
-/** 성공/실패와 관계없이 항상 쿠키를 삭제하고, API 결과만 반환 */
+/** 서버 로그아웃 API 실패 여부와 관계없이 로컬 세션 쿠키를 삭제한다. */
 export async function logoutAction() {
-    let success = false;
     try {
-        const res = await logoutService();
-        success = res.isSuccess;
+        await logoutService();
     } catch {
-        success = false;
+        // 로컬 세션 삭제가 실제 사용자 로그아웃을 결정하므로 API 실패는 사용자 흐름을 막지 않는다.
     } finally {
         const cookieStore = await cookies();
         cookieStore.delete("accessToken");
         cookieStore.delete("refreshToken");
     }
-    return { success };
+
+    return { success: true };
 }

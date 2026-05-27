@@ -2,7 +2,6 @@
 
 import { logoutAction } from "@/feature/auth/action/logout-form.action";
 import { LogOutIcon } from "lucide-react";
-import { toast } from "sonner";
 import { useTransition } from "react";
 import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 import { useRouter } from "next/navigation";
@@ -25,8 +24,7 @@ export default function LogoutButton({ accessToken }: LogoutButtonProps) {
             disabled={isPending}
             onClick={() => {
                 startTransition(async () => {
-                    const { success } = await logoutAction();
-                    if (!success) toast.error("로그아웃에 실패했습니다");
+                    await logoutAction();
                     router.push("/login");
                 });
             }}
