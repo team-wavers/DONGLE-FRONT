@@ -1,4 +1,4 @@
-export type ScheduleType = "recruitment" | "event" | "regular_meeting" | "notice";
+export type ScheduleType = "recruitment" | "event" | "regular_meeting";
 
 export interface ClubSchedule {
     id: number;
@@ -19,5 +19,4 @@ export const SCHEDULE_TYPE_LABELS: Record<ScheduleType, string> = {
     recruitment: "모집",
     event: "행사",
     regular_meeting: "정기모임",
-    notice: "공지",
 };

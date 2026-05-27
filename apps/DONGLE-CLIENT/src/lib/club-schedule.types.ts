@@ -1,4 +1,4 @@
-export type ClubPublicScheduleType = "recruitment" | "event" | "regular_meeting" | "notice";
+export type ClubPublicScheduleType = "recruitment" | "event" | "regular_meeting";
 
 export interface ClubPublicSchedule {
     id: number;

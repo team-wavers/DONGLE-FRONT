@@ -1,6 +1,6 @@
 import type { Response } from "../response";
 
-export type ClubScheduleType = "recruitment" | "event" | "regular_meeting" | "notice";
+export type ClubScheduleType = "recruitment" | "event" | "regular_meeting";
 
 export type ClubScheduleStatusFilter = "all" | "public" | "private" | "upcoming" | "past";
 
