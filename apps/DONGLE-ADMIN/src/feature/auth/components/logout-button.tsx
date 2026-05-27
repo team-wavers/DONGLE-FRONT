@@ -1,6 +1,5 @@
 "use client";
 
-import { logoutAction } from "@/feature/auth/action/logout-form.action";
 import { LogOutIcon } from "lucide-react";
 import { useTransition } from "react";
 import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
@@ -24,8 +23,9 @@ export default function LogoutButton({ accessToken }: LogoutButtonProps) {
             disabled={isPending}
             onClick={() => {
                 startTransition(async () => {
-                    await logoutAction();
-                    router.push("/login");
+                    await fetch("/api/auth/logout", { method: "POST" });
+                    router.replace("/login");
+                    router.refresh();
                 });
             }}
             className="font-bold text-zinc-700 w-full text-sm md:text-base"
