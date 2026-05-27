@@ -20,6 +20,7 @@ import {
 } from "@dongle/ui/select";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
     deleteAdminClubScheduleAction,
     getAdminClubScheduleCalendarAction,
@@ -104,12 +105,12 @@ export default function AdminScheduleDashboard({
         setIsMonthPending(false);
 
         if (!result.ok) {
-            window.alert(result.formError ?? "월간 일정 조회 중 오류가 발생했습니다. 다시 시도해주세요.");
+            toast.error(result.formError ?? "월간 일정 조회 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
 
         if (!result.data) {
-            window.alert("월간 일정 조회 중 오류가 발생했습니다. 다시 시도해주세요.");
+            toast.error("월간 일정 조회 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
 
@@ -130,12 +131,12 @@ export default function AdminScheduleDashboard({
         setPendingScheduleId(null);
 
         if (!result.ok) {
-            window.alert(result.formError ?? "공개 상태 변경 중 오류가 발생했습니다. 다시 시도해주세요.");
+            toast.error(result.formError ?? "공개 상태 변경 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
 
         if (!result.data) {
-            window.alert("공개 상태 변경 중 오류가 발생했습니다. 다시 시도해주세요.");
+            toast.error("공개 상태 변경 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
 
@@ -153,7 +154,7 @@ export default function AdminScheduleDashboard({
         setPendingScheduleId(null);
 
         if (!result.ok) {
-            window.alert(result.formError ?? "일정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
+            toast.error(result.formError ?? "일정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
 

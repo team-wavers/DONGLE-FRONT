@@ -4,7 +4,6 @@ import { Users, LogOut } from "lucide-react";
 import { logoutAction } from "@/feature/auth/action/logout-form.action";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 
 export default function NotFound() {
@@ -13,11 +12,7 @@ export default function NotFound() {
 
     const handleLogout = () => {
         startTransition(async () => {
-            const { success } = await logoutAction();
-            if (!success) {
-                toast.error("로그아웃에 실패했습니다.");
-                return;
-            }
+            await logoutAction();
             router.push("/login");
         });
     };

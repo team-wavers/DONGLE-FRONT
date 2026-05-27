@@ -79,7 +79,7 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
         setPendingDeleteId(null);
 
         if (!result.ok) {
-            window.alert(result.formError ?? "일정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
+            toast.error(result.formError ?? "일정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
 
