@@ -851,7 +851,7 @@ Authorization: Bearer {accessToken}
 
 **비고**:
 
--   `type`: `recruitment`, `event`, `regular_meeting`, `notice`
+-   `type`: `recruitment`, `event`, `regular_meeting`
 -   `club_id`: 일정이 속한 동아리 ID입니다. 사용자/회장용 응답에는 `club` 객체 없이 `club_id`만 포함됩니다.
 -   관리자용 응답은 `club_id`와 함께 `club.id`, `club.name`, `club.category`를 포함합니다.
 -   `location`, `description`, `external_url`, `deleted_at`은 `null`일 수 있습니다.
@@ -912,7 +912,7 @@ Authorization: Bearer {accessToken}
 
 **비고**:
 
--   `type`: `recruitment`, `event`, `regular_meeting`, `notice`
+-   `type`: `recruitment`, `event`, `regular_meeting`
 -   선택값은 `location`, `description`, `external_url`만 지원합니다.
 -   첨부 이미지와 신청 링크 별도 필드는 지원하지 않습니다.
 -   `title`, `location`은 최대 100자입니다.

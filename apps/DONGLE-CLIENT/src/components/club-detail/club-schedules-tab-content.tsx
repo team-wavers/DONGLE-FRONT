@@ -16,7 +16,6 @@ const SCHEDULE_TYPE_LABELS: Record<ClubPublicScheduleType, string> = {
     recruitment: "모집",
     event: "행사",
     regular_meeting: "정기모임",
-    notice: "공지",
 };
 
 function ScheduleTimelineItem({

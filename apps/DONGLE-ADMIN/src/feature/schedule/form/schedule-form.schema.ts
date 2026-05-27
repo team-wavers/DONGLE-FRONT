@@ -89,7 +89,7 @@ export const CLUB_SCHEDULE_DEFAULT_VALUES = {
 export const clubScheduleSchema = z
     .object({
         title: z.string().transform(trimToEmpty),
-        type: z.enum(["recruitment", "event", "regular_meeting", "notice"]),
+        type: z.enum(["recruitment", "event", "regular_meeting"]),
         startsAt: z.string().transform(trimToEmpty),
         endsAt: z.string().transform(trimToEmpty),
         location: z.string().transform(trimToEmpty),

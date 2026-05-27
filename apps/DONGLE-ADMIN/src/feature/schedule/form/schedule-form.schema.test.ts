@@ -30,6 +30,21 @@ describe("clubScheduleSchema", () => {
         });
     });
 
+    it("공지 유형은 일정 유형으로 허용하지 않는다", () => {
+        const result = clubScheduleSchema.safeParse({
+            title: "공지 일정",
+            type: "notice",
+            startsAt: "2026-06-16T20:00",
+            endsAt: "2026-06-16T22:00",
+            isPublic: true,
+            location: "",
+            description: "",
+            externalUrl: "",
+        });
+
+        expect(result.success).toBe(false);
+    });
+
     it("종료일시가 시작일시보다 빠르면 종료일시 field error를 반환한다", () => {
         const result = clubScheduleSchema.safeParse({
             title: "CMUX 일정",

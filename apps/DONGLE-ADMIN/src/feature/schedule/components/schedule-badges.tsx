@@ -6,7 +6,6 @@ const typeClassName: Record<ScheduleType, string> = {
     recruitment: "border-sky-200 bg-sky-50 text-sky-700",
     event: "border-violet-200 bg-violet-50 text-violet-700",
     regular_meeting: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    notice: "border-amber-200 bg-amber-50 text-amber-700",
 };
 
 export function ScheduleTypeBadge({ type }: { type: ScheduleType }) {
