@@ -183,20 +183,6 @@ export function formatScheduleDateTimeRange(startAt: string, endAt: string) {
     return `${startDateTime} - ${endDateTime}`;
 }
 
-export function formatScheduleDisplayRange(startAt: string, endAt: string) {
-    const start = getScheduleDateParts(startAt);
-    const end = getScheduleDateParts(endAt);
-
-    if (!start || !end) {
-        return { date: "-", time: "-" };
-    }
-
-    return {
-        date: start.date === end.date ? start.date : `${start.date} - ${end.date}`,
-        time: `${start.time} - ${end.time}`,
-    };
-}
-
 export function groupSchedulesByMonth(schedules: ClubSchedule[]) {
     const groups = new Map<string, { key: string; label: string; schedules: ClubSchedule[] }>();
 

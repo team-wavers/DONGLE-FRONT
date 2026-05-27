@@ -14,7 +14,7 @@ import { memo } from "react";
 import type { ClubSchedule } from "../schedule.types";
 import {
     formatScheduleDateBadge,
-    formatScheduleDisplayRange,
+    formatScheduleDateTimeRange,
     getScheduleDescriptionLabel,
     getScheduleLocationLabel,
     getScheduleMetaText,
@@ -41,7 +41,7 @@ export const ScheduleListItem = memo(function ScheduleListItem({
     onToggleVisibility,
 }: ScheduleListItemProps) {
     const dateBadge = formatScheduleDateBadge(schedule.startsAt);
-    const range = formatScheduleDisplayRange(schedule.startsAt, schedule.endsAt);
+    const range = formatScheduleDateTimeRange(schedule.startsAt, schedule.endsAt);
     const meta = getScheduleMetaText([
         ...(metaItems ?? [schedule.clubName, schedule.category]),
         getScheduleLocationLabel(schedule.location),
@@ -66,9 +66,7 @@ export const ScheduleListItem = memo(function ScheduleListItem({
                 </div>
                 <div className="mt-2 flex min-w-0 flex-col gap-1 md:flex-row md:items-baseline md:gap-3">
                     <h3 className="truncate text-base font-bold text-zinc-950">{schedule.title}</h3>
-                    <p className="shrink-0 text-sm font-semibold text-zinc-600">
-                        {range.date} · {range.time}
-                    </p>
+                    <p className="shrink-0 text-sm font-semibold text-zinc-600">{range}</p>
                 </div>
                 <p className="mt-1 truncate text-sm text-zinc-500">{meta}</p>
                 <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-600">
