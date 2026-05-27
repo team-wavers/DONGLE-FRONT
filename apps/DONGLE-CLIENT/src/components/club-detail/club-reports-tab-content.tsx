@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDateByLocale } from "@dongle/ui/utils";
+import { trackDongleEvent } from "@/lib/analytics";
 
 type ClubReportCardViewModel = {
     id: number;
@@ -14,12 +15,14 @@ type ClubReportCardViewModel = {
 
 interface ClubReportsTabContentProps {
     clubId: string;
+    clubName: string;
     reports: ClubReportCardViewModel[];
     loadFailed?: boolean;
 }
 
 export default function ClubReportsTabContent({
     clubId,
+    clubName,
     reports,
     loadFailed = false,
 }: ClubReportsTabContentProps) {
@@ -44,6 +47,13 @@ export default function ClubReportsTabContent({
                 <Link
                     key={report.id}
                     href={`/clubs/${clubId}/reports/${report.id}`}
+                    onClick={() =>
+                        trackDongleEvent("report_click", {
+                            club_id: Number(clubId),
+                            club_name: clubName,
+                            report_id: report.id,
+                        })
+                    }
                     className="w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
                     <div className="relative aspect-[16/10] bg-zinc-100">
                         {report.image_urls[0] ? (
