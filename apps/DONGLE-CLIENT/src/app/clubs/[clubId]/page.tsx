@@ -15,7 +15,7 @@ import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
 import ClubIconAvatar from "@/components/main/club-icon-avatar";
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
 import { ArrowLeft, CalendarDays, Instagram, MapPin, Phone, UserRound, Youtube } from "lucide-react";
-import { Skeleton } from "@dongle/ui/skeleton";
+import { ClubDetailPageSkeleton } from "@/components/loading/page-skeletons";
 
 interface ClubDetailPageProps {
     params: Promise<{ clubId: string }>;
@@ -254,30 +254,6 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
     );
 }
 
-function ClubDetailFallback() {
-    return (
-        <section className="py-6 flex flex-col gap-12">
-            <div className="flex flex-col gap-6">
-                <div className="py-4 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-4 min-w-0">
-                        <Skeleton className="h-16 w-16 rounded-full" />
-                        <div className="min-w-0 space-y-2">
-                            <Skeleton className="h-9 w-48" />
-                            <Skeleton className="h-5 w-24" />
-                        </div>
-                    </div>
-                    <Skeleton className="h-9 w-24 rounded-full" />
-                </div>
-                <Skeleton className="h-52 w-full rounded-xl" />
-            </div>
-            <div className="space-y-6">
-                <Skeleton className="h-11 w-full" />
-                <Skeleton className="h-72 w-full rounded-xl" />
-            </div>
-        </section>
-    );
-}
-
 export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     const { clubId } = await params;
 
@@ -292,7 +268,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
                 </Link>
             </div>
 
-            <Suspense fallback={<ClubDetailFallback />}>
+            <Suspense fallback={<ClubDetailPageSkeleton />}>
                 <ClubDetailContent clubId={clubId} />
             </Suspense>
         </>
