@@ -46,8 +46,8 @@ export function getClubScheduleGroups(
     const visibleSchedules = schedules.filter((schedule) => schedule.clubId === clubId && schedule.is_public);
 
     return {
-        upcoming: sortByStartAt(visibleSchedules.filter((schedule) => new Date(schedule.start_at).getTime() >= nowTime)),
-        past: sortByStartAt(visibleSchedules.filter((schedule) => new Date(schedule.start_at).getTime() < nowTime)),
+        upcoming: sortByStartAt(visibleSchedules.filter((schedule) => new Date(schedule.end_at).getTime() >= nowTime)),
+        past: sortByStartAt(visibleSchedules.filter((schedule) => new Date(schedule.end_at).getTime() < nowTime)),
     };
 }
 

@@ -6,7 +6,6 @@ import {
     filterSchedules,
     formatScheduleDateBadge,
     formatScheduleDateTime,
-    formatScheduleDisplayRange,
     formatScheduleDateTimeRange,
     formatScheduleTime,
     groupSchedulesByMonth,
@@ -20,6 +19,7 @@ import {
     getMonthScheduleQuery,
     parseScheduleMonthKey,
     getSchedulesForDate,
+    isSchedulePast,
     mapAdminClubScheduleToClubSchedule,
     mapClubScheduleToClubSchedule,
     sortSchedulesByStartAt,
@@ -152,6 +152,23 @@ describe("schedule utils", () => {
         expect(schedules.map((schedule) => schedule.id)).toEqual([1, 3, 6]);
     });
 
+    it("지난 일정은 시작일시가 아니라 종료일시가 현재보다 이전인지로 판단한다", () => {
+        const now = new Date("2026-05-20T19:00:00");
+        const ongoingSchedule: ClubSchedule = {
+            ...SCHEDULES[0],
+            startsAt: "2026-05-20T18:00:00",
+            endsAt: "2026-05-20T20:00:00",
+        };
+        const endedSchedule: ClubSchedule = {
+            ...SCHEDULES[0],
+            startsAt: "2026-05-20T16:00:00",
+            endsAt: "2026-05-20T18:00:00",
+        };
+
+        expect(isSchedulePast(ongoingSchedule, now)).toBe(false);
+        expect(isSchedulePast(endedSchedule, now)).toBe(true);
+    });
+
     it("관리자 일정 응답을 화면 일정 모델로 변환한다", () => {
         const schedule: AdminClubSchedule = {
             id: 7,
@@ -244,17 +261,6 @@ describe("schedule utils", () => {
         });
     });
 
-    it("일정 목록용 기간은 같은 날과 다른 날을 압축해서 표시한다", () => {
-        expect(formatScheduleDisplayRange("2026-05-20T09:00:00.000Z", "2026-05-20T11:30:00.000Z")).toEqual({
-            date: "2026.05.20",
-            time: "18:00 - 20:30",
-        });
-        expect(formatScheduleDisplayRange("2026-05-19T01:23:00.000Z", "2026-05-22T01:23:00.000Z")).toEqual({
-            date: "2026.05.19 - 2026.05.22",
-            time: "10:23 - 10:23",
-        });
-    });
-
     it("일정을 Seoul 기준 시작 월별로 정렬해 그룹화한다", () => {
         const groups = groupSchedulesByMonth([SCHEDULES[2], SCHEDULES[0], SCHEDULES[1], SCHEDULES[3]]);
 
@@ -276,7 +282,6 @@ describe("schedule utils", () => {
         expect(formatScheduleDateTimeRange("", "2026-05-22T01:23:00.000Z")).toBe("-");
         expect(formatScheduleDateTimeRange("2026-05-19T01:23:00.000Z", "")).toBe("-");
         expect(formatScheduleDateBadge("")).toEqual({ month: "-", day: "-", weekday: "-" });
-        expect(formatScheduleDisplayRange("", "2026-05-22T01:23:00.000Z")).toEqual({ date: "-", time: "-" });
     });
 
     it("빈 장소, 설명, 목록 메타 문자열은 안전한 화면 문구로 정규화한다", () => {

@@ -67,6 +67,10 @@ export function sortSchedulesByStartAt(schedules: ClubSchedule[]) {
     return [...schedules].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
 }
 
+export function isSchedulePast(schedule: Pick<ClubSchedule, "endsAt">, now: Date) {
+    return new Date(schedule.endsAt).getTime() < now.getTime();
+}
+
 export function getMonthScheduleQuery(date: Date) {
     return getMonthDateTimeRange(date, { timeZone: SCHEDULE_TIME_ZONE });
 }
@@ -181,20 +185,6 @@ export function formatScheduleDateTimeRange(startAt: string, endAt: string) {
     }
 
     return `${startDateTime} - ${endDateTime}`;
-}
-
-export function formatScheduleDisplayRange(startAt: string, endAt: string) {
-    const start = getScheduleDateParts(startAt);
-    const end = getScheduleDateParts(endAt);
-
-    if (!start || !end) {
-        return { date: "-", time: "-" };
-    }
-
-    return {
-        date: start.date === end.date ? start.date : `${start.date} - ${end.date}`,
-        time: `${start.time} - ${end.time}`,
-    };
 }
 
 export function groupSchedulesByMonth(schedules: ClubSchedule[]) {
