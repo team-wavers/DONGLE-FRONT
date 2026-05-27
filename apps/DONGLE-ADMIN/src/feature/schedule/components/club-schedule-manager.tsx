@@ -9,6 +9,7 @@ import { deleteClubScheduleAction } from "../action/schedule.action";
 import type { ClubSchedule } from "../schedule.types";
 import {
     groupSchedulesByMonth,
+    isSchedulePast,
     mapClubScheduleToClubSchedule,
     sortSchedulesByStartAt,
 } from "../schedule.utils";
@@ -43,10 +44,10 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
     const filteredSchedules = useMemo(() => {
         const filtered = schedules.filter((schedule) => {
             if (statusFilter === "upcoming") {
-                return new Date(schedule.startsAt) >= now;
+                return !isSchedulePast(schedule, now);
             }
             if (statusFilter === "past") {
-                return new Date(schedule.startsAt) < now;
+                return isSchedulePast(schedule, now);
             }
             if (statusFilter === "public") return schedule.isPublic;
             if (statusFilter === "private") return !schedule.isPublic;

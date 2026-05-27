@@ -67,6 +67,10 @@ export function sortSchedulesByStartAt(schedules: ClubSchedule[]) {
     return [...schedules].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
 }
 
+export function isSchedulePast(schedule: Pick<ClubSchedule, "endsAt">, now: Date) {
+    return new Date(schedule.endsAt).getTime() < now.getTime();
+}
+
 export function getMonthScheduleQuery(date: Date) {
     return getMonthDateTimeRange(date, { timeZone: SCHEDULE_TIME_ZONE });
 }

@@ -69,16 +69,32 @@ const schedules: ClubPublicSchedule[] = [
         description: "가장 가까운 일정입니다.",
         external_url: null,
     },
+    {
+        id: 6,
+        clubId: 12,
+        title: "진행 중 공개 일정",
+        type: "event",
+        start_at: "2026-05-14T23:00:00.000Z",
+        end_at: "2026-05-15T01:00:00.000Z",
+        is_public: true,
+        location: "학생회관",
+        description: "아직 종료되지 않은 일정입니다.",
+        external_url: null,
+    },
 ];
 
 describe("club schedule", () => {
-    it("해당 동아리의 공개 일정만 다가오는 일정과 지난 일정으로 분리해 시작일시 오름차순 정렬한다", () => {
+    it("해당 동아리의 공개 일정만 종료일시 기준으로 다가오는 일정과 지난 일정으로 분리해 시작일시 오름차순 정렬한다", () => {
         const groups = getClubScheduleGroups(schedules, {
             clubId: 12,
             now: new Date("2026-05-15T00:00:00.000Z"),
         });
 
-        expect(groups.upcoming.map((schedule) => schedule.title)).toEqual(["먼저 공개 일정", "나중 공개 일정"]);
+        expect(groups.upcoming.map((schedule) => schedule.title)).toEqual([
+            "진행 중 공개 일정",
+            "먼저 공개 일정",
+            "나중 공개 일정",
+        ]);
         expect(groups.past.map((schedule) => schedule.title)).toEqual(["지난 공개 일정"]);
     });
 

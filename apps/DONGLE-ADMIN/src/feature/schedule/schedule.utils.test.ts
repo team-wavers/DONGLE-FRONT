@@ -19,6 +19,7 @@ import {
     getMonthScheduleQuery,
     parseScheduleMonthKey,
     getSchedulesForDate,
+    isSchedulePast,
     mapAdminClubScheduleToClubSchedule,
     mapClubScheduleToClubSchedule,
     sortSchedulesByStartAt,
@@ -149,6 +150,23 @@ describe("schedule utils", () => {
         const schedules = sortSchedulesByStartAt([SCHEDULES[3], SCHEDULES[0], SCHEDULES[1]]);
 
         expect(schedules.map((schedule) => schedule.id)).toEqual([1, 3, 6]);
+    });
+
+    it("지난 일정은 시작일시가 아니라 종료일시가 현재보다 이전인지로 판단한다", () => {
+        const now = new Date("2026-05-20T19:00:00");
+        const ongoingSchedule: ClubSchedule = {
+            ...SCHEDULES[0],
+            startsAt: "2026-05-20T18:00:00",
+            endsAt: "2026-05-20T20:00:00",
+        };
+        const endedSchedule: ClubSchedule = {
+            ...SCHEDULES[0],
+            startsAt: "2026-05-20T16:00:00",
+            endsAt: "2026-05-20T18:00:00",
+        };
+
+        expect(isSchedulePast(ongoingSchedule, now)).toBe(false);
+        expect(isSchedulePast(endedSchedule, now)).toBe(true);
     });
 
     it("관리자 일정 응답을 화면 일정 모델로 변환한다", () => {
