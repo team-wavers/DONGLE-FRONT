@@ -5,6 +5,7 @@ import type { ClubScheduleGroups } from "@/lib/club-schedule.types";
 import ClubIntroTabContent from "./club-intro-tab-content";
 import ClubReportsTabContent from "./club-reports-tab-content";
 import ClubSchedulesTabContent from "./club-schedules-tab-content";
+import { trackDongleEvent } from "@/lib/analytics";
 
 type ClubDetailIntroViewModel = {
     description: string;
@@ -21,6 +22,7 @@ type ClubDetailReportViewModel = {
 interface ClubDetailTabsProps {
     club: ClubDetailIntroViewModel;
     clubId: string;
+    clubName: string;
     schedules: ClubScheduleGroups;
     scheduleLoadFailed?: boolean;
     reports: ClubDetailReportViewModel[];
@@ -36,13 +38,24 @@ const styles = {
 export default function ClubDetailTabs({
     club,
     clubId,
+    clubName,
     schedules,
     scheduleLoadFailed = false,
     reports,
     reportLoadFailed = false,
 }: ClubDetailTabsProps) {
     return (
-        <Tabs defaultValue="intro" className="w-full">
+        <Tabs
+            defaultValue="intro"
+            className="w-full"
+            onValueChange={(value) =>
+                trackDongleEvent("club_tab_change", {
+                    club_id: Number(clubId),
+                    club_name: clubName,
+                    tab_name: value as "intro" | "reports" | "schedules",
+                })
+            }
+        >
             <TabsList className="w-full grid grid-cols-3 h-11 rounded-none bg-transparent p-0 border-b border-zinc-200">
                 <TabsTrigger value="intro" className={styles.tabTrigger}>
                     동아리 소개
@@ -60,11 +73,20 @@ export default function ClubDetailTabs({
             </TabsContent>
 
             <TabsContent value="reports" className={styles.tabContent}>
-                <ClubReportsTabContent clubId={clubId} reports={reports} loadFailed={reportLoadFailed} />
+                <ClubReportsTabContent
+                    clubId={clubId}
+                    clubName={clubName}
+                    reports={reports}
+                    loadFailed={reportLoadFailed}
+                />
             </TabsContent>
 
             <TabsContent value="schedules" className={styles.tabContent}>
-                <ClubSchedulesTabContent schedules={schedules} loadFailed={scheduleLoadFailed} />
+                <ClubSchedulesTabContent
+                    clubName={clubName}
+                    schedules={schedules}
+                    loadFailed={scheduleLoadFailed}
+                />
             </TabsContent>
         </Tabs>
     );

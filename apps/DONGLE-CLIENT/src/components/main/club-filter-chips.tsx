@@ -3,6 +3,7 @@
 import { cn } from "@dongle/ui/utils";
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
 import type { ClubCategoryFilter, ClubFilterStatus } from "@/hooks/use-club-filters";
+import { trackDongleEvent } from "@/lib/analytics";
 
 interface ClubFilterChipsProps {
     activeStatus: ClubFilterStatus;
@@ -41,7 +42,10 @@ export default function ClubFilterChips({
                             <button
                                 key={option.value}
                                 type="button"
-                                onClick={() => onStatusChange(option.value)}
+                                onClick={() => {
+                                    trackDongleEvent("club_filter_status_change", { status: option.value });
+                                    onStatusChange(option.value);
+                                }}
                                 className={cn(
                                     "h-full rounded-md px-2 py-0 text-sm font-bold leading-none transition-colors whitespace-nowrap",
                                     isActive ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-500 hover:bg-white hover:text-zinc-700"
@@ -67,7 +71,10 @@ export default function ClubFilterChips({
                             <button
                                 key={category}
                                 type="button"
-                                onClick={() => onCategoryChange(category)}
+                                onClick={() => {
+                                    trackDongleEvent("club_filter_category_change", { category });
+                                    onCategoryChange(category);
+                                }}
                                 className={cn(
                                     "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-bold transition-colors",
                                     presentation.labelClassName,
@@ -82,7 +89,10 @@ export default function ClubFilterChips({
                     {hasActiveFilter ? (
                         <button
                             type="button"
-                            onClick={onResetFilters}
+                            onClick={() => {
+                                trackDongleEvent("club_filter_reset", {});
+                                onResetFilters();
+                            }}
                             className="rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-bold text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-800">
                             초기화
                         </button>

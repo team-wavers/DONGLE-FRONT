@@ -7,6 +7,7 @@ import { cn } from "@dongle/ui/utils";
 import Image from "next/image";
 import Link from "next/link";
 import type { DisplayMainBannerItem } from "@dongle/service/main-banner/get-display-banner-image-urls";
+import { trackDongleEvent } from "@/lib/analytics";
 
 interface ClubMainHeroBannerCarouselProps {
     banners: DisplayMainBannerItem[];
@@ -66,6 +67,7 @@ export default function ClubMainHeroBannerCarousel({ banners }: ClubMainHeroBann
                 onBlurCapture={() => setIsPaused(false)}>
                 <CarouselContent className="ml-0">
                     {banners.map((banner, index) => {
+                        const linkUrl = banner.linkUrl;
                         const image = (
                             <div className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-50">
                                 <Image
@@ -83,11 +85,16 @@ export default function ClubMainHeroBannerCarousel({ banners }: ClubMainHeroBann
 
                         return (
                             <CarouselItem key={`${banner.imageUrl}-${index}`} className="pl-0">
-                                {banner.linkUrl ? (
+                                {linkUrl ? (
                                     <Link
-                                        href={banner.linkUrl}
+                                        href={linkUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
+                                        onClick={() =>
+                                            trackDongleEvent("banner_click", {
+                                                destination: linkUrl,
+                                            })
+                                        }
                                         className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2">
                                         {image}
                                     </Link>

@@ -19,6 +19,17 @@
 관련 테스트:
 - [filterable-club-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/components/filterable-club-list/filterable-club-list.test.ts)
 
+## Client Analytics
+
+### PostHog 이벤트 계약
+
+- 공개 클라이언트 분석 이벤트는 허용된 이벤트 이름과 속성만 전송해야 한다.
+- 브라우저가 아닌 환경에서는 분석 이벤트 전송이 no-op이어야 한다.
+- 이벤트 속성에는 검색어 원문, 전화번호, 사용자 계정 정보 같은 민감 필드를 포함하지 않아야 한다.
+
+관련 테스트:
+- [analytics.test.ts](../../apps/DONGLE-CLIENT/src/lib/analytics.test.ts)
+
 ## Club Form
 
 ### 등록 폼 스키마

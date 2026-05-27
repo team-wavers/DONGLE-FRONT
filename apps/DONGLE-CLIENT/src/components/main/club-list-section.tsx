@@ -5,6 +5,7 @@ import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-bad
 import { cn } from "@dongle/ui/utils";
 import Link from "next/link";
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
+import { trackDongleEvent } from "@/lib/analytics";
 
 type ClubListItemViewModel = {
     id: number;
@@ -41,6 +42,13 @@ export default function ClubListSection({ clubs, summaryText, emptyStateMessage 
                             <Link
                                 key={club.id}
                                 href={`/clubs/${club.id}`}
+                                onClick={() =>
+                                    trackDongleEvent("club_card_click", {
+                                        club_id: club.id,
+                                        club_name: club.name,
+                                        club_category: club.category,
+                                    })
+                                }
                                 className="group flex min-h-24 items-center gap-4 rounded-lg border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-300 hover:bg-zinc-50/50">
                                 <ClubIconAvatar
                                     name={club.name}
