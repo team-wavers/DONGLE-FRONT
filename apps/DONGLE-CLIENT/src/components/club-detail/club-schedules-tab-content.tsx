@@ -1,9 +1,18 @@
 "use client";
 
 import React from "react";
-import { CalendarDays, ExternalLink, MapPin } from "lucide-react";
-import { formatScheduleDateTimeRange } from "@/lib/club-schedule";
-import type { ClubPublicSchedule, ClubScheduleGroups, ClubPublicScheduleType } from "@/lib/club-schedule.types";
+import type { ClubPublicSchedule, ClubPublicScheduleType, ClubScheduleGroups } from "@/lib/club-schedule.types";
+import {
+    formatScheduleDisplayDateRange,
+    formatScheduleDisplayDateTimeRange,
+    getScheduleDisplayDateParts,
+    groupScheduleDisplayItemsByMonth,
+    type ScheduleDisplayItem,
+} from "@dongle/ui/schedules/schedule-display";
+import {
+    ScheduleDisplayMonthList,
+    ScheduleDisplaySection,
+} from "@dongle/ui/schedules/schedule-display-list";
 
 interface ClubSchedulesTabContentProps {
     schedules: ClubScheduleGroups;
@@ -16,69 +25,51 @@ const SCHEDULE_TYPE_LABELS: Record<ClubPublicScheduleType, string> = {
     regular_meeting: "정기모임",
 };
 
-function ScheduleTimelineItem({ schedule, isLast }: { schedule: ClubPublicSchedule; isLast: boolean }) {
-    return (
-        <li className="relative grid grid-cols-[1rem_minmax(0,1fr)] gap-4">
-            <div className="relative flex justify-center">
-                <span className="mt-2 size-3 rounded-full border-2 border-white bg-zinc-900 shadow-sm" aria-hidden="true" />
-                {!isLast ? <span className="absolute top-6 bottom-0 w-px bg-zinc-200" aria-hidden="true" /> : null}
-            </div>
-            <article className={isLast ? "pb-0" : "pb-8"}>
-                <div className="flex flex-wrap items-center gap-2">
-                    <span className="flex items-center gap-1 text-sm font-semibold text-zinc-500">
-                        <CalendarDays className="size-4" aria-hidden="true" />
-                        {formatScheduleDateTimeRange(schedule.start_at, schedule.end_at)}
-                    </span>
-                    <span className="rounded-md bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-700">
-                        {SCHEDULE_TYPE_LABELS[schedule.type]}
-                    </span>
-                </div>
-                <h3 className="mt-2 text-lg font-bold text-zinc-950">{schedule.title}</h3>
-                {schedule.location ? (
-                    <p className="mt-2 flex items-center gap-1 text-sm font-semibold text-zinc-600">
-                        <MapPin className="size-4" aria-hidden="true" />
-                        {schedule.location}
-                    </p>
-                ) : null}
-                {schedule.description ? <p className="mt-3 text-sm leading-6 text-zinc-700">{schedule.description}</p> : null}
-                {schedule.external_url ? (
-                    <a
-                        href={schedule.external_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-800 transition-colors hover:border-zinc-300 hover:bg-zinc-50">
-                        <ExternalLink className="size-4" aria-hidden="true" />
-                        자세히 보기
-                    </a>
-                ) : null}
-            </article>
-        </li>
-    );
+function getScheduleStartTime(schedule: ClubPublicSchedule) {
+    const time = new Date(schedule.start_at).getTime();
+
+    return Number.isNaN(time) ? Number.MAX_SAFE_INTEGER : time;
 }
 
-function ScheduleSection({ title, schedules }: { title: string; schedules: ClubPublicSchedule[] }) {
-    if (schedules.length === 0) {
-        return null;
-    }
+function mapScheduleToDisplayItem(schedule: ClubPublicSchedule): ScheduleDisplayItem {
+    const dateParts = getScheduleDisplayDateParts(schedule.start_at);
 
-    return (
-        <section className="space-y-3">
-            <h2 className="text-2xl font-bold text-zinc-900">{title}</h2>
-            <ol className="space-y-0">
-                {schedules.map((schedule, index) => (
-                    <ScheduleTimelineItem
-                        key={schedule.id}
-                        schedule={schedule}
-                        isLast={index === schedules.length - 1}
-                    />
-                ))}
-            </ol>
-        </section>
-    );
+    return {
+        id: schedule.id,
+        title: schedule.title,
+        type: schedule.type,
+        typeLabel: SCHEDULE_TYPE_LABELS[schedule.type],
+        dateKey: dateParts.dateKey,
+        monthKey: dateParts.monthKey,
+        monthLabel: dateParts.monthLabel,
+        dateBadge: {
+            month: dateParts.month,
+            day: dateParts.day,
+            weekday: dateParts.weekday,
+            dateTime: schedule.start_at,
+        },
+        dateTimeLabel: formatScheduleDisplayDateTimeRange(schedule.start_at, schedule.end_at),
+        compactDateTimeLabel: formatScheduleDisplayDateRange(schedule.start_at, schedule.end_at),
+        locationLabel: schedule.location || undefined,
+        descriptionLabel: schedule.description || undefined,
+        externalUrl: schedule.external_url,
+    };
+}
+
+function mapSchedulesToDisplayItems(schedules: ClubPublicSchedule[], options: { preserveOrder?: boolean } = {}) {
+    const sourceSchedules = options.preserveOrder
+        ? schedules
+        : [...schedules].sort((a, b) => getScheduleStartTime(a) - getScheduleStartTime(b));
+
+    return sourceSchedules.map(mapScheduleToDisplayItem);
 }
 
 export default function ClubSchedulesTabContent({ schedules, loadFailed = false }: ClubSchedulesTabContentProps) {
-    const hasSchedules = schedules.upcoming.length > 0 || schedules.past.length > 0;
+    const hasSchedules = schedules.ongoing.length > 0 || schedules.upcoming.length > 0 || schedules.past.length > 0;
+    const ongoingScheduleItems = schedules.ongoing.map(mapScheduleToDisplayItem);
+    const remainingSchedules = schedules.remaining ?? [...schedules.upcoming, ...schedules.past];
+    const remainingScheduleItems = mapSchedulesToDisplayItems(remainingSchedules, { preserveOrder: Boolean(schedules.remaining) });
+    const scheduleMonthGroups = groupScheduleDisplayItemsByMonth(remainingScheduleItems);
 
     if (loadFailed) {
         return (
@@ -97,9 +88,9 @@ export default function ClubSchedulesTabContent({ schedules, loadFailed = false 
     }
 
     return (
-        <div className="space-y-8">
-            <ScheduleSection title="다가오는 일정" schedules={schedules.upcoming} />
-            <ScheduleSection title="지난 일정" schedules={schedules.past} />
+        <div className="space-y-6">
+            <ScheduleDisplaySection title="진행 중인 일정" items={ongoingScheduleItems} variant="active" />
+            <ScheduleDisplayMonthList groups={scheduleMonthGroups} />
         </div>
     );
 }

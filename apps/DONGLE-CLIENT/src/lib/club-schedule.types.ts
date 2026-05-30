@@ -14,6 +14,8 @@ export interface ClubPublicSchedule {
 }
 
 export interface ClubScheduleGroups {
+    ongoing: ClubPublicSchedule[];
+    remaining?: ClubPublicSchedule[];
     upcoming: ClubPublicSchedule[];
     past: ClubPublicSchedule[];
 }
