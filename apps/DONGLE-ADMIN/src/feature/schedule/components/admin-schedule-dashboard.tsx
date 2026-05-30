@@ -74,8 +74,8 @@ const statusFilterOptions = [
 ] as const satisfies ReadonlyArray<readonly [ScheduleStatusFilter, string]>;
 
 const calendarChipClassName: Record<ScheduleType, string> = {
-    recruitment: "border-sky-200 bg-sky-50 text-sky-800",
-    event: "border-violet-200 bg-violet-50 text-violet-800",
+    recruitment: "border-violet-200 bg-violet-50 text-violet-800",
+    event: "border-sky-200 bg-sky-50 text-sky-800",
     regular_meeting: "border-emerald-200 bg-emerald-50 text-emerald-800",
 };
 

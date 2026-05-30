@@ -36,20 +36,20 @@ interface ScheduleDisplayItemContentProps<TPayload = unknown> {
 }
 
 const scheduleTypeClassNames: Record<ScheduleDisplayType, string> = {
-    recruitment: "border-sky-200 bg-sky-50 text-sky-700",
-    event: "border-violet-200 bg-violet-50 text-violet-700",
+    recruitment: "border-violet-200 bg-violet-50 text-violet-700",
+    event: "border-sky-200 bg-sky-50 text-sky-700",
     regular_meeting: "border-emerald-200 bg-emerald-50 text-emerald-700",
 };
 
 const scheduleAccentClassNames: Record<ScheduleDisplayType, string> = {
-    recruitment: "border-l-sky-300",
-    event: "border-l-violet-300",
+    recruitment: "border-l-violet-300",
+    event: "border-l-sky-300",
     regular_meeting: "border-l-emerald-300",
 };
 
 const scheduleDateMarkerClassNames: Record<ScheduleDisplayType, string> = {
-    recruitment: "border-sky-100 bg-sky-50 text-sky-700",
-    event: "border-violet-100 bg-violet-50 text-violet-700",
+    recruitment: "border-violet-100 bg-violet-50 text-violet-700",
+    event: "border-sky-100 bg-sky-50 text-sky-700",
     regular_meeting: "border-emerald-100 bg-emerald-50 text-emerald-700",
 };
 
