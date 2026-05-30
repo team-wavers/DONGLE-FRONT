@@ -44,9 +44,6 @@ import {
     getMonthScheduleQueryByMonthKey,
     getSchedulesForDate,
     groupSchedulesByMonth,
-    isScheduleOngoing,
-    isSchedulePast,
-    isScheduleUpcoming,
     isSameCalendarDate,
     mapAdminClubScheduleToClubSchedule,
     parseScheduleMonthKey,
@@ -137,14 +134,6 @@ export default function AdminScheduleDashboard({
         [filteredSchedules, selectedDate]
     );
     const scheduleGroups = useMemo(() => groupSchedulesByMonth(filteredSchedules), [filteredSchedules]);
-    const statusCounts = useMemo(
-        () => ({
-            ongoing: schedules.filter((schedule) => isScheduleOngoing(schedule, now)).length,
-            upcoming: schedules.filter((schedule) => isScheduleUpcoming(schedule, now)).length,
-            past: schedules.filter((schedule) => isSchedulePast(schedule, now)).length,
-        }),
-        [now, schedules]
-    );
 
     const loadMonthSchedules = async (monthDate: Date) => {
         const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, "0")}`;
@@ -272,25 +261,6 @@ export default function AdminScheduleDashboard({
                     </div>
                 </CardContent>
             </Card>
-
-            <div className="grid gap-3 md:grid-cols-4">
-                <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3">
-                    <div className="text-xs font-semibold text-zinc-500">필터 결과</div>
-                    <div className="mt-1 text-2xl font-extrabold text-zinc-950">{filteredSchedules.length}건</div>
-                </div>
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
-                    <div className="text-xs font-semibold text-emerald-700">진행 중</div>
-                    <div className="mt-1 text-2xl font-extrabold text-emerald-900">{statusCounts.ongoing}건</div>
-                </div>
-                <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3">
-                    <div className="text-xs font-semibold text-sky-700">다가오는 일정</div>
-                    <div className="mt-1 text-2xl font-extrabold text-sky-900">{statusCounts.upcoming}건</div>
-                </div>
-                <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3">
-                    <div className="text-xs font-semibold text-zinc-600">지난 일정</div>
-                    <div className="mt-1 text-2xl font-extrabold text-zinc-900">{statusCounts.past}건</div>
-                </div>
-            </div>
 
             <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ScheduleViewMode)} className="gap-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
