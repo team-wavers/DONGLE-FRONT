@@ -17,9 +17,13 @@ import {
     getScheduleMonthKey,
     getMonthCalendarDates,
     getMonthScheduleQuery,
+    getScheduleDateRangeFilter,
     parseScheduleMonthKey,
     getSchedulesForDate,
+    getSeparatedScheduleGroups,
+    isScheduleOngoing,
     isSchedulePast,
+    isScheduleUpcoming,
     mapAdminClubScheduleToClubSchedule,
     mapClubScheduleToClubSchedule,
     sortSchedulesByStartAt,
@@ -127,6 +131,7 @@ describe("schedule utils", () => {
                     id: 99,
                     title: "Seoul 자정 일정",
                     startsAt: "2026-05-20T15:30:00.000Z",
+                    endsAt: "2026-05-20T16:30:00.000Z",
                 },
             ],
             new Date("2026-05-21T00:00:00+09:00")
@@ -135,15 +140,171 @@ describe("schedule utils", () => {
         expect(schedules.map((schedule) => schedule.title)).toEqual(["Seoul 자정 일정"]);
     });
 
+    it("선택한 날짜가 일정 시작일과 종료일 사이에 포함되면 해당 일정을 찾는다", () => {
+        const multiDaySchedule: ClubSchedule = {
+            ...SCHEDULES[0],
+            id: 100,
+            title: "3일간 진행되는 축제",
+            startsAt: "2026-05-20T10:00:00.000Z",
+            endsAt: "2026-05-22T12:00:00.000Z",
+        };
+
+        expect(getSchedulesForDate([multiDaySchedule], new Date("2026-05-20T00:00:00+09:00"))).toEqual([
+            multiDaySchedule,
+        ]);
+        expect(getSchedulesForDate([multiDaySchedule], new Date("2026-05-21T00:00:00+09:00"))).toEqual([
+            multiDaySchedule,
+        ]);
+        expect(getSchedulesForDate([multiDaySchedule], new Date("2026-05-22T00:00:00+09:00"))).toEqual([
+            multiDaySchedule,
+        ]);
+        expect(getSchedulesForDate([multiDaySchedule], new Date("2026-05-23T00:00:00+09:00"))).toEqual([]);
+    });
+
     it("키워드와 상태 필터를 함께 적용한다", () => {
         const schedules = filterSchedules(SCHEDULES, {
             keyword: "음악",
             category: "음악분과",
             type: "all",
             isPublic: true,
+            status: "all",
+            now: new Date("2026-05-20T19:00:00"),
         });
 
         expect(schedules.map((schedule) => schedule.clubName)).toEqual(["UCDC"]);
+    });
+
+    it("일정 상태 필터는 시작 전, 진행 중, 종료 후 일정을 구분한다", () => {
+        const schedules: ClubSchedule[] = [
+            {
+                ...SCHEDULES[0],
+                id: 10,
+                title: "종료된 일정",
+                startsAt: "2026-05-20T16:00:00",
+                endsAt: "2026-05-20T18:00:00",
+            },
+            {
+                ...SCHEDULES[0],
+                id: 11,
+                title: "진행 중인 일정",
+                startsAt: "2026-05-20T18:00:00",
+                endsAt: "2026-05-20T20:00:00",
+            },
+            {
+                ...SCHEDULES[0],
+                id: 12,
+                title: "다가오는 일정",
+                startsAt: "2026-05-20T20:00:00",
+                endsAt: "2026-05-20T21:00:00",
+            },
+        ];
+        const baseFilters = {
+            keyword: "",
+            category: "all",
+            type: "all" as const,
+            isPublic: "all" as const,
+            now: new Date("2026-05-20T19:00:00"),
+        };
+
+        expect(filterSchedules(schedules, { ...baseFilters, status: "past" }).map((schedule) => schedule.id)).toEqual([
+            10,
+        ]);
+        expect(filterSchedules(schedules, { ...baseFilters, status: "ongoing" }).map((schedule) => schedule.id)).toEqual([
+            11,
+        ]);
+        expect(filterSchedules(schedules, { ...baseFilters, status: "upcoming" }).map((schedule) => schedule.id)).toEqual([
+            12,
+        ]);
+    });
+
+    it("공개 상태와 날짜 범위 필터를 함께 적용한다", () => {
+        const schedules: ClubSchedule[] = [
+            {
+                ...SCHEDULES[0],
+                id: 20,
+                title: "비공개 5월 일정",
+                startsAt: "2026-05-21T18:00:00",
+                endsAt: "2026-05-21T20:00:00",
+                isPublic: false,
+            },
+            {
+                ...SCHEDULES[0],
+                id: 21,
+                title: "공개 5월 일정",
+                startsAt: "2026-05-21T18:00:00",
+                endsAt: "2026-05-21T20:00:00",
+                isPublic: true,
+            },
+            {
+                ...SCHEDULES[0],
+                id: 22,
+                title: "비공개 6월 일정",
+                startsAt: "2026-06-01T18:00:00",
+                endsAt: "2026-06-01T20:00:00",
+                isPublic: false,
+            },
+        ];
+
+        const filtered = filterSchedules(schedules, {
+            keyword: "",
+            category: "all",
+            type: "all",
+            isPublic: false,
+            status: "all",
+            now: new Date("2026-05-20T19:00:00"),
+            dateRange: { from: "2026-05-01", to: "2026-05-31" },
+        });
+
+        expect(filtered.map((schedule) => schedule.id)).toEqual([20]);
+    });
+
+    it("여러 날 일정은 선택 날짜 범위와 겹치면 포함한다", () => {
+        const multiDaySchedule: ClubSchedule = {
+            ...SCHEDULES[0],
+            id: 23,
+            startsAt: "2026-05-20T18:00:00",
+            endsAt: "2026-05-22T10:00:00",
+        };
+
+        expect(
+            filterSchedules([multiDaySchedule], {
+                keyword: "",
+                category: "all",
+                type: "all",
+                isPublic: "all",
+                status: "all",
+                now: new Date("2026-05-20T19:00:00"),
+                dateRange: { from: "2026-05-21", to: "2026-05-21" },
+            }).map((schedule) => schedule.id)
+        ).toEqual([23]);
+        expect(
+            filterSchedules([multiDaySchedule], {
+                keyword: "",
+                category: "all",
+                type: "all",
+                isPublic: "all",
+                status: "all",
+                now: new Date("2026-05-20T19:00:00"),
+                dateRange: { from: "2026-05-23", to: "2026-05-23" },
+            })
+        ).toEqual([]);
+    });
+
+    it("Date preset은 Seoul 기준 날짜 범위를 반환한다", () => {
+        const now = new Date("2026-05-31T16:30:00.000Z");
+
+        expect(getScheduleDateRangeFilter("today", now)).toEqual({
+            from: "2026-06-01",
+            to: "2026-06-01",
+        });
+        expect(getScheduleDateRangeFilter("thisWeek", now)).toEqual({
+            from: "2026-06-01",
+            to: "2026-06-07",
+        });
+        expect(getScheduleDateRangeFilter("thisMonth", now)).toEqual({
+            from: "2026-06-01",
+            to: "2026-06-30",
+        });
     });
 
     it("일정을 시작일시 오름차순으로 정렬한다", () => {
@@ -152,12 +313,17 @@ describe("schedule utils", () => {
         expect(schedules.map((schedule) => schedule.id)).toEqual([1, 3, 6]);
     });
 
-    it("지난 일정은 시작일시가 아니라 종료일시가 현재보다 이전인지로 판단한다", () => {
+    it("일정 상태는 현재 시각과 시작/종료일시 기준으로 판단한다", () => {
         const now = new Date("2026-05-20T19:00:00");
         const ongoingSchedule: ClubSchedule = {
             ...SCHEDULES[0],
             startsAt: "2026-05-20T18:00:00",
             endsAt: "2026-05-20T20:00:00",
+        };
+        const upcomingSchedule: ClubSchedule = {
+            ...SCHEDULES[0],
+            startsAt: "2026-05-20T20:00:00",
+            endsAt: "2026-05-20T21:00:00",
         };
         const endedSchedule: ClubSchedule = {
             ...SCHEDULES[0],
@@ -165,8 +331,53 @@ describe("schedule utils", () => {
             endsAt: "2026-05-20T18:00:00",
         };
 
+        expect(isScheduleOngoing(ongoingSchedule, now)).toBe(true);
+        expect(isScheduleUpcoming(upcomingSchedule, now)).toBe(true);
         expect(isSchedulePast(ongoingSchedule, now)).toBe(false);
         expect(isSchedulePast(endedSchedule, now)).toBe(true);
+    });
+
+    it("진행 중 일정은 별도 분리하고 나머지는 현재와 가까운 순으로 정렬한다", () => {
+        const now = new Date("2026-05-20T19:00:00");
+        const schedules: ClubSchedule[] = [
+            {
+                ...SCHEDULES[0],
+                id: 30,
+                title: "먼 미래 일정",
+                startsAt: "2026-06-01T10:00:00",
+                endsAt: "2026-06-01T12:00:00",
+            },
+            {
+                ...SCHEDULES[0],
+                id: 31,
+                title: "최근 종료 일정",
+                startsAt: "2026-05-20T16:00:00",
+                endsAt: "2026-05-20T18:00:00",
+            },
+            {
+                ...SCHEDULES[0],
+                id: 32,
+                title: "곧 시작 일정",
+                startsAt: "2026-05-20T20:00:00",
+                endsAt: "2026-05-20T21:00:00",
+            },
+            {
+                ...SCHEDULES[0],
+                id: 33,
+                title: "진행 중 일정",
+                startsAt: "2026-05-20T18:00:00",
+                endsAt: "2026-05-20T20:00:00",
+            },
+        ];
+
+        const groups = getSeparatedScheduleGroups(schedules, now);
+
+        expect(groups.ongoing.map((schedule) => schedule.title)).toEqual(["진행 중 일정"]);
+        expect(groups.remaining.map((schedule) => schedule.title)).toEqual([
+            "곧 시작 일정",
+            "최근 종료 일정",
+            "먼 미래 일정",
+        ]);
     });
 
     it("관리자 일정 응답을 화면 일정 모델로 변환한다", () => {

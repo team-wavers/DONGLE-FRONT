@@ -149,6 +149,10 @@ export function ScheduleFormDialog({ clubId, open, schedule, onOpenChange, onSuc
                             />
                         </div>
 
+                        <div className="rounded-lg border border-sky-100 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-800">
+                            사용자 화면에서는 시작/종료 시간이 00시 00분이면 시간을 표시하지 않고 날짜만 보여줍니다.
+                        </div>
+
                         <RHFTextField<ClubScheduleFormValues>
                             id="schedule-location"
                             name="location"

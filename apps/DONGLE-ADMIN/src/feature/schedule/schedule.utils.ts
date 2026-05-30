@@ -17,6 +17,17 @@ export interface ScheduleFilters {
     category: string;
     type: "all" | ScheduleType;
     isPublic: "all" | boolean;
+    status: ScheduleStatusFilter;
+    now: Date;
+    dateRange?: ScheduleDateRangeFilter;
+}
+
+export type ScheduleStatusFilter = "all" | "ongoing" | "upcoming" | "past";
+export type ScheduleDateFilter = "all" | "today" | "thisWeek" | "thisMonth" | "custom";
+
+export interface ScheduleDateRangeFilter {
+    from?: string;
+    to?: string;
 }
 
 export function getMonthCalendarDates(year: number, monthIndex: number) {
@@ -41,13 +52,17 @@ export function isSameCalendarDate(a: Date, b: Date) {
 export function getSchedulesForDate(schedules: ClubSchedule[], date: Date) {
     const selectedDate = formatDateForRequest(date, { timeZone: SCHEDULE_TIME_ZONE });
 
-    return schedules.filter(
-        (schedule) => formatDateForRequest(schedule.startsAt, { timeZone: SCHEDULE_TIME_ZONE }) === selectedDate
-    );
+    return schedules.filter((schedule) => {
+        const startDate = formatDateForRequest(schedule.startsAt, { timeZone: SCHEDULE_TIME_ZONE });
+        const endDate = formatDateForRequest(schedule.endsAt, { timeZone: SCHEDULE_TIME_ZONE });
+
+        return startDate <= selectedDate && selectedDate <= endDate;
+    });
 }
 
 export function filterSchedules(schedules: ClubSchedule[], filters: ScheduleFilters) {
     const keyword = filters.keyword.trim().toLowerCase();
+    const dateRange = normalizeScheduleDateRange(filters.dateRange);
 
     return schedules.filter((schedule) => {
         const searchableText = [schedule.title, schedule.clubName, schedule.category, schedule.location]
@@ -58,17 +73,188 @@ export function filterSchedules(schedules: ClubSchedule[], filters: ScheduleFilt
             (!keyword || searchableText.includes(keyword)) &&
             (filters.category === "all" || schedule.category === filters.category) &&
             (filters.type === "all" || schedule.type === filters.type) &&
-            (filters.isPublic === "all" || schedule.isPublic === filters.isPublic)
+            (filters.isPublic === "all" || schedule.isPublic === filters.isPublic) &&
+            (!dateRange || isScheduleOverlappingDateRange(schedule, dateRange)) &&
+            (filters.status === "all" ||
+                (filters.status === "ongoing" && isScheduleOngoing(schedule, filters.now)) ||
+                (filters.status === "upcoming" && isScheduleUpcoming(schedule, filters.now)) ||
+                (filters.status === "past" && isSchedulePast(schedule, filters.now)))
         );
     });
+}
+
+export function getScheduleDateRangeFilter(
+    filter: ScheduleDateFilter,
+    now: Date,
+    customRange?: ScheduleDateRangeFilter
+): ScheduleDateRangeFilter | undefined {
+    if (filter === "all") {
+        return undefined;
+    }
+
+    if (filter === "custom") {
+        return normalizeScheduleDateRange(customRange);
+    }
+
+    const today = formatDateForRequest(now, { timeZone: SCHEDULE_TIME_ZONE });
+    const todayDate = parseDateKey(today);
+
+    if (!todayDate) {
+        return undefined;
+    }
+
+    if (filter === "today") {
+        return { from: today, to: today };
+    }
+
+    if (filter === "thisWeek") {
+        const mondayOffset = (todayDate.getDay() + 6) % 7;
+        const monday = addDays(todayDate, -mondayOffset);
+        const sunday = addDays(monday, 6);
+
+        return {
+            from: formatDateKey(monday),
+            to: formatDateKey(sunday),
+        };
+    }
+
+    const year = todayDate.getFullYear();
+    const month = todayDate.getMonth();
+
+    return {
+        from: formatDateKey(new Date(year, month, 1)),
+        to: formatDateKey(new Date(year, month + 1, 0)),
+    };
 }
 
 export function sortSchedulesByStartAt(schedules: ClubSchedule[]) {
     return [...schedules].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
 }
 
+function sortSchedulesByEndAt(schedules: ClubSchedule[]) {
+    return [...schedules].sort((a, b) => new Date(a.endsAt).getTime() - new Date(b.endsAt).getTime());
+}
+
+function getScheduleDistanceFromNow(schedule: ClubSchedule, nowTime: number) {
+    const startsAt = new Date(schedule.startsAt).getTime();
+    const endsAt = new Date(schedule.endsAt).getTime();
+
+    if (startsAt > nowTime) {
+        return { distance: startsAt - nowTime, priority: 0 };
+    }
+
+    return { distance: nowTime - endsAt, priority: 1 };
+}
+
+export function sortSchedulesByDistanceFromNow(schedules: ClubSchedule[], now: Date) {
+    const nowTime = now.getTime();
+
+    return [...schedules].sort((a, b) => {
+        const aDistance = getScheduleDistanceFromNow(a, nowTime);
+        const bDistance = getScheduleDistanceFromNow(b, nowTime);
+
+        if (aDistance.distance !== bDistance.distance) {
+            return aDistance.distance - bDistance.distance;
+        }
+
+        if (aDistance.priority !== bDistance.priority) {
+            return aDistance.priority - bDistance.priority;
+        }
+
+        return new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime();
+    });
+}
+
+export function getSeparatedScheduleGroups(schedules: ClubSchedule[], now: Date) {
+    return {
+        ongoing: sortSchedulesByEndAt(schedules.filter((schedule) => isScheduleOngoing(schedule, now))),
+        remaining: sortSchedulesByDistanceFromNow(
+            schedules.filter((schedule) => !isScheduleOngoing(schedule, now)),
+            now
+        ),
+    };
+}
+
 export function isSchedulePast(schedule: Pick<ClubSchedule, "endsAt">, now: Date) {
     return new Date(schedule.endsAt).getTime() < now.getTime();
+}
+
+export function isScheduleOngoing(schedule: Pick<ClubSchedule, "startsAt" | "endsAt">, now: Date) {
+    const nowTime = now.getTime();
+    return new Date(schedule.startsAt).getTime() <= nowTime && new Date(schedule.endsAt).getTime() >= nowTime;
+}
+
+export function isScheduleUpcoming(schedule: Pick<ClubSchedule, "startsAt">, now: Date) {
+    return new Date(schedule.startsAt).getTime() > now.getTime();
+}
+
+function normalizeScheduleDateRange(range?: ScheduleDateRangeFilter): ScheduleDateRangeFilter | undefined {
+    const from = normalizeDateKey(range?.from);
+    const to = normalizeDateKey(range?.to);
+
+    if (!from && !to) {
+        return undefined;
+    }
+
+    if (from && to && from > to) {
+        return { from: to, to: from };
+    }
+
+    return { from, to };
+}
+
+function isScheduleOverlappingDateRange(schedule: ClubSchedule, range: ScheduleDateRangeFilter) {
+    const startsAt = formatDateForRequest(schedule.startsAt, { timeZone: SCHEDULE_TIME_ZONE });
+    const endsAt = formatDateForRequest(schedule.endsAt, { timeZone: SCHEDULE_TIME_ZONE });
+
+    if (!startsAt || !endsAt) {
+        return false;
+    }
+
+    return (!range.from || endsAt >= range.from) && (!range.to || startsAt <= range.to);
+}
+
+function normalizeDateKey(value?: string) {
+    if (!value) {
+        return undefined;
+    }
+
+    const dateKey = value.trim().slice(0, 10);
+
+    return parseDateKey(dateKey) ? dateKey : undefined;
+}
+
+function parseDateKey(value: string) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+    if (!match) {
+        return null;
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const date = new Date(year, month - 1, day);
+
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+        return null;
+    }
+
+    return date;
+}
+
+function addDays(date: Date, days: number) {
+    const nextDate = new Date(date);
+    nextDate.setDate(date.getDate() + days);
+    return nextDate;
+}
+
+function formatDateKey(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
 }
 
 export function getMonthScheduleQuery(date: Date) {
@@ -187,10 +373,11 @@ export function formatScheduleDateTimeRange(startAt: string, endAt: string) {
     return `${startDateTime} - ${endDateTime}`;
 }
 
-export function groupSchedulesByMonth(schedules: ClubSchedule[]) {
+export function groupSchedulesByMonth(schedules: ClubSchedule[], options: { preserveOrder?: boolean } = {}) {
     const groups = new Map<string, { key: string; label: string; schedules: ClubSchedule[] }>();
+    const sourceSchedules = options.preserveOrder ? schedules : sortSchedulesByStartAt(schedules);
 
-    for (const schedule of sortSchedulesByStartAt(schedules)) {
+    for (const schedule of sourceSchedules) {
         const parts = getScheduleDateParts(schedule.startsAt);
         const key = parts?.key ?? "invalid";
         const label = parts?.monthLabel ?? "날짜 미정";
