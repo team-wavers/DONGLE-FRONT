@@ -355,6 +355,15 @@
 
 - 활동보고서 목록 조회가 실패해도 동아리 상세 페이지는 중단되지 않아야 하며, 활동보고서 탭에는 활동보고서 없음과 구분되는 실패 안내가 표시되어야 한다.
 
+## Client Loading UX
+
+### 사용자 페이지 스켈레톤
+
+- 동아리 상세 로딩 UI는 실제 상세 화면의 헤더, 태그, 정보 카드, 탭 콘텐츠 구조를 반영해야 한다.
+- 동아리 상세 소개 탭의 rich text 본문은 sanitizing/rendering 지연 중에도 소개와 주요 활동 본문 영역 높이를 스켈레톤으로 먼저 확보해야 한다.
+- 활동보고서 상세 로딩 UI는 뒤로가기, 제목/메타, 동아리 요약, 이미지, 본문, 다른 보고서 목록 구조를 반영해야 한다.
+- 동아리 상세와 활동보고서 상세 라우트는 라우트 전환 중 표시할 `loading.tsx`를 제공해야 한다.
+
 관련 테스트:
 - [club-schedule.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-schedule.test.ts)
 - [club.schedule.service.test.ts](../../packages/service/src/club/club.schedule.service.test.ts)

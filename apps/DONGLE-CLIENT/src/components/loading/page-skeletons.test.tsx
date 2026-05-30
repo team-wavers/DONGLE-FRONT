@@ -10,6 +10,8 @@ describe("page skeletons", () => {
         expect(html).toContain("pt-12");
         expect(html).toContain("sm:grid-cols-2");
         expect(html).toContain("grid-cols-3");
+        expect(html).toContain("space-y-10");
+        expect(html).toContain("max-w-2xl");
         expect(html.match(/data-slot="skeleton"/g)?.length ?? 0).toBeGreaterThanOrEqual(18);
     });
 

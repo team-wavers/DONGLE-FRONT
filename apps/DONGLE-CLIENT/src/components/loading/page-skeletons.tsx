@@ -19,23 +19,16 @@ function InfoCardSkeleton() {
     );
 }
 
-function TimelineItemSkeleton({ isLast = false }: { isLast?: boolean }) {
+function IntroSectionSkeleton() {
     return (
-        <li className="relative grid grid-cols-[1rem_minmax(0,1fr)] gap-4">
-            <div className="relative flex justify-center">
-                <Skeleton className="mt-2 size-3 rounded-full" />
-                {!isLast ? <span className="absolute top-6 bottom-0 w-px bg-zinc-100" aria-hidden="true" /> : null}
+        <section className="space-y-3">
+            <Skeleton className="h-8 w-36" />
+            <div className="space-y-2">
+                <Skeleton className="h-5 w-full max-w-2xl" />
+                <Skeleton className="h-5 w-full max-w-xl" />
+                <Skeleton className="h-5 w-4/5 max-w-lg" />
             </div>
-            <article className={isLast ? "space-y-3 pb-0" : "space-y-3 pb-8"}>
-                <div className="flex flex-wrap gap-2">
-                    <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-6 w-16 rounded-md" />
-                </div>
-                <Skeleton className="h-6 w-52" />
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-4 w-full max-w-lg" />
-            </article>
-        </li>
+        </section>
     );
 }
 
@@ -47,13 +40,10 @@ function ClubTabsSkeleton() {
                 <Skeleton className="h-11 w-full rounded-none" />
                 <Skeleton className="h-11 w-full rounded-none" />
             </div>
-            <section className="space-y-3">
-                <Skeleton className="h-8 w-36" />
-                <ol>
-                    <TimelineItemSkeleton />
-                    <TimelineItemSkeleton isLast />
-                </ol>
-            </section>
+            <div className="space-y-10">
+                <IntroSectionSkeleton />
+                <IntroSectionSkeleton />
+            </div>
         </div>
     );
 }

@@ -1,6 +1,8 @@
 "use client";
 
+import React from "react";
 import { RichTextViewer } from "@dongle/rich-text";
+import { Skeleton } from "@dongle/ui/skeleton";
 
 type ClubIntroViewModel = {
     description: string;
@@ -17,13 +19,23 @@ const styles = {
     text: "text-zinc-700 leading-7",
 } as const;
 
+function IntroTextSkeleton() {
+    return (
+        <div className="space-y-2">
+            <Skeleton className="h-5 w-full max-w-2xl" />
+            <Skeleton className="h-5 w-full max-w-xl" />
+            <Skeleton className="h-5 w-4/5 max-w-lg" />
+        </div>
+    );
+}
+
 export default function ClubIntroTabContent({ club }: ClubIntroTabContentProps) {
     return (
         <section className="space-y-10">
             <article className={styles.article}>
                 <h2 className={styles.title}>동아리 소개</h2>
                 {club.description ? (
-                    <RichTextViewer html={club.description} className={styles.text} />
+                    <RichTextViewer html={club.description} className={styles.text} fallback={<IntroTextSkeleton />} />
                 ) : (
                     <p className={styles.text}>등록된 동아리 소개가 없습니다.</p>
                 )}
@@ -32,7 +44,7 @@ export default function ClubIntroTabContent({ club }: ClubIntroTabContentProps) 
             <article className={styles.article}>
                 <h2 className={styles.title}>주요 활동</h2>
                 {club.main_activities ? (
-                    <RichTextViewer html={club.main_activities} className={styles.text} />
+                    <RichTextViewer html={club.main_activities} className={styles.text} fallback={<IntroTextSkeleton />} />
                 ) : (
                     <p className={styles.text}>등록된 주요 활동 정보가 없습니다.</p>
                 )}
