@@ -17,6 +17,8 @@ export * from "./separator";
 export * from "./sheet";
 export * from "./sidebar";
 export * from "./skeleton";
+export * from "./schedules/schedule-display";
+export * from "./schedules/schedule-display-list";
 export * from "./tabs";
 export * from "./toaster";
 export * from "./tooltip";
