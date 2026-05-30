@@ -101,6 +101,27 @@ describe("club schedule", () => {
         ]);
     });
 
+    it("timezone 없는 공개 일정도 Seoul 로컬 시각 기준으로 분류한다", () => {
+        const groups = getClubScheduleGroups(
+            [
+                {
+                    ...schedules[0],
+                    id: 10,
+                    title: "Seoul 진행 중 일정",
+                    start_at: "2026-05-20 18:00:00",
+                    end_at: "2026-05-20 20:00:00",
+                },
+            ],
+            {
+                clubId: 12,
+                now: new Date("2026-05-20T09:30:00.000Z"),
+            }
+        );
+
+        expect(groups.ongoing.map((schedule) => schedule.title)).toEqual(["Seoul 진행 중 일정"]);
+        expect(groups.remaining).toEqual([]);
+    });
+
     it("백엔드 공개 일정 응답을 화면 일정 모델로 변환하고 외부 링크를 정규화한다", () => {
         const schedule: ClubSchedule = {
             id: 7,

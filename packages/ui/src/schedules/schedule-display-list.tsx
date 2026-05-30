@@ -12,6 +12,7 @@ interface ScheduleDisplayMonthListProps<TPayload = unknown> {
     ariaLabel?: string;
     className?: string;
     renderActions?: (item: ScheduleDisplayItem<TPayload>) => React.ReactNode;
+    onExternalLinkClick?: (item: ScheduleDisplayItem<TPayload>) => void;
 }
 
 interface ScheduleDisplaySectionProps<TPayload = unknown> {
@@ -22,6 +23,7 @@ interface ScheduleDisplaySectionProps<TPayload = unknown> {
     variant?: "default" | "active";
     className?: string;
     renderActions?: (item: ScheduleDisplayItem<TPayload>) => React.ReactNode;
+    onExternalLinkClick?: (item: ScheduleDisplayItem<TPayload>) => void;
 }
 
 interface ScheduleDisplayItemContentProps<TPayload = unknown> {
@@ -30,6 +32,7 @@ interface ScheduleDisplayItemContentProps<TPayload = unknown> {
     showClubMeta?: boolean;
     actions?: React.ReactNode;
     showDateMarker?: boolean;
+    onExternalLinkClick?: (item: ScheduleDisplayItem<TPayload>) => void;
 }
 
 const scheduleTypeClassNames: Record<ScheduleDisplayType, string> = {
@@ -99,6 +102,7 @@ export function ScheduleDisplayItemContent<TPayload = unknown>({
     showClubMeta = false,
     actions,
     showDateMarker = !showClubMeta,
+    onExternalLinkClick,
 }: ScheduleDisplayItemContentProps<TPayload>) {
     return (
         <article className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
@@ -154,6 +158,7 @@ export function ScheduleDisplayItemContent<TPayload = unknown>({
                             href={item.externalUrl}
                             target="_blank"
                             rel="noreferrer"
+                            onClick={() => onExternalLinkClick?.(item)}
                             className="mt-3 inline-flex h-8 items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-800 transition-colors hover:border-zinc-300 hover:bg-zinc-50">
                             <ExternalLink className="size-4" aria-hidden="true" />
                             자세히 보기
@@ -172,11 +177,13 @@ function ScheduleDisplayDateGroupedItems<TPayload = unknown>({
     showPublicBadge = false,
     showClubMeta = false,
     renderActions,
+    onExternalLinkClick,
 }: {
     items: ScheduleDisplayItem<TPayload>[];
     showPublicBadge?: boolean;
     showClubMeta?: boolean;
     renderActions?: (item: ScheduleDisplayItem<TPayload>) => React.ReactNode;
+    onExternalLinkClick?: (item: ScheduleDisplayItem<TPayload>) => void;
 }) {
     return (
         <ol className="divide-y divide-zinc-100">
@@ -192,6 +199,7 @@ function ScheduleDisplayDateGroupedItems<TPayload = unknown>({
                         showPublicBadge={showPublicBadge}
                         showClubMeta={showClubMeta}
                         actions={renderActions?.(item)}
+                        onExternalLinkClick={onExternalLinkClick}
                     />
                 </li>
             ))}
@@ -207,6 +215,7 @@ export function ScheduleDisplaySection<TPayload = unknown>({
     variant = "default",
     className,
     renderActions,
+    onExternalLinkClick,
 }: ScheduleDisplaySectionProps<TPayload>) {
     if (items.length === 0) {
         return null;
@@ -230,6 +239,7 @@ export function ScheduleDisplaySection<TPayload = unknown>({
                     showPublicBadge={showPublicBadge}
                     showClubMeta={showClubMeta}
                     renderActions={renderActions}
+                    onExternalLinkClick={onExternalLinkClick}
                 />
             </div>
         </section>
@@ -243,6 +253,7 @@ export function ScheduleDisplayMonthList<TPayload = unknown>({
     ariaLabel = "월별 일정",
     className,
     renderActions,
+    onExternalLinkClick,
 }: ScheduleDisplayMonthListProps<TPayload>) {
     if (groups.length === 0) {
         return null;
@@ -266,6 +277,7 @@ export function ScheduleDisplayMonthList<TPayload = unknown>({
                             showPublicBadge={showPublicBadge}
                             showClubMeta={showClubMeta}
                             renderActions={renderActions}
+                            onExternalLinkClick={onExternalLinkClick}
                         />
                     </section>
                 );

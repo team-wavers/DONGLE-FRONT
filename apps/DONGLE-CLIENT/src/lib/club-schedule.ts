@@ -4,8 +4,20 @@ import {
     formatScheduleDisplayDateTime,
     formatScheduleDisplayDateTimeRange,
 } from "@dongle/ui/schedules/schedule-display";
-import { normalizeExternalUrl } from "@dongle/utils";
+import { getDateTimeTimestamp, normalizeExternalUrl } from "@dongle/utils";
 import type { ClubPublicSchedule, ClubScheduleGroups } from "./club-schedule.types";
+
+const SCHEDULE_TIME_ZONE = "Asia/Seoul";
+
+function getScheduleTimestamp(value: string) {
+    return getDateTimeTimestamp(value, { timeZone: SCHEDULE_TIME_ZONE });
+}
+
+function getSortableScheduleTimestamp(value: string) {
+    const timestamp = getScheduleTimestamp(value);
+
+    return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER : timestamp;
+}
 
 interface GetClubScheduleGroupsOptions {
     clubId: number;
@@ -13,16 +25,16 @@ interface GetClubScheduleGroupsOptions {
 }
 
 function sortByStartAt(schedules: ClubPublicSchedule[]) {
-    return [...schedules].sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
+    return [...schedules].sort((a, b) => getSortableScheduleTimestamp(a.start_at) - getSortableScheduleTimestamp(b.start_at));
 }
 
 function sortByEndAt(schedules: ClubPublicSchedule[]) {
-    return [...schedules].sort((a, b) => new Date(a.end_at).getTime() - new Date(b.end_at).getTime());
+    return [...schedules].sort((a, b) => getSortableScheduleTimestamp(a.end_at) - getSortableScheduleTimestamp(b.end_at));
 }
 
 function getScheduleDistanceFromNow(schedule: ClubPublicSchedule, nowTime: number) {
-    const startTime = new Date(schedule.start_at).getTime();
-    const endTime = new Date(schedule.end_at).getTime();
+    const startTime = getSortableScheduleTimestamp(schedule.start_at);
+    const endTime = getSortableScheduleTimestamp(schedule.end_at);
 
     if (startTime > nowTime) {
         return { distance: startTime - nowTime, priority: 0 };
@@ -44,23 +56,23 @@ function sortByDistanceFromNow(schedules: ClubPublicSchedule[], nowTime: number)
             return aDistance.priority - bDistance.priority;
         }
 
-        return new Date(a.start_at).getTime() - new Date(b.start_at).getTime();
+        return getSortableScheduleTimestamp(a.start_at) - getSortableScheduleTimestamp(b.start_at);
     });
 }
 
 function isScheduleOngoing(schedule: ClubPublicSchedule, nowTime: number) {
-    const startTime = new Date(schedule.start_at).getTime();
-    const endTime = new Date(schedule.end_at).getTime();
+    const startTime = getScheduleTimestamp(schedule.start_at);
+    const endTime = getScheduleTimestamp(schedule.end_at);
 
     return startTime <= nowTime && endTime >= nowTime;
 }
 
 function isScheduleUpcoming(schedule: ClubPublicSchedule, nowTime: number) {
-    return new Date(schedule.start_at).getTime() > nowTime;
+    return getScheduleTimestamp(schedule.start_at) > nowTime;
 }
 
 function isSchedulePast(schedule: ClubPublicSchedule, nowTime: number) {
-    return new Date(schedule.end_at).getTime() < nowTime;
+    return getScheduleTimestamp(schedule.end_at) < nowTime;
 }
 
 export function getClubScheduleGroups(

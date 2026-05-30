@@ -1,7 +1,42 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { ScheduleDisplayMonthList } from "@dongle/ui/schedules/schedule-display-list";
+import type { ScheduleDisplayItem } from "@dongle/ui/schedules/schedule-display";
+import { describe, expect, it, vi } from "vitest";
+import type { ClubPublicSchedule } from "@/lib/club-schedule.types";
 import ClubSchedulesTabContent from "./club-schedules-tab-content";
+
+const analyticsMock = vi.hoisted(() => ({
+    trackDongleEvent: vi.fn(),
+}));
+
+vi.mock("@/lib/analytics", () => analyticsMock);
+
+function findElementByType(node: React.ReactNode, type: React.ElementType): React.ReactElement | null {
+    if (!React.isValidElement(node)) {
+        return null;
+    }
+
+    if (node.type === type) {
+        return node;
+    }
+
+    const children = (node.props as { children?: React.ReactNode }).children;
+
+    if (Array.isArray(children)) {
+        for (const child of children) {
+            const found = findElementByType(child, type);
+
+            if (found) {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    return findElementByType(children, type);
+}
 
 describe("ClubSchedulesTabContent", () => {
     it("외부 링크가 있는 공개 일정은 자세히 보기 링크를 렌더링한다", () => {
@@ -33,6 +68,44 @@ describe("ClubSchedulesTabContent", () => {
         expect(html).toContain('target="_blank"');
         expect(html).toContain('rel="noreferrer"');
         expect(html).toContain("자세히 보기");
+    });
+
+    it("외부 링크 클릭 콜백은 일정 analytics 이벤트를 전송한다", () => {
+        analyticsMock.trackDongleEvent.mockClear();
+        const element = ClubSchedulesTabContent({
+            clubName: "동글동아리",
+            schedules: {
+                ongoing: [],
+                upcoming: [
+                    {
+                        id: 1,
+                        clubId: 12,
+                        title: "공개 설명회",
+                        type: "event",
+                        start_at: "2026-05-20T10:00:00.000Z",
+                        end_at: "2026-05-20T12:00:00.000Z",
+                        is_public: true,
+                        location: "학생회관",
+                        description: "신청 링크를 확인하세요.",
+                        external_url: "https://dongle.kr/schedule",
+                    },
+                ],
+                past: [],
+            },
+        });
+        const monthList = findElementByType(element, ScheduleDisplayMonthList);
+        const props = monthList?.props as {
+            groups: Array<{ items: Array<ScheduleDisplayItem<ClubPublicSchedule>> }>;
+            onExternalLinkClick?: (item: ScheduleDisplayItem<ClubPublicSchedule>) => void;
+        };
+
+        props.onExternalLinkClick?.(props.groups[0].items[0]);
+
+        expect(analyticsMock.trackDongleEvent).toHaveBeenCalledWith("schedule_external_link_click", {
+            club_id: 12,
+            club_name: "동글동아리",
+            destination: "https://dongle.kr/schedule",
+        });
     });
 
     it("외부 링크가 없는 공개 일정은 자세히 보기 링크를 렌더링하지 않는다", () => {
@@ -83,6 +156,7 @@ describe("ClubSchedulesTabContent", () => {
     it("진행 중인 공개 일정은 별도 섹션으로 렌더링하고 나머지는 Seoul 기준 시작 월별로 묶는다", () => {
         const html = renderToStaticMarkup(
             <ClubSchedulesTabContent
+                clubName="동글동아리"
                 schedules={{
                     ongoing: [
                         {
@@ -130,6 +204,7 @@ describe("ClubSchedulesTabContent", () => {
     it("현재 기준 가까운 순서에서 같은 월이 떨어져 있어도 월 섹션은 하나로 합친다", () => {
         const html = renderToStaticMarkup(
             <ClubSchedulesTabContent
+                clubName="동글동아리"
                 schedules={{
                     ongoing: [],
                     upcoming: [
@@ -219,9 +294,50 @@ describe("ClubSchedulesTabContent", () => {
         expect(html).toContain("6월 둘째 일정");
     });
 
+    it("remaining이 없을 때도 timezone 없는 일정은 Seoul 기준으로 정렬한다", () => {
+        const html = renderToStaticMarkup(
+            <ClubSchedulesTabContent
+                clubName="동글동아리"
+                schedules={{
+                    ongoing: [],
+                    upcoming: [
+                        {
+                            id: 1,
+                            clubId: 12,
+                            title: "UTC 오후 일정",
+                            type: "event",
+                            start_at: "2026-05-20T10:00:00.000Z",
+                            end_at: "2026-05-20T12:00:00.000Z",
+                            is_public: true,
+                            location: "",
+                            description: "",
+                            external_url: null,
+                        },
+                        {
+                            id: 2,
+                            clubId: 12,
+                            title: "Seoul 저녁 일정",
+                            type: "regular_meeting",
+                            start_at: "2026-05-20 18:00:00",
+                            end_at: "2026-05-20 20:00:00",
+                            is_public: true,
+                            location: "",
+                            description: "",
+                            external_url: null,
+                        },
+                    ],
+                    past: [],
+                }}
+            />
+        );
+
+        expect(html.indexOf("Seoul 저녁 일정")).toBeLessThan(html.indexOf("UTC 오후 일정"));
+    });
+
     it("일정 목록은 날짜 아젠다 없이 각 아이템의 일시와 장소를 렌더링한다", () => {
         const html = renderToStaticMarkup(
             <ClubSchedulesTabContent
+                clubName="동글동아리"
                 schedules={{
                     ongoing: [],
                     upcoming: [
@@ -251,6 +367,7 @@ describe("ClubSchedulesTabContent", () => {
     it("같은 날짜의 일정도 각 아이템 안에 일시를 독립적으로 렌더링한다", () => {
         const html = renderToStaticMarkup(
             <ClubSchedulesTabContent
+                clubName="동글동아리"
                 schedules={{
                     ongoing: [],
                     upcoming: [
@@ -292,6 +409,7 @@ describe("ClubSchedulesTabContent", () => {
     it("일정 유형 태그는 유형별로 다른 색상 클래스를 렌더링한다", () => {
         const html = renderToStaticMarkup(
             <ClubSchedulesTabContent
+                clubName="동글동아리"
                 schedules={{
                     ongoing: [],
                     upcoming: [

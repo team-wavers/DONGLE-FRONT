@@ -3,6 +3,7 @@ import {
     formatDateForRequest,
     formatDateTimeForInput,
     formatMonthKey,
+    getDateTimeTimestamp,
     getMonthDateTimeRange,
     parseMonthKey,
 } from "@dongle/utils";
@@ -128,16 +129,26 @@ export function getScheduleDateRangeFilter(
 }
 
 export function sortSchedulesByStartAt(schedules: ClubSchedule[]) {
-    return [...schedules].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
+    return [...schedules].sort((a, b) => getSortableScheduleTimestamp(a.startsAt) - getSortableScheduleTimestamp(b.startsAt));
 }
 
 function sortSchedulesByEndAt(schedules: ClubSchedule[]) {
-    return [...schedules].sort((a, b) => new Date(a.endsAt).getTime() - new Date(b.endsAt).getTime());
+    return [...schedules].sort((a, b) => getSortableScheduleTimestamp(a.endsAt) - getSortableScheduleTimestamp(b.endsAt));
+}
+
+function getScheduleTimestamp(value: string) {
+    return getDateTimeTimestamp(value, { timeZone: SCHEDULE_TIME_ZONE });
+}
+
+function getSortableScheduleTimestamp(value: string) {
+    const timestamp = getScheduleTimestamp(value);
+
+    return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER : timestamp;
 }
 
 function getScheduleDistanceFromNow(schedule: ClubSchedule, nowTime: number) {
-    const startsAt = new Date(schedule.startsAt).getTime();
-    const endsAt = new Date(schedule.endsAt).getTime();
+    const startsAt = getSortableScheduleTimestamp(schedule.startsAt);
+    const endsAt = getSortableScheduleTimestamp(schedule.endsAt);
 
     if (startsAt > nowTime) {
         return { distance: startsAt - nowTime, priority: 0 };
@@ -161,7 +172,7 @@ export function sortSchedulesByDistanceFromNow(schedules: ClubSchedule[], now: D
             return aDistance.priority - bDistance.priority;
         }
 
-        return new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime();
+        return getSortableScheduleTimestamp(a.startsAt) - getSortableScheduleTimestamp(b.startsAt);
     });
 }
 
@@ -176,16 +187,16 @@ export function getSeparatedScheduleGroups(schedules: ClubSchedule[], now: Date)
 }
 
 export function isSchedulePast(schedule: Pick<ClubSchedule, "endsAt">, now: Date) {
-    return new Date(schedule.endsAt).getTime() < now.getTime();
+    return getScheduleTimestamp(schedule.endsAt) < now.getTime();
 }
 
 export function isScheduleOngoing(schedule: Pick<ClubSchedule, "startsAt" | "endsAt">, now: Date) {
     const nowTime = now.getTime();
-    return new Date(schedule.startsAt).getTime() <= nowTime && new Date(schedule.endsAt).getTime() >= nowTime;
+    return getScheduleTimestamp(schedule.startsAt) <= nowTime && getScheduleTimestamp(schedule.endsAt) >= nowTime;
 }
 
 export function isScheduleUpcoming(schedule: Pick<ClubSchedule, "startsAt">, now: Date) {
-    return new Date(schedule.startsAt).getTime() > now.getTime();
+    return getScheduleTimestamp(schedule.startsAt) > now.getTime();
 }
 
 function normalizeScheduleDateRange(range?: ScheduleDateRangeFilter): ScheduleDateRangeFilter | undefined {

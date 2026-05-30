@@ -77,6 +77,41 @@ function getTimeZoneDateParts(value: string | Date, timeZone: string) {
     };
 }
 
+function getTimeZoneOffsetMs(value: Date, timeZone: string) {
+    const parts = getTimeZoneDateParts(value, timeZone);
+
+    if (!parts) {
+        return 0;
+    }
+
+    return (
+        Date.UTC(
+            Number(parts.year),
+            Number(parts.month) - 1,
+            Number(parts.day),
+            Number(parts.hour),
+            Number(parts.minute),
+            Number(parts.second)
+        ) - value.getTime()
+    );
+}
+
+function getTimeZoneLocalTimestamp(parts: ReturnType<typeof getDateTimeInputParts>, timeZone: string) {
+    const localTimestamp = Date.UTC(
+        Number(parts.year),
+        Number(parts.month) - 1,
+        Number(parts.day),
+        Number(parts.hour),
+        Number(parts.minute),
+        Number(parts.second)
+    );
+    const firstOffset = getTimeZoneOffsetMs(new Date(localTimestamp), timeZone);
+    const firstTimestamp = localTimestamp - firstOffset;
+    const secondOffset = getTimeZoneOffsetMs(new Date(firstTimestamp), timeZone);
+
+    return localTimestamp - secondOffset;
+}
+
 function getDateParts(value: Date, timeZone?: string) {
     if (Number.isNaN(value.getTime())) {
         return null;
@@ -176,6 +211,20 @@ export function formatDateTimeForRequest(
     }
 
     return `${parts.year}-${parts.month}-${parts.day}${separator}${parts.hour}:${parts.minute}:${parts.second}`;
+}
+
+export function getDateTimeTimestamp(value: string | Date | undefined, options?: DateTimeFormatOptions) {
+    if (!value) {
+        return Number.NaN;
+    }
+
+    if (typeof value === "string" && options?.timeZone && isDateTimeWithoutTimeZone(value)) {
+        return getTimeZoneLocalTimestamp(getDateTimeInputParts(value), options.timeZone);
+    }
+
+    const date = typeof value === "string" ? new Date(value) : value;
+
+    return date.getTime();
 }
 
 export function formatDateTimeForInput(value: string | Date | undefined, options?: DateTimeFormatOptions): string {

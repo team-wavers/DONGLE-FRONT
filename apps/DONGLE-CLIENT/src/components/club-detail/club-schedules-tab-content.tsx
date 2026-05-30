@@ -1,6 +1,9 @@
 "use client";
 
+import React from "react";
 import type { ClubPublicSchedule, ClubPublicScheduleType, ClubScheduleGroups } from "@/lib/club-schedule.types";
+import { trackDongleEvent } from "@/lib/analytics";
+import { getDateTimeTimestamp } from "@dongle/utils";
 import {
     formatScheduleDisplayDateRange,
     formatScheduleDisplayDateTimeRange,
@@ -22,13 +25,15 @@ const SCHEDULE_TYPE_LABELS: Record<ClubPublicScheduleType, string> = {
     regular_meeting: "정기모임",
 };
 
+const SCHEDULE_TIME_ZONE = "Asia/Seoul";
+
 function getScheduleStartTime(schedule: ClubPublicSchedule) {
-    const time = new Date(schedule.start_at).getTime();
+    const time = getDateTimeTimestamp(schedule.start_at, { timeZone: SCHEDULE_TIME_ZONE });
 
     return Number.isNaN(time) ? Number.MAX_SAFE_INTEGER : time;
 }
 
-function mapScheduleToDisplayItem(schedule: ClubPublicSchedule): ScheduleDisplayItem {
+function mapScheduleToDisplayItem(schedule: ClubPublicSchedule): ScheduleDisplayItem<ClubPublicSchedule> {
     const dateParts = getScheduleDisplayDateParts(schedule.start_at);
 
     return {
@@ -50,6 +55,7 @@ function mapScheduleToDisplayItem(schedule: ClubPublicSchedule): ScheduleDisplay
         locationLabel: schedule.location || undefined,
         descriptionLabel: schedule.description || undefined,
         externalUrl: schedule.external_url,
+        payload: schedule,
     };
 }
 
@@ -61,7 +67,7 @@ function mapSchedulesToDisplayItems(schedules: ClubPublicSchedule[], options: { 
     return sourceSchedules.map(mapScheduleToDisplayItem);
 }
 
-export default function ClubSchedulesTabContent({ schedules, loadFailed = false }: ClubSchedulesTabContentProps) {
+export default function ClubSchedulesTabContent({ clubName, schedules, loadFailed = false }: ClubSchedulesTabContentProps) {
     const hasSchedules = schedules.ongoing.length > 0 || schedules.upcoming.length > 0 || schedules.past.length > 0;
     const ongoingScheduleItems = schedules.ongoing.map(mapScheduleToDisplayItem);
     const remainingSchedules = schedules.remaining ?? [...schedules.upcoming, ...schedules.past];
@@ -69,6 +75,19 @@ export default function ClubSchedulesTabContent({ schedules, loadFailed = false 
         preserveOrder: Boolean(schedules.remaining),
     });
     const scheduleMonthGroups = groupScheduleDisplayItemsByMonth(remainingScheduleItems);
+    const handleExternalLinkClick = (item: ScheduleDisplayItem<ClubPublicSchedule>) => {
+        const schedule = item.payload;
+
+        if (!schedule || !item.externalUrl) {
+            return;
+        }
+
+        trackDongleEvent("schedule_external_link_click", {
+            club_id: schedule.clubId,
+            club_name: clubName,
+            destination: item.externalUrl,
+        });
+    };
 
     if (loadFailed) {
         return (
@@ -88,8 +107,13 @@ export default function ClubSchedulesTabContent({ schedules, loadFailed = false 
 
     return (
         <div className="space-y-6">
-            <ScheduleDisplaySection title="진행 중인 일정" items={ongoingScheduleItems} variant="active" />
-            <ScheduleDisplayMonthList groups={scheduleMonthGroups} />
+            <ScheduleDisplaySection
+                title="진행 중인 일정"
+                items={ongoingScheduleItems}
+                variant="active"
+                onExternalLinkClick={handleExternalLinkClick}
+            />
+            <ScheduleDisplayMonthList groups={scheduleMonthGroups} onExternalLinkClick={handleExternalLinkClick} />
         </div>
     );
 }

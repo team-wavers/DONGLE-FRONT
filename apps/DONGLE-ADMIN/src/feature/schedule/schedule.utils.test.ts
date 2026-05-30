@@ -337,6 +337,19 @@ describe("schedule utils", () => {
         expect(isSchedulePast(endedSchedule, now)).toBe(true);
     });
 
+    it("timezone 없는 일정 상태는 Seoul 로컬 시각 기준으로 판단한다", () => {
+        const now = new Date("2026-05-20T09:30:00.000Z");
+        const schedule: ClubSchedule = {
+            ...SCHEDULES[0],
+            startsAt: "2026-05-20 18:00:00",
+            endsAt: "2026-05-20 20:00:00",
+        };
+
+        expect(isScheduleOngoing(schedule, now)).toBe(true);
+        expect(isScheduleUpcoming(schedule, now)).toBe(false);
+        expect(isSchedulePast(schedule, now)).toBe(false);
+    });
+
     it("진행 중 일정은 별도 분리하고 나머지는 현재와 가까운 순으로 정렬한다", () => {
         const now = new Date("2026-05-20T19:00:00");
         const schedules: ClubSchedule[] = [

@@ -6,6 +6,7 @@ import {
     formatDateTimeForInput,
     formatDateTimeForRequest,
     formatMonthKey,
+    getDateTimeTimestamp,
     getMonthDateTimeRange,
     parseMonthKey,
 } from "./date";
@@ -43,6 +44,12 @@ describe("date utils", () => {
     test("timezone 없는 서버 datetime 문자열은 Seoul 로컬 날짜로 표시한다", () => {
         expect(formatDateByLocale("2026-05-20T18:00:00")).toBe("2026.05.20");
         expect(formatDateForRequest("2026-05-20T18:00:00", { timeZone: "Asia/Seoul" })).toBe("2026-05-20");
+    });
+
+    test("timezone 없는 서버 datetime 문자열은 지정 timezone의 절대 시각으로 변환한다", () => {
+        expect(getDateTimeTimestamp("2026-05-20T18:00:00", { timeZone: "Asia/Seoul" })).toBe(
+            new Date("2026-05-20T09:00:00.000Z").getTime()
+        );
     });
 
     test("날짜 범위 표시는 기본적으로 Seoul 기준 날짜를 반환한다", () => {

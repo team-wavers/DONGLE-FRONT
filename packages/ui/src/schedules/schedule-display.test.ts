@@ -1,4 +1,6 @@
+import React from "react";
 import { describe, expect, it } from "vitest";
+import { ScheduleDisplayItemContent } from "./schedule-display-list";
 import {
     formatScheduleDisplayDateRange,
     formatScheduleDisplayDateTimeRange,
@@ -26,6 +28,32 @@ function createItem(
         ...baseItem,
         ...overrides,
     };
+}
+
+function findElementByType(node: React.ReactNode, type: string): React.ReactElement | null {
+    if (!React.isValidElement(node)) {
+        return null;
+    }
+
+    if (node.type === type) {
+        return node;
+    }
+
+    const children = (node.props as { children?: React.ReactNode }).children;
+
+    if (Array.isArray(children)) {
+        for (const child of children) {
+            const found = findElementByType(child, type);
+
+            if (found) {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    return findElementByType(children, type);
 }
 
 describe("schedule display helpers", () => {
@@ -95,5 +123,30 @@ describe("schedule display helpers", () => {
 
         expect(groups.map((group) => group.label)).toEqual(["2026년 6월", "2026년 5월"]);
         expect(groups[0].items.map((item) => item.title)).toEqual(["6월 첫 일정", "6월 둘째 일정"]);
+    });
+
+    it("외부 링크 클릭 콜백을 item과 함께 호출한다", () => {
+        const item = {
+            ...createItem({
+                id: 1,
+                title: "외부 링크 일정",
+                dateKey: "2026-06-01",
+                monthKey: "2026-06",
+                monthLabel: "2026년 6월",
+            }),
+            externalUrl: "https://dongle.kr/schedule",
+        };
+        let clickedItem: ScheduleDisplayItem | null = null;
+        const element = ScheduleDisplayItemContent({
+            item,
+            onExternalLinkClick: (nextItem) => {
+                clickedItem = nextItem;
+            },
+        });
+        const link = findElementByType(element, "a");
+
+        expect(link).not.toBeNull();
+        (link?.props as { onClick?: () => void }).onClick?.();
+        expect(clickedItem).toBe(item);
     });
 });
