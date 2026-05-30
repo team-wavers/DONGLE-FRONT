@@ -1,7 +1,6 @@
 "use client";
 
 import { Users, LogOut } from "lucide-react";
-import { logoutAction } from "@/feature/auth/action/logout-form.action";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
@@ -12,8 +11,9 @@ export default function NotFound() {
 
     const handleLogout = () => {
         startTransition(async () => {
-            await logoutAction();
-            router.push("/login");
+            await fetch("/api/auth/logout", { method: "POST" });
+            router.replace("/login");
+            router.refresh();
         });
     };
 

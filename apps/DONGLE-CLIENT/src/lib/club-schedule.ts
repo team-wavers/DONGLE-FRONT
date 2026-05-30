@@ -1,8 +1,11 @@
 import type { ClubSchedule } from "@dongle/types/club/club.schedule";
+import {
+    formatScheduleDisplayDateRange,
+    formatScheduleDisplayDateTime,
+    formatScheduleDisplayDateTimeRange,
+} from "@dongle/ui/schedules/schedule-display";
 import { normalizeExternalUrl } from "@dongle/utils";
 import type { ClubPublicSchedule, ClubScheduleGroups } from "./club-schedule.types";
-
-const SCHEDULE_TIME_ZONE = "Asia/Seoul";
 
 interface GetClubScheduleGroupsOptions {
     clubId: number;
@@ -13,29 +16,51 @@ function sortByStartAt(schedules: ClubPublicSchedule[]) {
     return [...schedules].sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
 }
 
-function getScheduleDateTimeParts(value: string) {
-    const date = new Date(value);
+function sortByEndAt(schedules: ClubPublicSchedule[]) {
+    return [...schedules].sort((a, b) => new Date(a.end_at).getTime() - new Date(b.end_at).getTime());
+}
 
-    if (Number.isNaN(date.getTime())) {
-        return null;
+function getScheduleDistanceFromNow(schedule: ClubPublicSchedule, nowTime: number) {
+    const startTime = new Date(schedule.start_at).getTime();
+    const endTime = new Date(schedule.end_at).getTime();
+
+    if (startTime > nowTime) {
+        return { distance: startTime - nowTime, priority: 0 };
     }
 
-    const parts = new Intl.DateTimeFormat("en-CA", {
-        timeZone: SCHEDULE_TIME_ZONE,
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-    }).formatToParts(date);
-    const partMap = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return { distance: nowTime - endTime, priority: 1 };
+}
 
-    return {
-        month: partMap.month,
-        day: partMap.day,
-        hour: partMap.hour,
-        minute: partMap.minute,
-    };
+function sortByDistanceFromNow(schedules: ClubPublicSchedule[], nowTime: number) {
+    return [...schedules].sort((a, b) => {
+        const aDistance = getScheduleDistanceFromNow(a, nowTime);
+        const bDistance = getScheduleDistanceFromNow(b, nowTime);
+
+        if (aDistance.distance !== bDistance.distance) {
+            return aDistance.distance - bDistance.distance;
+        }
+
+        if (aDistance.priority !== bDistance.priority) {
+            return aDistance.priority - bDistance.priority;
+        }
+
+        return new Date(a.start_at).getTime() - new Date(b.start_at).getTime();
+    });
+}
+
+function isScheduleOngoing(schedule: ClubPublicSchedule, nowTime: number) {
+    const startTime = new Date(schedule.start_at).getTime();
+    const endTime = new Date(schedule.end_at).getTime();
+
+    return startTime <= nowTime && endTime >= nowTime;
+}
+
+function isScheduleUpcoming(schedule: ClubPublicSchedule, nowTime: number) {
+    return new Date(schedule.start_at).getTime() > nowTime;
+}
+
+function isSchedulePast(schedule: ClubPublicSchedule, nowTime: number) {
+    return new Date(schedule.end_at).getTime() < nowTime;
 }
 
 export function getClubScheduleGroups(
@@ -44,42 +69,24 @@ export function getClubScheduleGroups(
 ): ClubScheduleGroups {
     const nowTime = now.getTime();
     const visibleSchedules = schedules.filter((schedule) => schedule.clubId === clubId && schedule.is_public);
+    const ongoing = sortByEndAt(visibleSchedules.filter((schedule) => isScheduleOngoing(schedule, nowTime)));
+    const upcoming = sortByStartAt(visibleSchedules.filter((schedule) => isScheduleUpcoming(schedule, nowTime)));
+    const past = sortByDistanceFromNow(
+        visibleSchedules.filter((schedule) => isSchedulePast(schedule, nowTime)),
+        nowTime
+    );
 
     return {
-        upcoming: sortByStartAt(visibleSchedules.filter((schedule) => new Date(schedule.end_at).getTime() >= nowTime)),
-        past: sortByStartAt(visibleSchedules.filter((schedule) => new Date(schedule.end_at).getTime() < nowTime)),
+        ongoing,
+        remaining: sortByDistanceFromNow([...upcoming, ...past], nowTime),
+        upcoming,
+        past,
     };
 }
 
-export function formatScheduleDateTime(value: string) {
-    const parts = getScheduleDateTimeParts(value);
-
-    if (!parts) {
-        return "-";
-    }
-
-    return `${parts.month}.${parts.day} ${parts.hour}:${parts.minute}`;
-}
-
-export function formatScheduleDateTimeRange(startAt: string, endAt: string) {
-    const start = getScheduleDateTimeParts(startAt);
-    const end = getScheduleDateTimeParts(endAt);
-
-    if (!start || !end) {
-        return "-";
-    }
-
-    const startDate = `${start.month}.${start.day}`;
-    const endDate = `${end.month}.${end.day}`;
-    const startTime = `${start.hour}:${start.minute}`;
-    const endTime = `${end.hour}:${end.minute}`;
-
-    if (startDate === endDate) {
-        return `${startDate} ${startTime} - ${endTime}`;
-    }
-
-    return `${startDate} ${startTime} - ${endDate} ${endTime}`;
-}
+export const formatScheduleDateTime = formatScheduleDisplayDateTime;
+export const formatScheduleDateTimeRange = formatScheduleDisplayDateTimeRange;
+export const formatScheduleDateRange = formatScheduleDisplayDateRange;
 
 export function mapClubScheduleToPublicSchedule(schedule: ClubSchedule): ClubPublicSchedule {
     return {

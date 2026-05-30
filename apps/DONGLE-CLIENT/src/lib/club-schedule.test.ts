@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ClubSchedule } from "@dongle/types/club/club.schedule";
 import {
+    formatScheduleDateRange,
     formatScheduleDateTime,
     formatScheduleDateTimeRange,
     getClubScheduleGroups,
@@ -14,8 +15,8 @@ const schedules: ClubPublicSchedule[] = [
         clubId: 12,
         title: "지난 공개 일정",
         type: "event",
-        start_at: "2026-05-01T10:00:00.000Z",
-        end_at: "2026-05-01T12:00:00.000Z",
+        start_at: "2026-05-14T21:00:00.000Z",
+        end_at: "2026-05-14T23:00:00.000Z",
         is_public: true,
         location: "학생회관",
         description: "지난 일정입니다.",
@@ -84,18 +85,20 @@ const schedules: ClubPublicSchedule[] = [
 ];
 
 describe("club schedule", () => {
-    it("해당 동아리의 공개 일정만 종료일시 기준으로 다가오는 일정과 지난 일정으로 분리해 시작일시 오름차순 정렬한다", () => {
+    it("해당 동아리의 공개 일정은 진행 중을 따로 분리하고 나머지는 현재와 가까운 순으로 정렬한다", () => {
         const groups = getClubScheduleGroups(schedules, {
             clubId: 12,
             now: new Date("2026-05-15T00:00:00.000Z"),
         });
 
-        expect(groups.upcoming.map((schedule) => schedule.title)).toEqual([
-            "진행 중 공개 일정",
+        expect(groups.ongoing.map((schedule) => schedule.title)).toEqual(["진행 중 공개 일정"]);
+        expect(groups.upcoming.map((schedule) => schedule.title)).toEqual(["먼저 공개 일정", "나중 공개 일정"]);
+        expect(groups.past.map((schedule) => schedule.title)).toEqual(["지난 공개 일정"]);
+        expect(groups.remaining?.map((schedule) => schedule.title)).toEqual([
+            "지난 공개 일정",
             "먼저 공개 일정",
             "나중 공개 일정",
         ]);
-        expect(groups.past.map((schedule) => schedule.title)).toEqual(["지난 공개 일정"]);
     });
 
     it("백엔드 공개 일정 응답을 화면 일정 모델로 변환하고 외부 링크를 정규화한다", () => {
@@ -150,18 +153,38 @@ describe("club schedule", () => {
     });
 
     it("일정 날짜시간은 방문자 로컬 시간대가 아니라 Seoul 기준으로 표시한다", () => {
-        expect(formatScheduleDateTime("2026-05-20T10:00:00.000Z")).toBe("05.20 19:00");
+        expect(formatScheduleDateTime("2026-05-20T10:00:00.000Z")).toBe("5월 20일 19시 00분");
+    });
+
+    it("일정 날짜시간이 00시 00분이면 시간을 생략한다", () => {
+        expect(formatScheduleDateTime("2026-05-19T15:00:00.000Z")).toBe("5월 20일");
     });
 
     it("같은 날 일정 기간은 종료 날짜를 반복하지 않고 표시한다", () => {
         expect(formatScheduleDateTimeRange("2026-05-20T10:00:00.000Z", "2026-05-20T12:00:00.000Z")).toBe(
-            "05.20 19:00 - 21:00"
+            "5월 20일 19시 00분 - 21시 00분"
+        );
+    });
+
+    it("같은 날 일정 기간의 시작 또는 종료가 00시 00분이면 해당 시간을 생략한다", () => {
+        expect(formatScheduleDateTimeRange("2026-05-19T15:00:00.000Z", "2026-05-20T12:00:00.000Z")).toBe(
+            "5월 20일 - 21시 00분"
+        );
+        expect(formatScheduleDateTimeRange("2026-05-20T10:00:00.000Z", "2026-05-20T15:00:00.000Z")).toBe(
+            "5월 20일 19시 00분 - 5월 21일"
+        );
+    });
+
+    it("모바일 일정 기간은 시간 없이 날짜 범위만 표시한다", () => {
+        expect(formatScheduleDateRange("2026-05-20T10:00:00.000Z", "2026-05-20T12:00:00.000Z")).toBe("5월 20일");
+        expect(formatScheduleDateRange("2026-05-19T01:23:00.000Z", "2026-05-22T01:23:00.000Z")).toBe(
+            "5월 19일 - 5월 22일"
         );
     });
 
     it("서로 다른 날 일정 기간은 시작과 종료 날짜를 모두 표시한다", () => {
         expect(formatScheduleDateTimeRange("2026-05-19T01:23:00.000Z", "2026-05-22T01:23:00.000Z")).toBe(
-            "05.19 10:23 - 05.22 10:23"
+            "5월 19일 10시 23분 - 5월 22일 10시 23분"
         );
     });
 });

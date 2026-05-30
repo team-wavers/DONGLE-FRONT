@@ -1,5 +1,6 @@
 "use client";
 
+import { useCurrentTime } from "@/hooks/use-current-time";
 import SearchInput from "@/shared/ui/navigation/search-input/search-input";
 import { Button } from "@dongle/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@dongle/ui/card";
@@ -18,7 +19,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@dongle/ui/select";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+} from "@dongle/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dongle/ui/tabs";
+import { cn } from "@dongle/ui/utils";
+import { CalendarDays, ChevronLeft, ChevronRight, ListChecks } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -34,10 +44,14 @@ import {
     getMonthScheduleQueryByMonthKey,
     getSchedulesForDate,
     groupSchedulesByMonth,
+    isScheduleOngoing,
+    isSchedulePast,
+    isScheduleUpcoming,
     isSameCalendarDate,
     mapAdminClubScheduleToClubSchedule,
     parseScheduleMonthKey,
     sortSchedulesByStartAt,
+    type ScheduleStatusFilter,
 } from "../schedule.utils";
 import { ScheduleListItem } from "./schedule-list-item";
 
@@ -53,6 +67,27 @@ const monthLabelFormatter = new Intl.DateTimeFormat("ko-KR", {
 
 const weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"];
 
+type ScheduleViewMode = "calendar" | "list";
+
+const statusFilterOptions = [
+    ["all", "전체 상태"],
+    ["ongoing", "진행 중"],
+    ["upcoming", "다가오는 일정"],
+    ["past", "지난 일정"],
+] as const satisfies ReadonlyArray<readonly [ScheduleStatusFilter, string]>;
+
+const calendarChipClassName: Record<ScheduleType, string> = {
+    recruitment: "border-sky-200 bg-sky-50 text-sky-800",
+    event: "border-violet-200 bg-violet-50 text-violet-800",
+    regular_meeting: "border-emerald-200 bg-emerald-50 text-emerald-800",
+};
+
+const dayLabelFormatter = new Intl.DateTimeFormat("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+});
+
 export default function AdminScheduleDashboard({
     schedules: initialSchedules,
     initialVisibleMonth,
@@ -67,9 +102,13 @@ export default function AdminScheduleDashboard({
     const [category, setCategory] = useState("all");
     const [type, setType] = useState<"all" | ScheduleType>("all");
     const [isPublic, setIsPublic] = useState<"all" | boolean>("all");
+    const [status, setStatus] = useState<ScheduleStatusFilter>("all");
+    const [viewMode, setViewMode] = useState<ScheduleViewMode>("calendar");
+    const [isDaySheetOpen, setIsDaySheetOpen] = useState(false);
     const [pendingScheduleId, setPendingScheduleId] = useState<number | null>(null);
     const [isMonthPending, setIsMonthPending] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<ClubSchedule | null>(null);
+    const now = useCurrentTime();
 
     const categories = useMemo(
         () => Array.from(new Set(schedules.map((schedule) => schedule.category))).sort(),
@@ -83,9 +122,11 @@ export default function AdminScheduleDashboard({
                     category,
                     type,
                     isPublic,
+                    status,
+                    now,
                 })
             ),
-        [category, isPublic, keyword, schedules, type]
+        [category, isPublic, keyword, now, schedules, status, type]
     );
     const calendarDates = useMemo(
         () => getMonthCalendarDates(visibleMonth.getFullYear(), visibleMonth.getMonth()),
@@ -96,6 +137,14 @@ export default function AdminScheduleDashboard({
         [filteredSchedules, selectedDate]
     );
     const scheduleGroups = useMemo(() => groupSchedulesByMonth(filteredSchedules), [filteredSchedules]);
+    const statusCounts = useMemo(
+        () => ({
+            ongoing: schedules.filter((schedule) => isScheduleOngoing(schedule, now)).length,
+            upcoming: schedules.filter((schedule) => isScheduleUpcoming(schedule, now)).length,
+            past: schedules.filter((schedule) => isSchedulePast(schedule, now)).length,
+        }),
+        [now, schedules]
+    );
 
     const loadMonthSchedules = async (monthDate: Date) => {
         const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, "0")}`;
@@ -167,7 +216,7 @@ export default function AdminScheduleDashboard({
             <Card className="rounded-lg border-zinc-200 shadow-xs">
                 <CardContent className="flex flex-col gap-3">
                     <SearchInput value={keyword} onChange={setKeyword} placeholder="동아리명, 일정명, 장소 검색" />
-                    <div className="grid gap-3 md:grid-cols-3">
+                    <div className="grid gap-3 md:grid-cols-4">
                         <Select value={category} onValueChange={setCategory}>
                             <SelectTrigger className="h-11 w-full rounded-xl bg-white">
                                 <SelectValue placeholder="분과" />
@@ -208,78 +257,179 @@ export default function AdminScheduleDashboard({
                                 <SelectItem value="false">비공개</SelectItem>
                             </SelectContent>
                         </Select>
+                        <Select value={status} onValueChange={(value) => setStatus(value as ScheduleStatusFilter)}>
+                            <SelectTrigger className="h-11 w-full rounded-xl bg-white">
+                                <SelectValue placeholder="진행 상태" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {statusFilterOptions.map(([value, label]) => (
+                                    <SelectItem key={value} value={value}>
+                                        {label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </CardContent>
             </Card>
 
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-                <Card className="rounded-lg border-zinc-200 shadow-xs">
-                    <CardHeader className="flex flex-row items-center justify-between gap-4">
-                        <CardTitle className="text-xl">{monthLabelFormatter.format(visibleMonth)}</CardTitle>
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" size="icon" disabled={isMonthPending} onClick={() => moveMonth(-1)}>
-                                <ChevronLeft className="h-4 w-4" />
-                                <span className="sr-only">이전 달</span>
-                            </Button>
-                            <Button variant="outline" size="icon" disabled={isMonthPending} onClick={() => moveMonth(1)}>
-                                <ChevronRight className="h-4 w-4" />
-                                <span className="sr-only">다음 달</span>
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-7 overflow-hidden rounded-lg border border-zinc-200 bg-white text-center text-sm font-semibold text-zinc-500">
-                            {weekdayLabels.map((weekday) => (
-                                <div key={weekday} className="border-b border-r border-zinc-100 bg-zinc-50 py-2 last:border-r-0">
-                                    {weekday}
+            <div className="grid gap-3 md:grid-cols-4">
+                <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3">
+                    <div className="text-xs font-semibold text-zinc-500">필터 결과</div>
+                    <div className="mt-1 text-2xl font-extrabold text-zinc-950">{filteredSchedules.length}건</div>
+                </div>
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+                    <div className="text-xs font-semibold text-emerald-700">진행 중</div>
+                    <div className="mt-1 text-2xl font-extrabold text-emerald-900">{statusCounts.ongoing}건</div>
+                </div>
+                <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3">
+                    <div className="text-xs font-semibold text-sky-700">다가오는 일정</div>
+                    <div className="mt-1 text-2xl font-extrabold text-sky-900">{statusCounts.upcoming}건</div>
+                </div>
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3">
+                    <div className="text-xs font-semibold text-zinc-600">지난 일정</div>
+                    <div className="mt-1 text-2xl font-extrabold text-zinc-900">{statusCounts.past}건</div>
+                </div>
+            </div>
+
+            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ScheduleViewMode)} className="gap-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <TabsList className="h-10">
+                        <TabsTrigger value="calendar" className="px-4">
+                            <CalendarDays className="h-4 w-4" />
+                            캘린더
+                        </TabsTrigger>
+                        <TabsTrigger value="list" className="px-4">
+                            <ListChecks className="h-4 w-4" />
+                            목록
+                        </TabsTrigger>
+                    </TabsList>
+                    <p className="text-sm font-medium text-zinc-500">
+                        {monthLabelFormatter.format(visibleMonth)} 기준 {filteredSchedules.length}건
+                    </p>
+                </div>
+
+                <TabsContent value="calendar" className="mt-0">
+                    <Card className="rounded-lg border-zinc-200 shadow-xs">
+                        <CardHeader className="flex flex-row items-center justify-between gap-4">
+                            <CardTitle className="text-xl">{monthLabelFormatter.format(visibleMonth)}</CardTitle>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    disabled={isMonthPending}
+                                    onClick={() => moveMonth(-1)}
+                                    className="cursor-pointer">
+                                    <ChevronLeft className="h-4 w-4" />
+                                    <span className="sr-only">이전 달</span>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    disabled={isMonthPending}
+                                    onClick={() => moveMonth(1)}
+                                    className="cursor-pointer">
+                                    <ChevronRight className="h-4 w-4" />
+                                    <span className="sr-only">다음 달</span>
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-7 overflow-hidden rounded-lg border border-zinc-200 bg-white text-center text-sm font-semibold text-zinc-500">
+                                {weekdayLabels.map((weekday) => (
+                                    <div key={weekday} className="border-b border-r border-zinc-100 bg-zinc-50 py-2 last:border-r-0">
+                                        {weekday}
+                                    </div>
+                                ))}
+                                {calendarDates.map((date) => {
+                                    const daySchedules = getSchedulesForDate(filteredSchedules, date);
+                                    const isCurrentMonth = date.getMonth() === visibleMonth.getMonth();
+                                    const isSelected = isSameCalendarDate(date, selectedDate);
+
+                                    return (
+                                        <button
+                                            key={date.toISOString()}
+                                            type="button"
+                                            onClick={() => {
+                                                setSelectedDate(date);
+                                                setIsDaySheetOpen(true);
+                                            }}
+                                            className={[
+                                                "min-h-28 border-b border-r border-zinc-100 bg-white p-2 text-left align-top transition-colors hover:bg-sky-50/70",
+                                                isSelected ? "bg-sky-50 ring-2 ring-inset ring-sky-500" : "",
+                                                isCurrentMonth ? "text-zinc-900" : "text-zinc-300",
+                                            ].join(" ")}>
+                                            <span className="text-sm font-semibold">{date.getDate()}</span>
+                                            <div className="mt-2 flex flex-col gap-1">
+                                                {daySchedules.slice(0, 3).map((schedule) => (
+                                                    <span
+                                                        key={schedule.id}
+                                                        className={cn(
+                                                            "truncate rounded-md border px-2 py-1 text-xs font-semibold",
+                                                            calendarChipClassName[schedule.type]
+                                                        )}>
+                                                        {SCHEDULE_TYPE_LABELS[schedule.type]} · {schedule.clubName} · {schedule.title}
+                                                    </span>
+                                                ))}
+                                                {daySchedules.length > 3 ? (
+                                                    <span className="text-xs font-semibold text-zinc-500">
+                                                        +{daySchedules.length - 3}건 더보기
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="list" className="mt-0">
+                    <Card className="rounded-lg border-zinc-200 shadow-xs">
+                        <CardHeader>
+                            <CardTitle className="text-lg">월간 일정 목록</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {filteredSchedules.length === 0 ? (
+                                <div className="rounded-lg border border-dashed py-12 text-center text-sm text-muted-foreground">
+                                    조건에 맞는 일정이 없습니다.
                                 </div>
-                            ))}
-                            {calendarDates.map((date) => {
-                                const daySchedules = getSchedulesForDate(filteredSchedules, date);
-                                const isCurrentMonth = date.getMonth() === visibleMonth.getMonth();
-                                const isSelected = isSameCalendarDate(date, selectedDate);
-
-                                return (
-                                    <button
-                                        key={date.toISOString()}
-                                        type="button"
-                                        onClick={() => setSelectedDate(date)}
-                                        className={[
-                                            "min-h-24 border-b border-r border-zinc-100 bg-white p-2 text-left align-top transition-colors hover:bg-sky-50/70",
-                                            isSelected ? "bg-sky-50 ring-2 ring-inset ring-sky-500" : "",
-                                            isCurrentMonth ? "text-zinc-900" : "text-zinc-300",
-                                        ].join(" ")}>
-                                        <span className="text-sm font-semibold">{date.getDate()}</span>
-                                        <div className="mt-2 flex flex-col gap-1">
-                                            {daySchedules.slice(0, 2).map((schedule) => (
-                                                <span
+                            ) : (
+                                <div className="overflow-hidden rounded-lg border bg-white">
+                                    {scheduleGroups.map((group) => (
+                                        <section key={group.key}>
+                                            <div className="border-b border-zinc-100 bg-zinc-50 px-4 py-2 text-sm font-bold text-zinc-700">
+                                                {group.label}
+                                            </div>
+                                            {group.schedules.map((schedule) => (
+                                                <ScheduleListItem
                                                     key={schedule.id}
-                                                    className="truncate rounded-md bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700">
-                                                    {schedule.clubName} · {schedule.title}
-                                                </span>
+                                                    schedule={schedule}
+                                                    variant="admin"
+                                                    isPending={pendingScheduleId === schedule.id}
+                                                    onToggleVisibility={toggleScheduleVisibility}
+                                                    onDelete={setDeleteTarget}
+                                                />
                                             ))}
-                                            {daySchedules.length > 2 ? (
-                                                <span className="text-xs font-semibold text-zinc-500">
-                                                    +{daySchedules.length - 2}건 더보기
-                                                </span>
-                                            ) : null}
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </CardContent>
-                </Card>
+                                        </section>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
 
-                <Card className="rounded-lg border-zinc-200 shadow-xs">
-                    <CardHeader>
-                        <CardTitle className="text-lg">
-                            {selectedDate.getMonth() + 1}월 {selectedDate.getDate()}일 일정
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-3">
+            <Sheet open={isDaySheetOpen} onOpenChange={setIsDaySheetOpen}>
+                <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-xl">
+                    <SheetHeader className="border-b border-zinc-100 px-5 py-5 pr-12">
+                        <SheetTitle className="text-xl">{dayLabelFormatter.format(selectedDate)} 일정</SheetTitle>
+                        <SheetDescription>선택한 날짜에 포함되는 일정 {selectedSchedules.length}건</SheetDescription>
+                    </SheetHeader>
+                    <div className="flex flex-col gap-3 p-5">
                         {selectedSchedules.length === 0 ? (
-                            <div className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">
+                            <div className="rounded-lg border border-dashed py-12 text-center text-sm text-muted-foreground">
                                 선택한 날짜의 일정이 없습니다.
                             </div>
                         ) : (
@@ -287,50 +437,17 @@ export default function AdminScheduleDashboard({
                                 <ScheduleListItem
                                     key={schedule.id}
                                     schedule={schedule}
+                                    variant="admin"
                                     className="rounded-lg border"
                                     isPending={pendingScheduleId === schedule.id}
                                     onToggleVisibility={toggleScheduleVisibility}
                                     onDelete={setDeleteTarget}
-                                    metaItems={[schedule.clubName, schedule.category]}
                                 />
                             ))
                         )}
-                    </CardContent>
-                </Card>
-            </div>
-
-            <Card className="rounded-lg border-zinc-200 shadow-xs">
-                <CardHeader>
-                    <CardTitle className="text-lg">월간 일정 목록</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {filteredSchedules.length === 0 ? (
-                        <div className="rounded-lg border border-dashed py-12 text-center text-sm text-muted-foreground">
-                            조건에 맞는 일정이 없습니다.
-                        </div>
-                    ) : (
-                        <div className="overflow-hidden rounded-lg border bg-white">
-                            {scheduleGroups.map((group) => (
-                                <section key={group.key}>
-                                    <div className="border-b border-zinc-100 bg-zinc-50 px-4 py-2 text-sm font-bold text-zinc-700">
-                                        {group.label}
-                                    </div>
-                                    {group.schedules.map((schedule) => (
-                                        <ScheduleListItem
-                                            key={schedule.id}
-                                            schedule={schedule}
-                                            isPending={pendingScheduleId === schedule.id}
-                                            onToggleVisibility={toggleScheduleVisibility}
-                                            onDelete={setDeleteTarget}
-                                            metaItems={[schedule.clubName, schedule.category]}
-                                        />
-                                    ))}
-                                </section>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                    </div>
+                </SheetContent>
+            </Sheet>
 
             <Dialog
                 open={deleteTarget !== null}
@@ -353,6 +470,7 @@ export default function AdminScheduleDashboard({
                             type="button"
                             variant="outline"
                             onClick={() => setDeleteTarget(null)}
+                            className="cursor-pointer"
                             disabled={pendingScheduleId === deleteTarget?.id}>
                             취소
                         </Button>
@@ -364,6 +482,7 @@ export default function AdminScheduleDashboard({
                                     void deleteSchedule(deleteTarget);
                                 }
                             }}
+                            className="cursor-pointer"
                             disabled={!deleteTarget || pendingScheduleId === deleteTarget.id}>
                             {deleteTarget && pendingScheduleId === deleteTarget.id ? "삭제 중" : "삭제"}
                         </Button>

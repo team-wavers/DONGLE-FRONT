@@ -1,22 +1,22 @@
-import { Suspense } from "react";
-import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
+import ClubSocialLinks from "@/components/club-detail/club-social-links";
+import { ClubDetailPageSkeleton } from "@/components/loading/page-skeletons";
+import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
+import ClubIconAvatar from "@/components/main/club-icon-avatar";
+import { getClubScheduleGroups, mapClubScheduleToPublicSchedule } from "@/lib/club-schedule";
 import {
     getClubPublicScheduleListService,
     getClubReportListService,
     getClubService,
 } from "@/lib/server/cached-services";
-import { getClubScheduleGroups, mapClubScheduleToPublicSchedule } from "@/lib/club-schedule";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
-import { formatMobilePhoneNumber } from "@dongle/utils";
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
-import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
-import ClubSocialLinks from "@/components/club-detail/club-social-links";
-import ClubIconAvatar from "@/components/main/club-icon-avatar";
-import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
+import { formatMobilePhoneNumber } from "@dongle/utils";
 import { ArrowLeft, CalendarDays, MapPin, Phone, UserRound } from "lucide-react";
-import { Skeleton } from "@dongle/ui/skeleton";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 interface ClubDetailPageProps {
     params: Promise<{ clubId: string }>;
@@ -124,10 +124,9 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         : [];
     const scheduleResponse = scheduleResult.status === "fulfilled" ? scheduleResult.value : [];
     const scheduleLoadFailed = scheduleResult.status === "rejected";
-    const schedules = getClubScheduleGroups(
-        scheduleResponse.map(mapClubScheduleToPublicSchedule),
-        { clubId: clubIdNumber }
-    );
+    const schedules = getClubScheduleGroups(scheduleResponse.map(mapClubScheduleToPublicSchedule), {
+        clubId: clubIdNumber,
+    });
     const intro = {
         description: club.description,
         main_activities: club.main_activities,
@@ -229,30 +228,6 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
     );
 }
 
-function ClubDetailFallback() {
-    return (
-        <section className="py-6 flex flex-col gap-12">
-            <div className="flex flex-col gap-6">
-                <div className="py-4 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-4 min-w-0">
-                        <Skeleton className="h-16 w-16 rounded-full" />
-                        <div className="min-w-0 space-y-2">
-                            <Skeleton className="h-9 w-48" />
-                            <Skeleton className="h-5 w-24" />
-                        </div>
-                    </div>
-                    <Skeleton className="h-9 w-24 rounded-full" />
-                </div>
-                <Skeleton className="h-52 w-full rounded-xl" />
-            </div>
-            <div className="space-y-6">
-                <Skeleton className="h-11 w-full" />
-                <Skeleton className="h-72 w-full rounded-xl" />
-            </div>
-        </section>
-    );
-}
-
 export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     const { clubId } = await params;
 
@@ -267,7 +242,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
                 </Link>
             </div>
 
-            <Suspense fallback={<ClubDetailFallback />}>
+            <Suspense fallback={<ClubDetailPageSkeleton />}>
                 <ClubDetailContent clubId={clubId} />
             </Suspense>
         </>

@@ -1,62 +1,113 @@
 "use client";
 
+import { useCurrentTime } from "@/hooks/use-current-time";
 import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
-import { CalendarPlus } from "lucide-react";
+import { Input } from "@dongle/ui/input";
+import {
+    ScheduleDisplayMonthList,
+    ScheduleDisplaySection,
+} from "@dongle/ui/schedules/schedule-display-list";
+import {
+    groupScheduleDisplayItemsByMonth,
+    type ScheduleDisplayItem,
+    type ScheduleDisplayMonthGroup,
+} from "@dongle/ui/schedules/schedule-display";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@dongle/ui/select";
+import { CalendarPlus, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { deleteClubScheduleAction } from "../action/schedule.action";
 import type { ClubSchedule } from "../schedule.types";
 import {
-    groupSchedulesByMonth,
-    isSchedulePast,
+    filterSchedules,
+    getSeparatedScheduleGroups,
+    getScheduleDateRangeFilter,
     mapClubScheduleToClubSchedule,
-    sortSchedulesByStartAt,
 } from "../schedule.utils";
+import type { ScheduleDateFilter } from "../schedule.utils";
+import { mapScheduleToDisplayItem } from "./schedule-display.mapper";
 import { ScheduleFormDialog } from "./schedule-form-dialog";
-import { ScheduleListItem } from "./schedule-list-item";
 
 interface ClubScheduleManagerProps {
     clubId: string;
     initialSchedules: ClubSchedule[];
 }
 
-type StatusFilter = "all" | "public" | "private" | "upcoming" | "past";
+type PublicFilter = "all" | "public" | "private";
 
-const statusFilterOptions = [
-    ["all", "전체"],
+const publicFilterOptions = [
+    ["all", "전체 공개여부"],
     ["public", "공개"],
     ["private", "비공개"],
-    ["upcoming", "다가오는 일정"],
-    ["past", "지난 일정"],
-] as const satisfies ReadonlyArray<readonly [StatusFilter, string]>;
+] as const satisfies ReadonlyArray<readonly [PublicFilter, string]>;
+
+const dateFilterOptions = [
+    ["all", "전체 기간"],
+    ["today", "오늘"],
+    ["thisWeek", "이번 주"],
+    ["thisMonth", "이번 달"],
+    ["custom", "직접 선택"],
+] as const satisfies ReadonlyArray<readonly [ScheduleDateFilter, string]>;
 
 export default function ClubScheduleManager({ clubId, initialSchedules }: ClubScheduleManagerProps) {
     const [schedules, setSchedules] = useState(initialSchedules);
-    const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+    const [publicFilter, setPublicFilter] = useState<PublicFilter>("all");
+    const [dateFilter, setDateFilter] = useState<ScheduleDateFilter>("all");
+    const [customDateFrom, setCustomDateFrom] = useState("");
+    const [customDateTo, setCustomDateTo] = useState("");
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState<ClubSchedule | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<ClubSchedule | null>(null);
     const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
-
-    const now = useMemo(() => new Date(), []);
+    const now = useCurrentTime();
     const clubIdNumber = Number(clubId);
-    const filteredSchedules = useMemo(() => {
-        const filtered = schedules.filter((schedule) => {
-            if (statusFilter === "upcoming") {
-                return !isSchedulePast(schedule, now);
-            }
-            if (statusFilter === "past") {
-                return isSchedulePast(schedule, now);
-            }
-            if (statusFilter === "public") return schedule.isPublic;
-            if (statusFilter === "private") return !schedule.isPublic;
-            return true;
-        });
 
-        return sortSchedulesByStartAt(filtered);
-    }, [now, schedules, statusFilter]);
-    const scheduleGroups = useMemo(() => groupSchedulesByMonth(filteredSchedules), [filteredSchedules]);
+    const dateRange = useMemo(
+        () => getScheduleDateRangeFilter(dateFilter, now, { from: customDateFrom, to: customDateTo }),
+        [customDateFrom, customDateTo, dateFilter, now]
+    );
+    const filteredSchedules = useMemo(
+        () =>
+            filterSchedules(schedules, {
+                keyword: "",
+                category: "all",
+                type: "all",
+                isPublic: publicFilter === "all" ? "all" : publicFilter === "public",
+                status: "all",
+                now,
+                dateRange,
+            }),
+        [dateRange, now, publicFilter, schedules]
+    );
+    const separatedSchedules = useMemo(() => getSeparatedScheduleGroups(filteredSchedules, now), [filteredSchedules, now]);
+    const ongoingScheduleItems = useMemo(
+        () => separatedSchedules.ongoing.map(mapScheduleToDisplayItem),
+        [separatedSchedules.ongoing]
+    );
+    const displayScheduleGroups = useMemo<ScheduleDisplayMonthGroup<ClubSchedule>[]>(
+        () => groupScheduleDisplayItemsByMonth(separatedSchedules.remaining.map(mapScheduleToDisplayItem)),
+        [separatedSchedules.remaining]
+    );
+    const isCustomDateFilter = dateFilter === "custom";
+    const hasActiveFilter = Boolean(publicFilter !== "all" || dateFilter !== "all" || customDateFrom || customDateTo);
+
+    const resetFilters = useCallback(() => {
+        setPublicFilter("all");
+        setDateFilter("all");
+        setCustomDateFrom("");
+        setCustomDateTo("");
+    }, []);
+
+    const changeDateFilter = useCallback((value: string) => {
+        const nextDateFilter = value as ScheduleDateFilter;
+        setDateFilter(nextDateFilter);
+
+        if (nextDateFilter !== "custom") {
+            setCustomDateFrom("");
+            setCustomDateTo("");
+        }
+    }, []);
 
     const startCreate = useCallback(() => {
         setEditingSchedule(null);
@@ -67,6 +118,42 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
         setEditingSchedule(schedule);
         setIsFormOpen(true);
     }, []);
+
+    const renderScheduleActions = useCallback(
+        (item: ScheduleDisplayItem<ClubSchedule>) => {
+            const schedule = item.payload;
+
+            if (!schedule) {
+                return null;
+            }
+
+            return (
+                <>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-sm"
+                        disabled={pendingDeleteId === schedule.id}
+                        onClick={() => startEdit(schedule)}
+                        className="cursor-pointer"
+                        aria-label={`${schedule.title} 수정`}>
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        disabled={pendingDeleteId === schedule.id}
+                        onClick={() => setDeleteTarget(schedule)}
+                        className="cursor-pointer"
+                        aria-label={`${schedule.title} 삭제`}>
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </>
+            );
+        },
+        [pendingDeleteId, startEdit]
+    );
 
     const closeForm = useCallback(() => {
         setIsFormOpen(false);
@@ -101,50 +188,91 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
                             공개 일정은 사용자 동아리 상세에 노출됩니다.
                         </p>
                     </div>
-                    <Button onClick={startCreate} className="h-11 font-semibold">
+                    <Button onClick={startCreate} className="h-11 cursor-pointer font-semibold">
                         <CalendarPlus className="h-4 w-4" />
                         일정 등록
                     </Button>
                 </div>
 
-                <div className="flex flex-wrap gap-2 border-b border-zinc-100 pb-3">
-                    {statusFilterOptions.map(([value, label]) => (
-                        <Button
-                            key={value}
-                            type="button"
-                            variant={statusFilter === value ? "default" : "outline"}
-                            onClick={() => setStatusFilter(value)}
-                            className="h-9 rounded-full px-4">
-                            {label}
-                        </Button>
-                    ))}
+                <div className="grid gap-3 border-b border-zinc-100 pb-3 md:grid-cols-[minmax(0,180px)_minmax(0,180px)_minmax(0,1fr)] md:items-center">
+                    <Select value={publicFilter} onValueChange={(value) => setPublicFilter(value as PublicFilter)}>
+                        <SelectTrigger className="h-11 w-full rounded-xl bg-white" aria-label="공개여부 필터">
+                            <SelectValue placeholder="공개여부" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {publicFilterOptions.map(([value, label]) => (
+                                <SelectItem key={value} value={value}>
+                                    {label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Select value={dateFilter} onValueChange={changeDateFilter}>
+                        <SelectTrigger className="h-11 w-full rounded-xl bg-white" aria-label="Date 필터">
+                            <SelectValue placeholder="Date" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {dateFilterOptions.map(([value, label]) => (
+                                <SelectItem key={value} value={value}>
+                                    {label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        {isCustomDateFilter ? (
+                            <>
+                                <Input
+                                    type="date"
+                                    value={customDateFrom}
+                                    max={customDateTo || undefined}
+                                    onChange={(event) => setCustomDateFrom(event.target.value)}
+                                    className="h-11 rounded-xl bg-white"
+                                    aria-label="시작일"
+                                />
+                                <Input
+                                    type="date"
+                                    value={customDateTo}
+                                    min={customDateFrom || undefined}
+                                    onChange={(event) => setCustomDateTo(event.target.value)}
+                                    className="h-11 rounded-xl bg-white"
+                                    aria-label="종료일"
+                                />
+                            </>
+                        ) : null}
+                        {hasActiveFilter ? (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={resetFilters}
+                                className="h-9 shrink-0 cursor-pointer rounded-xl px-4">
+                                <RotateCcw className="h-4 w-4" />
+                                초기화
+                            </Button>
+                        ) : null}
+                    </div>
                 </div>
 
-                <div className="overflow-hidden rounded-lg border bg-white">
-                    {filteredSchedules.length === 0 ? (
-                        <div className="py-16 text-center text-sm text-muted-foreground">
-                            조건에 맞는 일정이 없습니다.
-                        </div>
-                    ) : (
-                        scheduleGroups.map((group) => (
-                            <section key={group.key}>
-                                <div className="border-b border-zinc-100 bg-zinc-50 px-4 py-2 text-sm font-bold text-zinc-700">
-                                    {group.label}
-                                </div>
-                                {group.schedules.map((schedule) => (
-                                    <ScheduleListItem
-                                        key={schedule.id}
-                                        schedule={schedule}
-                                        isPending={pendingDeleteId === schedule.id}
-                                        onEdit={startEdit}
-                                        onDelete={setDeleteTarget}
-                                        metaItems={[]}
-                                    />
-                                ))}
-                            </section>
-                        ))
-                    )}
-                </div>
+                {filteredSchedules.length === 0 ? (
+                    <div className="rounded-lg border bg-white py-16 text-center text-sm text-muted-foreground">
+                        조건에 맞는 일정이 없습니다.
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        <ScheduleDisplaySection
+                            title="진행 중인 일정"
+                            items={ongoingScheduleItems}
+                            showPublicBadge
+                            variant="active"
+                            renderActions={renderScheduleActions}
+                        />
+                        <ScheduleDisplayMonthList
+                            groups={displayScheduleGroups}
+                            showPublicBadge
+                            renderActions={renderScheduleActions}
+                        />
+                    </div>
+                )}
             </div>
 
             <ScheduleFormDialog
@@ -194,6 +322,7 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
                             variant="outline"
                             size="lg"
                             onClick={() => setDeleteTarget(null)}
+                            className="cursor-pointer"
                             disabled={pendingDeleteId === deleteTarget?.id}>
                             취소
                         </Button>
@@ -206,6 +335,7 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
                                     void deleteSchedule(deleteTarget.id);
                                 }
                             }}
+                            className="cursor-pointer"
                             disabled={!deleteTarget || pendingDeleteId === deleteTarget.id}>
                             {deleteTarget && pendingDeleteId === deleteTarget.id ? "삭제 중" : "삭제"}
                         </Button>
