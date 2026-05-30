@@ -215,7 +215,7 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
     }, [clearPresidentDraft, didSubmitPresident]);
 
     return (
-        <AdminFormShell>
+        <AdminFormShell className="mx-0 max-w-none">
             <FormRoot
                 form={mainForm}
                 onSubmit={onMainSubmit}
