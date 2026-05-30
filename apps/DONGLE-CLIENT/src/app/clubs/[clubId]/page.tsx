@@ -1,21 +1,22 @@
-import { Suspense } from "react";
-import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
+import ClubSocialLinks from "@/components/club-detail/club-social-links";
+import { ClubDetailPageSkeleton } from "@/components/loading/page-skeletons";
+import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
+import ClubIconAvatar from "@/components/main/club-icon-avatar";
+import { getClubScheduleGroups, mapClubScheduleToPublicSchedule } from "@/lib/club-schedule";
 import {
     getClubPublicScheduleListService,
     getClubReportListService,
     getClubService,
 } from "@/lib/server/cached-services";
-import { getClubScheduleGroups, mapClubScheduleToPublicSchedule } from "@/lib/club-schedule";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
-import { formatMobilePhoneNumber } from "@dongle/utils";
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
-import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
-import ClubIconAvatar from "@/components/main/club-icon-avatar";
-import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
-import { ArrowLeft, CalendarDays, Instagram, MapPin, Phone, UserRound, Youtube } from "lucide-react";
-import { ClubDetailPageSkeleton } from "@/components/loading/page-skeletons";
+import { formatMobilePhoneNumber } from "@dongle/utils";
+import { ArrowLeft, CalendarDays, MapPin, Phone, UserRound } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 interface ClubDetailPageProps {
     params: Promise<{ clubId: string }>;
@@ -27,45 +28,6 @@ const defaultOgImage = "/logo/logo-og.png";
 function buildClubDescription(description: string, mainActivities: string) {
     const rawDescription = description?.trim() || mainActivities?.trim() || "동아리 상세 정보를 확인해보세요.";
     return rawDescription.length > 140 ? `${rawDescription.slice(0, 137)}...` : rawDescription;
-}
-
-function ClubSocialLinks({
-    instagramUrl,
-    youtubeUrl,
-    className = "",
-}: {
-    instagramUrl: string | null;
-    youtubeUrl: string | null;
-    className?: string;
-}) {
-    if (!instagramUrl && !youtubeUrl) {
-        return null;
-    }
-
-    return (
-        <div className={`flex h-fit flex-wrap gap-2 ${className}`}>
-            {instagramUrl && (
-                <Link
-                    href={instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-700 hover:bg-zinc-50">
-                    <Instagram className="size-4 text-zinc-400" />
-                    instagram
-                </Link>
-            )}
-            {youtubeUrl && (
-                <Link
-                    href={youtubeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-700 hover:bg-zinc-50">
-                    <Youtube className="size-4 text-zinc-400" />
-                    youtube
-                </Link>
-            )}
-        </div>
-    );
 }
 
 export async function generateMetadata({ params }: ClubDetailPageProps): Promise<Metadata> {
@@ -162,10 +124,9 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         : [];
     const scheduleResponse = scheduleResult.status === "fulfilled" ? scheduleResult.value : [];
     const scheduleLoadFailed = scheduleResult.status === "rejected";
-    const schedules = getClubScheduleGroups(
-        scheduleResponse.map(mapClubScheduleToPublicSchedule),
-        { clubId: clubIdNumber }
-    );
+    const schedules = getClubScheduleGroups(scheduleResponse.map(mapClubScheduleToPublicSchedule), {
+        clubId: clubIdNumber,
+    });
     const intro = {
         description: club.description,
         main_activities: club.main_activities,
@@ -232,11 +193,18 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                         })}
                     </dl>
 
-                    <ClubSocialLinks instagramUrl={instagramUrl} youtubeUrl={youtubeUrl} className="md:hidden" />
+                    <ClubSocialLinks
+                        clubId={clubIdNumber}
+                        clubName={club.name}
+                        instagramUrl={instagramUrl}
+                        youtubeUrl={youtubeUrl}
+                        className="md:hidden"
+                    />
 
                     <ClubDetailTabs
                         club={intro}
                         clubId={clubId}
+                        clubName={club.name}
                         schedules={schedules}
                         scheduleLoadFailed={scheduleLoadFailed}
                         reports={reports}
@@ -246,7 +214,13 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
 
                 {hasSocialLinks && (
                     <aside>
-                        <ClubSocialLinks instagramUrl={instagramUrl} youtubeUrl={youtubeUrl} className="hidden md:flex" />
+                        <ClubSocialLinks
+                            clubId={clubIdNumber}
+                            clubName={club.name}
+                            instagramUrl={instagramUrl}
+                            youtubeUrl={youtubeUrl}
+                            className="hidden md:flex"
+                        />
                     </aside>
                 )}
             </section>

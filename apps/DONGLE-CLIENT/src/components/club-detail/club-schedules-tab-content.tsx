@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import type { ClubPublicSchedule, ClubPublicScheduleType, ClubScheduleGroups } from "@/lib/club-schedule.types";
 import {
     formatScheduleDisplayDateRange,
@@ -9,12 +8,10 @@ import {
     groupScheduleDisplayItemsByMonth,
     type ScheduleDisplayItem,
 } from "@dongle/ui/schedules/schedule-display";
-import {
-    ScheduleDisplayMonthList,
-    ScheduleDisplaySection,
-} from "@dongle/ui/schedules/schedule-display-list";
+import { ScheduleDisplayMonthList, ScheduleDisplaySection } from "@dongle/ui/schedules/schedule-display-list";
 
 interface ClubSchedulesTabContentProps {
+    clubName: string;
     schedules: ClubScheduleGroups;
     loadFailed?: boolean;
 }
@@ -68,7 +65,9 @@ export default function ClubSchedulesTabContent({ schedules, loadFailed = false 
     const hasSchedules = schedules.ongoing.length > 0 || schedules.upcoming.length > 0 || schedules.past.length > 0;
     const ongoingScheduleItems = schedules.ongoing.map(mapScheduleToDisplayItem);
     const remainingSchedules = schedules.remaining ?? [...schedules.upcoming, ...schedules.past];
-    const remainingScheduleItems = mapSchedulesToDisplayItems(remainingSchedules, { preserveOrder: Boolean(schedules.remaining) });
+    const remainingScheduleItems = mapSchedulesToDisplayItems(remainingSchedules, {
+        preserveOrder: Boolean(schedules.remaining),
+    });
     const scheduleMonthGroups = groupScheduleDisplayItemsByMonth(remainingScheduleItems);
 
     if (loadFailed) {

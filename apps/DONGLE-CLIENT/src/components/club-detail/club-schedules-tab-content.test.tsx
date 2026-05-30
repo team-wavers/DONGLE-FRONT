@@ -7,6 +7,7 @@ describe("ClubSchedulesTabContent", () => {
     it("외부 링크가 있는 공개 일정은 자세히 보기 링크를 렌더링한다", () => {
         const html = renderToStaticMarkup(
             <ClubSchedulesTabContent
+                clubName="동글동아리"
                 schedules={{
                     ongoing: [],
                     upcoming: [
@@ -37,6 +38,7 @@ describe("ClubSchedulesTabContent", () => {
     it("외부 링크가 없는 공개 일정은 자세히 보기 링크를 렌더링하지 않는다", () => {
         const html = renderToStaticMarkup(
             <ClubSchedulesTabContent
+                clubName="동글동아리"
                 schedules={{
                     ongoing: [],
                     upcoming: [
@@ -64,6 +66,7 @@ describe("ClubSchedulesTabContent", () => {
     it("일정 조회 실패 상태는 일정 없음 문구 대신 실패 안내를 렌더링한다", () => {
         const html = renderToStaticMarkup(
             <ClubSchedulesTabContent
+                clubName="동글동아리"
                 loadFailed
                 schedules={{
                     ongoing: [],
