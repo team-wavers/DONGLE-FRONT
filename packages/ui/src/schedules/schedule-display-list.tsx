@@ -222,26 +222,28 @@ export function ScheduleDisplaySection<TPayload = unknown>({
     }
 
     return (
-        <section aria-label={title} className={cn("space-y-3", className)}>
-            <div className="flex items-end justify-between gap-3">
-                <h2 className="text-xl font-bold text-zinc-950">{title}</h2>
-                <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-extrabold text-muted-foreground">
+        <section
+            aria-label={title}
+            className={cn(
+                "overflow-hidden rounded-lg border bg-card text-card-foreground",
+                variant === "active" && "border-zinc-200",
+                className
+            )}>
+            <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/60 px-4 py-3">
+                <div className="flex min-w-0 items-center">
+                    <h2 className="truncate text-sm font-extrabold text-foreground">{title}</h2>
+                </div>
+                <span className="shrink-0 rounded-full bg-background px-2.5 py-1 text-xs font-extrabold text-muted-foreground">
                     {items.length}개
                 </span>
             </div>
-            <div
-                className={cn(
-                    "overflow-hidden rounded-lg border bg-card text-card-foreground",
-                    variant === "active" && "border-zinc-200"
-                )}>
-                <ScheduleDisplayDateGroupedItems
-                    items={items}
-                    showPublicBadge={showPublicBadge}
-                    showClubMeta={showClubMeta}
-                    renderActions={renderActions}
-                    onExternalLinkClick={onExternalLinkClick}
-                />
-            </div>
+            <ScheduleDisplayDateGroupedItems
+                items={items}
+                showPublicBadge={showPublicBadge}
+                showClubMeta={showClubMeta}
+                renderActions={renderActions}
+                onExternalLinkClick={onExternalLinkClick}
+            />
         </section>
     );
 }
