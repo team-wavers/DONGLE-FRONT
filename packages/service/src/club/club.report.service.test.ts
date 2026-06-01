@@ -75,6 +75,20 @@ describe("club report service endpoints", () => {
         });
     });
 
+    test("활동보고서 단건 조회의 API 문서 404 문구도 실패 응답으로 정규화한다", async () => {
+        fetchInstanceMock.get.mockRejectedValueOnce(new Error("해당 활동보고서가 존재하지 않습니다."));
+
+        const result = await getClubReportService(1, 999);
+
+        expect(result).toEqual({
+            isSuccess: false,
+            error: {
+                message: "해당 활동보고서를 찾을 수 없습니다.",
+                detail: "report_id: 999",
+            },
+        });
+    });
+
     test("활동보고서 단건 조회의 404 외 예외는 다시 던진다", async () => {
         const error = new Error("Internal Server Error");
         fetchInstanceMock.get.mockRejectedValueOnce(error);

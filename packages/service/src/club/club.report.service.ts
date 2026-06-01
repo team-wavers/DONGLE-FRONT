@@ -61,6 +61,7 @@ function isClubReportNotFoundError(error: unknown): boolean {
         message.includes("404") ||
         message.includes("not found") ||
         message.includes("report_id:") ||
+        message.includes("활동보고서가 존재하지 않습니다") ||
         message.includes("활동보고서를 찾을 수 없습니다")
     );
 }
@@ -79,16 +80,14 @@ export async function getClubReportListService(
     clubId: number,
     policy: ReportFetchPolicy = "public"
 ): Promise<ClubReportListResponse> {
-    const response = await instance.get(getClubReportsPath(clubId), getReportListFetchOptions(clubId, policy));
-    return response as ClubReportListResponse;
+    return instance.get<ClubReportListResponse>(getClubReportsPath(clubId), getReportListFetchOptions(clubId, policy));
 }
 
 export async function getClubReportService(clubId: number, reportId: number): Promise<ClubReportResponse> {
     try {
-        const response = await instance.get(getClubReportPath(clubId, reportId), {
+        return await instance.get<ClubReportResponse>(getClubReportPath(clubId, reportId), {
             cache: "no-store",
         });
-        return response as ClubReportResponse;
     } catch (error) {
         if (isClubReportNotFoundError(error)) {
             return createClubReportNotFoundResponse(reportId);
@@ -102,8 +101,7 @@ export async function createClubReportService(
     clubId: number,
     report: CreateClubReportRequest
 ): Promise<ClubReportCreateResponse> {
-    const response = await instance.post(getClubReportsPath(clubId), report);
-    return response as ClubReportCreateResponse;
+    return instance.post<ClubReportCreateResponse>(getClubReportsPath(clubId), report);
 }
 
 export async function updateClubReportService(
@@ -111,19 +109,16 @@ export async function updateClubReportService(
     reportId: number,
     report: UpdateClubReportRequest
 ): Promise<ClubReportUpdateResponse> {
-    const response = await instance.put(getClubReportPath(clubId, reportId), report);
-    return response as ClubReportUpdateResponse;
+    return instance.put<ClubReportUpdateResponse>(getClubReportPath(clubId, reportId), report);
 }
 
 export async function deleteClubReportService(clubId: number, reportId: number): Promise<Response<null>> {
-    const response = await instance.delete(getClubReportPath(clubId, reportId));
-    return response as Response<null>;
+    return instance.delete<Response<null>>(getClubReportPath(clubId, reportId));
 }
 
 export async function uploadClubReportImageService(clubId: number, image: File): Promise<ClubReportImageResponse> {
     const formData = new FormData();
     formData.append("file", image);
 
-    const response = await instance.post(getClubReportImagePath(clubId), formData);
-    return response as ClubReportImageResponse;
+    return instance.post<ClubReportImageResponse>(getClubReportImagePath(clubId), formData);
 }

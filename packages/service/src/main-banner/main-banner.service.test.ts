@@ -72,4 +72,18 @@ describe("main banner service endpoints", () => {
             result: { id: 2, image_url: "https://cdn.example.com/2.png" },
         });
     });
+
+    test("관리자용 배너 상세 조회 예외는 실패 응답으로 정규화한다", async () => {
+        fetchInstanceMock.get.mockRejectedValueOnce(new Error("해당 배너가 존재하지 않습니다."));
+
+        const result = await getAdminMainBannerService(999);
+
+        expect(result).toEqual({
+            isSuccess: false,
+            error: {
+                message: "해당 배너가 존재하지 않습니다.",
+                detail: "banner_id: 999",
+            },
+        });
+    });
 });

@@ -54,43 +54,52 @@ function getAdminMainBannerFetchOptions(): FetchOptions {
     };
 }
 
+function createAdminMainBannerFailureResponse(id: number, error: unknown): MainBannerResponse {
+    const message = error instanceof Error && error.message.trim() ? error.message : "배너 정보를 불러오지 못했습니다.";
+
+    return {
+        isSuccess: false,
+        error: {
+            message,
+            detail: `banner_id: ${id}`,
+        },
+    };
+}
+
 export async function getPublicMainBannerListService(isCache = true): Promise<MainBannerListResponse> {
-    const response = await instance.get(PUBLIC_MAIN_BANNER_PATH, getPublicMainBannerFetchOptions(isCache));
-    return response as MainBannerListResponse;
+    return instance.get<MainBannerListResponse>(PUBLIC_MAIN_BANNER_PATH, getPublicMainBannerFetchOptions(isCache));
 }
 
 export async function getAdminMainBannerListService(): Promise<MainBannerListResponse> {
-    const response = await instance.get(ADMIN_MAIN_BANNER_PATH, getAdminMainBannerFetchOptions());
-    return response as MainBannerListResponse;
+    return instance.get<MainBannerListResponse>(ADMIN_MAIN_BANNER_PATH, getAdminMainBannerFetchOptions());
 }
 
 export async function getAdminMainBannerService(id: number): Promise<MainBannerResponse> {
-    const response = await instance.get(getAdminMainBannerPath(id), getAdminMainBannerFetchOptions());
-    return response as MainBannerResponse;
+    try {
+        return await instance.get<MainBannerResponse>(getAdminMainBannerPath(id), getAdminMainBannerFetchOptions());
+    } catch (error) {
+        return createAdminMainBannerFailureResponse(id, error);
+    }
 }
 
 export async function uploadMainBannerImageService(file: File): Promise<MainBannerImageUploadResponse> {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await instance.post(MAIN_BANNER_IMAGE_PATH, formData);
-    return response as MainBannerImageUploadResponse;
+    return instance.post<MainBannerImageUploadResponse>(MAIN_BANNER_IMAGE_PATH, formData);
 }
 
 export async function createMainBannerService(payload: CreateMainBannerRequest): Promise<MainBannerCreateResponse> {
-    const response = await instance.post(MAIN_BANNER_PATH, payload);
-    return response as MainBannerCreateResponse;
+    return instance.post<MainBannerCreateResponse>(MAIN_BANNER_PATH, payload);
 }
 
 export async function updateMainBannerService(
     id: number,
     payload: UpdateMainBannerRequest
 ): Promise<MainBannerUpdateResponse> {
-    const response = await instance.put(getMainBannerPath(id), payload);
-    return response as MainBannerUpdateResponse;
+    return instance.put<MainBannerUpdateResponse>(getMainBannerPath(id), payload);
 }
 
 export async function deleteMainBannerService(id: number): Promise<MainBannerDeleteResponse> {
-    const response = await instance.delete(getMainBannerPath(id));
-    return response as MainBannerDeleteResponse;
+    return instance.delete<MainBannerDeleteResponse>(getMainBannerPath(id));
 }
