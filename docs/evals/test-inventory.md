@@ -36,6 +36,10 @@
 | rich text | [sanitize-rich-text-html.test.ts](../../packages/rich-text/src/sanitize-rich-text-html.test.ts) | code-graded | normalization |
 | date util | [date.test.ts](../../apps/DONGLE-ADMIN/src/lib/format/date.test.ts) | code-graded | formatter |
 
+## 최근 정리된 기본 테스트
+
+- `apps/DONGLE-CLIENT/src/lib/club-list-pagination.test.ts` 제거: 동아리 목록 더보기 계산을 별도 helper/hook으로 유지하지 않고 `club-list-section.tsx` 내부의 단순 UI 상태로 축소했다.
+
 ## 잔존 E2E
 
 | 프로젝트 | 파일 | 현재 목적 | 상태 |
