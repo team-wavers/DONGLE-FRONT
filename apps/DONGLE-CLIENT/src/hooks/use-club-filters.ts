@@ -88,6 +88,28 @@ export function getClubCategoryOptions(clubs: ClubFilterItem[]) {
     );
 }
 
+export function getClubRecruitingCounts(clubs: ClubFilterItem[], filteredClubs: ClubFilterItem[]) {
+    let totalRecruitingCount = 0;
+    let filteredRecruitingCount = 0;
+
+    for (const club of clubs) {
+        if (club.is_recruiting) {
+            totalRecruitingCount += 1;
+        }
+    }
+
+    for (const club of filteredClubs) {
+        if (club.is_recruiting) {
+            filteredRecruitingCount += 1;
+        }
+    }
+
+    return {
+        totalRecruitingCount,
+        filteredRecruitingCount,
+    };
+}
+
 export function filterClubs(
     clubs: ClubFilterItem[],
     searchQuery: string,
@@ -199,9 +221,11 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
     );
 
     const totalCount = clubs.length;
-    const totalRecruitingCount = clubs.filter((club) => club.is_recruiting).length;
     const filteredCount = filteredClubs.length;
-    const filteredRecruitingCount = filteredClubs.filter((club) => club.is_recruiting).length;
+    const { totalRecruitingCount, filteredRecruitingCount } = useMemo(
+        () => getClubRecruitingCounts(clubs, filteredClubs),
+        [clubs, filteredClubs]
+    );
     const summaryText = useMemo(
         () =>
             getClubSummaryText({

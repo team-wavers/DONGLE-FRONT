@@ -3,6 +3,7 @@ import {
     buildClubFilterSearchParams,
     filterClubs,
     getClubCategoryOptions,
+    getClubRecruitingCounts,
     getClubSummaryText,
     parseClubFilterSearchParams,
     type ClubFilterItem,
@@ -34,6 +35,15 @@ test("filterClubs는 분과 필터와 검색어를 함께 적용한다", () => {
 
 test("getClubCategoryOptions는 중복 없는 분과 목록을 정렬해서 반환한다", () => {
     expect(getClubCategoryOptions(clubs)).toEqual(["문화", "학술"]);
+});
+
+test("getClubRecruitingCounts는 전체와 필터 결과의 모집중 개수를 계산한다", () => {
+    const filteredClubs = clubs.slice(1);
+
+    expect(getClubRecruitingCounts(clubs, filteredClubs)).toEqual({
+        totalRecruitingCount: 2,
+        filteredRecruitingCount: 1,
+    });
 });
 
 test("getClubSummaryText는 활성 상태에 따라 다른 요약 문구를 만든다", () => {
