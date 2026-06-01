@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Controller, useFormContext, type FieldValues, type Path } from "react-hook-form";
 import { FileUpload, type FileUploadProps } from "@/shared/ui/form/file-upload/file-upload";
 
@@ -10,6 +11,44 @@ type RHFFileUploadProps<TValues extends FieldValues> = Omit<
     name: Path<TValues>;
     fileName: Path<TValues>;
 };
+
+export function getReplaceCancelRestoredUrls({
+    selectionMode,
+    nextFileCount,
+    currentExistingUrls,
+    replacedExistingUrls,
+}: {
+    selectionMode?: FileUploadProps["selectionMode"];
+    nextFileCount: number;
+    currentExistingUrls: string[];
+    replacedExistingUrls: string[] | null;
+}) {
+    if (
+        selectionMode !== "replace" ||
+        nextFileCount > 0 ||
+        currentExistingUrls.length > 0 ||
+        !replacedExistingUrls ||
+        replacedExistingUrls.length === 0
+    ) {
+        return null;
+    }
+
+    return replacedExistingUrls;
+}
+
+export function getNextReplaceExistingUrlsSnapshot({
+    currentExistingUrls,
+    replacedExistingUrls,
+}: {
+    currentExistingUrls: string[];
+    replacedExistingUrls: string[] | null;
+}) {
+    if (currentExistingUrls.length > 0) {
+        return currentExistingUrls;
+    }
+
+    return replacedExistingUrls;
+}
 
 export function RHFFileUpload<TValues extends FieldValues>({
     name,
@@ -22,6 +61,7 @@ export function RHFFileUpload<TValues extends FieldValues>({
         formState: { errors },
     } = useFormContext<TValues>();
     const error = errors[name]?.message ?? errors[fileName]?.message;
+    const replacedExistingUrlsRef = useRef<string[] | null>(null);
 
     return (
         <Controller
@@ -39,6 +79,18 @@ export function RHFFileUpload<TValues extends FieldValues>({
                         defaultValue={existingUrls}
                         onFileChange={(files) => {
                             const nextFile = files[0] ?? null;
+                            const restoredUrls = getReplaceCancelRestoredUrls({
+                                selectionMode: props.selectionMode,
+                                nextFileCount: files.length,
+                                currentExistingUrls: existingUrls,
+                                replacedExistingUrls: replacedExistingUrlsRef.current,
+                            });
+
+                            if (restoredUrls) {
+                                field.onChange(restoredUrls);
+                                replacedExistingUrlsRef.current = null;
+                            }
+
                             setValue(fileName, nextFile as TValues[typeof fileName], {
                                 shouldDirty: true,
                                 shouldValidate: true,
@@ -49,6 +101,10 @@ export function RHFFileUpload<TValues extends FieldValues>({
                             props.onUrlRemove?.(url);
                         }}
                         onReplaceExistingUrls={() => {
+                            replacedExistingUrlsRef.current = getNextReplaceExistingUrlsSnapshot({
+                                currentExistingUrls: existingUrls,
+                                replacedExistingUrls: replacedExistingUrlsRef.current,
+                            });
                             field.onChange([]);
                             props.onReplaceExistingUrls?.();
                         }}
