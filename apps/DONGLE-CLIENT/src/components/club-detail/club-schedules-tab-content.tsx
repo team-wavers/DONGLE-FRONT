@@ -26,6 +26,8 @@ const SCHEDULE_TYPE_LABELS: Record<ClubPublicScheduleType, string> = {
 };
 
 const SCHEDULE_TIME_ZONE = "Asia/Seoul";
+const INITIAL_VISIBLE_REMAINING_SCHEDULE_COUNT = 6;
+const VISIBLE_REMAINING_SCHEDULE_INCREMENT = 6;
 
 function getScheduleStartTime(schedule: ClubPublicSchedule) {
     const time = getDateTimeTimestamp(schedule.start_at, { timeZone: SCHEDULE_TIME_ZONE });
@@ -67,27 +69,65 @@ function mapSchedulesToDisplayItems(schedules: ClubPublicSchedule[], options: { 
     return sourceSchedules.map(mapScheduleToDisplayItem);
 }
 
+export function getScheduleExternalLinkAnalyticsPayload(
+    clubName: string,
+    item: ScheduleDisplayItem<ClubPublicSchedule>
+) {
+    const schedule = item.payload;
+
+    if (!schedule || !item.externalUrl) {
+        return null;
+    }
+
+    return {
+        club_id: schedule.clubId,
+        club_name: clubName,
+        destination: item.externalUrl,
+    };
+}
+
 export default function ClubSchedulesTabContent({ clubName, schedules, loadFailed = false }: ClubSchedulesTabContentProps) {
     const hasSchedules = schedules.ongoing.length > 0 || schedules.upcoming.length > 0 || schedules.past.length > 0;
     const ongoingScheduleItems = schedules.ongoing.map(mapScheduleToDisplayItem);
-    const remainingSchedules = schedules.remaining ?? [...schedules.upcoming, ...schedules.past];
-    const remainingScheduleItems = mapSchedulesToDisplayItems(remainingSchedules, {
-        preserveOrder: Boolean(schedules.remaining),
-    });
-    const scheduleMonthGroups = groupScheduleDisplayItemsByMonth(remainingScheduleItems);
+    const remainingSchedules = React.useMemo(
+        () => schedules.remaining ?? [...schedules.upcoming, ...schedules.past],
+        [schedules.past, schedules.remaining, schedules.upcoming]
+    );
+    const [visibleRemainingScheduleCount, setVisibleRemainingScheduleCount] = React.useState(
+        INITIAL_VISIBLE_REMAINING_SCHEDULE_COUNT
+    );
+    const remainingScheduleItems = React.useMemo(
+        () =>
+            mapSchedulesToDisplayItems(remainingSchedules, {
+                preserveOrder: Boolean(schedules.remaining),
+            }),
+        [remainingSchedules, schedules.remaining]
+    );
+    const visibleRemainingScheduleItems = remainingScheduleItems.slice(0, visibleRemainingScheduleCount);
+    const hiddenRemainingScheduleCount = Math.max(remainingScheduleItems.length - visibleRemainingScheduleItems.length, 0);
+    const nextVisibleRemainingScheduleCount = Math.min(
+        hiddenRemainingScheduleCount,
+        VISIBLE_REMAINING_SCHEDULE_INCREMENT
+    );
+    const scheduleMonthGroups = groupScheduleDisplayItemsByMonth(visibleRemainingScheduleItems);
     const handleExternalLinkClick = (item: ScheduleDisplayItem<ClubPublicSchedule>) => {
-        const schedule = item.payload;
+        const payload = getScheduleExternalLinkAnalyticsPayload(clubName, item);
 
-        if (!schedule || !item.externalUrl) {
+        if (!payload) {
             return;
         }
 
-        trackDongleEvent("schedule_external_link_click", {
-            club_id: schedule.clubId,
-            club_name: clubName,
-            destination: item.externalUrl,
-        });
+        trackDongleEvent("schedule_external_link_click", payload);
     };
+    const handleShowMoreSchedules = () => {
+        setVisibleRemainingScheduleCount((currentCount) =>
+            Math.min(currentCount + VISIBLE_REMAINING_SCHEDULE_INCREMENT, remainingScheduleItems.length)
+        );
+    };
+
+    React.useEffect(() => {
+        setVisibleRemainingScheduleCount(INITIAL_VISIBLE_REMAINING_SCHEDULE_COUNT);
+    }, [remainingSchedules]);
 
     if (loadFailed) {
         return (
@@ -114,6 +154,17 @@ export default function ClubSchedulesTabContent({ clubName, schedules, loadFaile
                 onExternalLinkClick={handleExternalLinkClick}
             />
             <ScheduleDisplayMonthList groups={scheduleMonthGroups} onExternalLinkClick={handleExternalLinkClick} />
+            {hiddenRemainingScheduleCount > 0 ? (
+                <div className="flex justify-center">
+                    <button
+                        type="button"
+                        aria-label={`남은 일정 ${nextVisibleRemainingScheduleCount}개 더보기`}
+                        onClick={handleShowMoreSchedules}
+                        className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-extrabold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2">
+                        일정 {nextVisibleRemainingScheduleCount}개 더보기
+                    </button>
+                </div>
+            ) : null}
         </div>
     );
 }

@@ -1,42 +1,15 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ScheduleDisplayMonthList } from "@dongle/ui/schedules/schedule-display-list";
 import type { ScheduleDisplayItem } from "@dongle/ui/schedules/schedule-display";
 import { describe, expect, it, vi } from "vitest";
 import type { ClubPublicSchedule } from "@/lib/club-schedule.types";
-import ClubSchedulesTabContent from "./club-schedules-tab-content";
+import ClubSchedulesTabContent, { getScheduleExternalLinkAnalyticsPayload } from "./club-schedules-tab-content";
 
 const analyticsMock = vi.hoisted(() => ({
     trackDongleEvent: vi.fn(),
 }));
 
 vi.mock("@/lib/analytics", () => analyticsMock);
-
-function findElementByType(node: React.ReactNode, type: React.ElementType): React.ReactElement | null {
-    if (!React.isValidElement(node)) {
-        return null;
-    }
-
-    if (node.type === type) {
-        return node;
-    }
-
-    const children = (node.props as { children?: React.ReactNode }).children;
-
-    if (Array.isArray(children)) {
-        for (const child of children) {
-            const found = findElementByType(child, type);
-
-            if (found) {
-                return found;
-            }
-        }
-
-        return null;
-    }
-
-    return findElementByType(children, type);
-}
 
 describe("ClubSchedulesTabContent", () => {
     it("외부 링크가 있는 공개 일정은 자세히 보기 링크를 렌더링한다", () => {
@@ -70,38 +43,39 @@ describe("ClubSchedulesTabContent", () => {
         expect(html).toContain("자세히 보기");
     });
 
-    it("외부 링크 클릭 콜백은 일정 analytics 이벤트를 전송한다", () => {
-        analyticsMock.trackDongleEvent.mockClear();
-        const element = ClubSchedulesTabContent({
-            clubName: "동글동아리",
-            schedules: {
-                ongoing: [],
-                upcoming: [
-                    {
-                        id: 1,
-                        clubId: 12,
-                        title: "공개 설명회",
-                        type: "event",
-                        start_at: "2026-05-20T10:00:00.000Z",
-                        end_at: "2026-05-20T12:00:00.000Z",
-                        is_public: true,
-                        location: "학생회관",
-                        description: "신청 링크를 확인하세요.",
-                        external_url: "https://dongle.kr/schedule",
-                    },
-                ],
-                past: [],
+    it("외부 링크 analytics payload는 일정과 동아리 정보를 포함한다", () => {
+        const item = {
+            id: 1,
+            title: "공개 설명회",
+            type: "event",
+            typeLabel: "행사",
+            dateKey: "2026-05-20",
+            monthKey: "2026-05",
+            monthLabel: "2026년 5월",
+            dateBadge: {
+                month: "5월",
+                day: "20",
+                weekday: "수",
+                dateTime: "2026-05-20T10:00:00.000Z",
             },
-        });
-        const monthList = findElementByType(element, ScheduleDisplayMonthList);
-        const props = monthList?.props as {
-            groups: Array<{ items: Array<ScheduleDisplayItem<ClubPublicSchedule>> }>;
-            onExternalLinkClick?: (item: ScheduleDisplayItem<ClubPublicSchedule>) => void;
-        };
+            dateTimeLabel: "5월 20일 19시 00분 - 21시 00분",
+            compactDateTimeLabel: "5월 20일",
+            externalUrl: "https://dongle.kr/schedule",
+            payload: {
+                id: 1,
+                clubId: 12,
+                title: "공개 설명회",
+                type: "event",
+                start_at: "2026-05-20T10:00:00.000Z",
+                end_at: "2026-05-20T12:00:00.000Z",
+                is_public: true,
+                location: "학생회관",
+                description: "신청 링크를 확인하세요.",
+                external_url: "https://dongle.kr/schedule",
+            },
+        } satisfies ScheduleDisplayItem<ClubPublicSchedule>;
 
-        props.onExternalLinkClick?.(props.groups[0].items[0]);
-
-        expect(analyticsMock.trackDongleEvent).toHaveBeenCalledWith("schedule_external_link_click", {
+        expect(getScheduleExternalLinkAnalyticsPayload("동글동아리", item)).toEqual({
             club_id: 12,
             club_name: "동글동아리",
             destination: "https://dongle.kr/schedule",
@@ -292,6 +266,68 @@ describe("ClubSchedulesTabContent", () => {
         expect(html.match(/2026년 6월/g)?.length).toBe(1);
         expect(html).toContain("6월 첫 일정");
         expect(html).toContain("6월 둘째 일정");
+    });
+
+    it("월별 일정은 처음 6개만 보여주고 남은 일정 더보기 버튼을 렌더링한다", () => {
+        const schedules = Array.from({ length: 8 }, (_, index) => ({
+            id: index + 1,
+            clubId: 12,
+            title: `${index + 1}번째 일정`,
+            type: "event" as const,
+            start_at: `2026-06-${String(index + 1).padStart(2, "0")}T10:00:00.000Z`,
+            end_at: `2026-06-${String(index + 1).padStart(2, "0")}T12:00:00.000Z`,
+            is_public: true,
+            location: "",
+            description: "",
+            external_url: null,
+        }));
+
+        const html = renderToStaticMarkup(
+            <ClubSchedulesTabContent
+                clubName="동글동아리"
+                schedules={{
+                    ongoing: [],
+                    upcoming: schedules,
+                    past: [],
+                }}
+            />
+        );
+
+        expect(html).toContain("1번째 일정");
+        expect(html).toContain("6번째 일정");
+        expect(html).not.toContain("7번째 일정");
+        expect(html).toContain("일정 2개 더보기");
+        expect(html).toContain('aria-label="남은 일정 2개 더보기"');
+    });
+
+    it("월별 일정이 6개 이하면 더보기 버튼을 렌더링하지 않는다", () => {
+        const schedules = Array.from({ length: 6 }, (_, index) => ({
+            id: index + 1,
+            clubId: 12,
+            title: `${index + 1}번째 일정`,
+            type: "event" as const,
+            start_at: `2026-06-${String(index + 1).padStart(2, "0")}T10:00:00.000Z`,
+            end_at: `2026-06-${String(index + 1).padStart(2, "0")}T12:00:00.000Z`,
+            is_public: true,
+            location: "",
+            description: "",
+            external_url: null,
+        }));
+
+        const html = renderToStaticMarkup(
+            <ClubSchedulesTabContent
+                clubName="동글동아리"
+                schedules={{
+                    ongoing: [],
+                    upcoming: schedules,
+                    past: [],
+                }}
+            />
+        );
+
+        expect(html).toContain("6번째 일정");
+        expect(html).not.toContain("일정 더보기");
+        expect(html).not.toContain("남은 일정");
     });
 
     it("remaining이 없을 때도 timezone 없는 일정은 Seoul 기준으로 정렬한다", () => {
