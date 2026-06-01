@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { RichTextViewer } from "@dongle/rich-text";
 import { Skeleton } from "@dongle/ui/skeleton";
+import ClientRichTextViewer from "@/components/rich-text/client-rich-text-viewer";
 
 type ClubIntroViewModel = {
     description: string;
@@ -35,7 +35,11 @@ export default function ClubIntroTabContent({ club }: ClubIntroTabContentProps) 
             <article className={styles.article}>
                 <h2 className={styles.title}>동아리 소개</h2>
                 {club.description ? (
-                    <RichTextViewer html={club.description} className={styles.text} fallback={<IntroTextSkeleton />} />
+                    <ClientRichTextViewer
+                        html={club.description}
+                        className={styles.text}
+                        fallback={<IntroTextSkeleton />}
+                    />
                 ) : (
                     <p className={styles.text}>등록된 동아리 소개가 없습니다.</p>
                 )}
@@ -44,7 +48,11 @@ export default function ClubIntroTabContent({ club }: ClubIntroTabContentProps) 
             <article className={styles.article}>
                 <h2 className={styles.title}>주요 활동</h2>
                 {club.main_activities ? (
-                    <RichTextViewer html={club.main_activities} className={styles.text} fallback={<IntroTextSkeleton />} />
+                    <ClientRichTextViewer
+                        html={club.main_activities}
+                        className={styles.text}
+                        fallback={<IntroTextSkeleton />}
+                    />
                 ) : (
                     <p className={styles.text}>등록된 주요 활동 정보가 없습니다.</p>
                 )}

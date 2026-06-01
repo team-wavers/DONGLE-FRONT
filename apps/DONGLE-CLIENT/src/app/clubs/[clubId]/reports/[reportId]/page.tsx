@@ -1,5 +1,4 @@
 import { getClubReportListService, getClubReportService, getClubService } from "@/lib/server/cached-services";
-import { RichTextViewer } from "@dongle/rich-text";
 import type { ClubReport } from "@dongle/types/club/club.report";
 import { formatDateByLocale } from "@dongle/ui/utils";
 import { ArrowLeft, CalendarDays, PencilLine } from "lucide-react";
@@ -9,6 +8,7 @@ import { notFound } from "next/navigation";
 import ClubSummaryCard from "./_components/club-summary-card";
 import OtherReportList from "./_components/other-report-list";
 import ReportImageGallery from "./_components/report-image-gallery";
+import ClientRichTextViewer from "@/components/rich-text/client-rich-text-viewer";
 
 interface ClubReportDetailPageProps {
     params: Promise<{ clubId: string; reportId: string }>;
@@ -157,7 +157,7 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
                     <ReportImageGallery report={report} />
 
                     <section className={hasReportImages ? "border-t border-zinc-200 pt-8" : undefined}>
-                        <RichTextViewer html={report.content} className="max-w-[720px] text-[17px]" />
+                        <ClientRichTextViewer html={report.content} className="max-w-[720px] text-[17px]" />
                     </section>
                 </main>
 

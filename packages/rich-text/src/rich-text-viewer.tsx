@@ -11,7 +11,7 @@ interface DomPurifyLike {
     sanitize: (html: string, options: { USE_PROFILES: { html: boolean } }) => string;
 }
 
-interface RichTextViewerProps {
+export interface RichTextViewerProps {
     html: string;
     className?: string;
     fallback?: ReactNode;

@@ -7,8 +7,8 @@ import { ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogOverlay, DialogPortal, DialogTitle } from "@dongle/ui/dialog";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@dongle/ui/carousel";
-import { RichTextViewer } from "@dongle/rich-text";
 import { formatKoreanDate } from "@/lib/format/date";
+import ClientRichTextViewer from "@/shared/ui/rich-text/client-rich-text-viewer";
 
 type ReportViewModel = {
     title: string;
@@ -107,7 +107,7 @@ export default function ReportView({ report, backHref, backButtonText = "돌아�
 
                 {/* 내용 */}
                 <div className="min-h-36 py-4">
-                    <RichTextViewer html={report.content} />
+                    <ClientRichTextViewer html={report.content} />
                 </div>
             </div>
 
