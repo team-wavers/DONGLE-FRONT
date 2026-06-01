@@ -34,28 +34,23 @@ function getFetchOptions(tags: string[], policy: ServiceFetchPolicy = "public"):
 }
 
 export const getClubListService = async (policy: ServiceFetchPolicy = "public"): Promise<ClubListResponse> => {
-    const response = await instance.get(`/clubs`, getFetchOptions(clubTagGroups.list(), policy));
-    return response as ClubListResponse;
+    return instance.get<ClubListResponse>(`/clubs`, getFetchOptions(clubTagGroups.list(), policy));
 };
 
 export const getClubService = async (id: number, policy: ServiceFetchPolicy = "public"): Promise<ClubResponse> => {
-    const response = await instance.get(`/clubs/${id}`, getFetchOptions(clubTagGroups.detail(id), policy));
-    return response as ClubResponse;
+    return instance.get<ClubResponse>(`/clubs/${id}`, getFetchOptions(clubTagGroups.detail(id), policy));
 };
 
 export const createClubService = async (club: CreateClubRequest): Promise<ClubCreateResponse> => {
-    const response = await instance.post(`/clubs`, club);
-    return response as ClubCreateResponse;
+    return instance.post<ClubCreateResponse>(`/clubs`, club);
 };
 
 export const updateClubService = async (id: number, club: UpdateClubRequest): Promise<ClubUpdateResponse> => {
-    const response = await instance.put(`/clubs/${id}`, club);
-    return response as ClubUpdateResponse;
+    return instance.put<ClubUpdateResponse>(`/clubs/${id}`, club);
 };
 
 export const deleteClubService = async (id: number): Promise<ClubDeleteResponse> => {
-    const response = await instance.delete(`/clubs/${id}`);
-    return response as ClubDeleteResponse;
+    return instance.delete<ClubDeleteResponse>(`/clubs/${id}`);
 };
 
 export const issueClubRegisterUrlService = async (): Promise<Response<string>> => {
@@ -68,14 +63,13 @@ export const issueClubRegisterUrlService = async (): Promise<Response<string>> =
         credentials: "include",
     });
 
-    const data = await response.json();
-    return data as Response<string>;
+    const data: Response<string> = await response.json();
+    return data;
 };
 
 export const uploadClubIconService = async (id: number, icon: File): Promise<ClubIconImageResponse> => {
     const formData = new FormData();
     formData.append("file", icon);
 
-    const response = await instance.post(`/clubs/${id}/icons`, formData);
-    return response as ClubIconImageResponse;
+    return instance.post<ClubIconImageResponse>(`/clubs/${id}/icons`, formData);
 };
