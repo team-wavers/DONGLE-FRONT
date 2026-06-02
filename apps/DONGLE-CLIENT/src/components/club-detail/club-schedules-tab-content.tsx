@@ -8,9 +8,10 @@ import {
     formatScheduleDisplayDateRange,
     formatScheduleDisplayDateTimeRange,
     getScheduleDisplayDateParts,
+    groupScheduleDisplayItemsByMonth,
     type ScheduleDisplayItem,
 } from "@dongle/ui/schedules/schedule-display";
-import { ScheduleDisplaySection } from "@dongle/ui/schedules/schedule-display-list";
+import { ScheduleDisplayMonthList, ScheduleDisplaySection } from "@dongle/ui/schedules/schedule-display-list";
 
 interface ClubSchedulesTabContentProps {
     clubName: string;
@@ -28,13 +29,13 @@ const SCHEDULE_TIME_ZONE = "Asia/Seoul";
 const INITIAL_VISIBLE_REMAINING_SCHEDULE_COUNT = 6;
 const VISIBLE_REMAINING_SCHEDULE_INCREMENT = 6;
 
-function getLatestSortableScheduleStartTime(schedule: ClubPublicSchedule) {
+function getScheduleStartTime(schedule: ClubPublicSchedule) {
     const time = getDateTimeTimestamp(schedule.start_at, { timeZone: SCHEDULE_TIME_ZONE });
 
-    return Number.isNaN(time) ? Number.MIN_SAFE_INTEGER : time;
+    return Number.isNaN(time) ? Number.MAX_SAFE_INTEGER : time;
 }
 
-function mapScheduleToDisplayItem(schedule: ClubPublicSchedule): ScheduleDisplayItem<ClubPublicSchedule> {
+function mapScheduleToDisplayItem(schedule: ClubPublicSchedule, statusLabel?: string): ScheduleDisplayItem<ClubPublicSchedule> {
     const dateParts = getScheduleDisplayDateParts(schedule.start_at);
 
     return {
@@ -55,15 +56,16 @@ function mapScheduleToDisplayItem(schedule: ClubPublicSchedule): ScheduleDisplay
         compactDateTimeLabel: formatScheduleDisplayDateRange(schedule.start_at, schedule.end_at),
         locationLabel: schedule.location || undefined,
         descriptionLabel: schedule.description || undefined,
+        statusLabel,
         externalUrl: schedule.external_url,
         payload: schedule,
     };
 }
 
-function mapSchedulesToDisplayItems(schedules: ClubPublicSchedule[]) {
+function mapSchedulesToDisplayItems(schedules: ClubPublicSchedule[], statusLabelsByScheduleId: Map<number, string>) {
     return [...schedules]
-        .sort((a, b) => getLatestSortableScheduleStartTime(b) - getLatestSortableScheduleStartTime(a))
-        .map(mapScheduleToDisplayItem);
+        .sort((a, b) => getScheduleStartTime(a) - getScheduleStartTime(b))
+        .map((schedule) => mapScheduleToDisplayItem(schedule, statusLabelsByScheduleId.get(schedule.id)));
 }
 
 export function getScheduleExternalLinkAnalyticsPayload(
@@ -85,7 +87,26 @@ export function getScheduleExternalLinkAnalyticsPayload(
 
 export default function ClubSchedulesTabContent({ clubName, schedules, loadFailed = false }: ClubSchedulesTabContentProps) {
     const hasSchedules = schedules.ongoing.length > 0 || schedules.upcoming.length > 0 || schedules.past.length > 0;
-    const ongoingScheduleItems = schedules.ongoing.map(mapScheduleToDisplayItem);
+    const statusLabelsByScheduleId = React.useMemo(() => {
+        const statusLabels = new Map<number, string>();
+
+        for (const schedule of schedules.ongoing) {
+            statusLabels.set(schedule.id, "진행중");
+        }
+
+        for (const schedule of schedules.upcoming) {
+            statusLabels.set(schedule.id, "예정");
+        }
+
+        for (const schedule of schedules.past) {
+            statusLabels.set(schedule.id, "마감");
+        }
+
+        return statusLabels;
+    }, [schedules.ongoing, schedules.past, schedules.upcoming]);
+    const ongoingScheduleItems = schedules.ongoing.map((schedule) =>
+        mapScheduleToDisplayItem(schedule, statusLabelsByScheduleId.get(schedule.id))
+    );
     const remainingSchedules = React.useMemo(
         () => schedules.remaining ?? [...schedules.upcoming, ...schedules.past],
         [schedules.past, schedules.remaining, schedules.upcoming]
@@ -93,8 +114,15 @@ export default function ClubSchedulesTabContent({ clubName, schedules, loadFaile
     const [visibleRemainingScheduleCount, setVisibleRemainingScheduleCount] = React.useState(
         INITIAL_VISIBLE_REMAINING_SCHEDULE_COUNT
     );
-    const remainingScheduleItems = React.useMemo(() => mapSchedulesToDisplayItems(remainingSchedules), [remainingSchedules]);
+    const remainingScheduleItems = React.useMemo(
+        () => mapSchedulesToDisplayItems(remainingSchedules, statusLabelsByScheduleId),
+        [remainingSchedules, statusLabelsByScheduleId]
+    );
     const visibleRemainingScheduleItems = remainingScheduleItems.slice(0, visibleRemainingScheduleCount);
+    const scheduleMonthGroups = React.useMemo(
+        () => groupScheduleDisplayItemsByMonth(visibleRemainingScheduleItems),
+        [visibleRemainingScheduleItems]
+    );
     const hiddenRemainingScheduleCount = Math.max(remainingScheduleItems.length - visibleRemainingScheduleItems.length, 0);
     const nextVisibleRemainingScheduleCount = Math.min(
         hiddenRemainingScheduleCount,
@@ -143,11 +171,7 @@ export default function ClubSchedulesTabContent({ clubName, schedules, loadFaile
                 variant="active"
                 onExternalLinkClick={handleExternalLinkClick}
             />
-            <ScheduleDisplaySection
-                title="최신 일정"
-                items={visibleRemainingScheduleItems}
-                onExternalLinkClick={handleExternalLinkClick}
-            />
+            <ScheduleDisplayMonthList groups={scheduleMonthGroups} onExternalLinkClick={handleExternalLinkClick} />
             {hiddenRemainingScheduleCount > 0 ? (
                 <div className="flex justify-center">
                     <button

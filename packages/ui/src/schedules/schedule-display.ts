@@ -36,6 +36,7 @@ export interface ScheduleDisplayItem<TPayload = unknown> {
     clubName?: string;
     category?: string;
     isPublic?: boolean;
+    statusLabel?: string;
     payload?: TPayload;
 }
 

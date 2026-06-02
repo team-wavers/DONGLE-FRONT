@@ -85,7 +85,7 @@ const schedules: ClubPublicSchedule[] = [
 ];
 
 describe("club schedule", () => {
-    it("해당 동아리의 공개 일정은 진행 중을 따로 분리하고 나머지는 최신 시작일시 순으로 정렬한다", () => {
+    it("해당 동아리의 공개 일정은 진행 중을 따로 분리하고 나머지는 Seoul 기준 시작일시 순으로 정렬한다", () => {
         const groups = getClubScheduleGroups(schedules, {
             clubId: 12,
             now: new Date("2026-05-15T00:00:00.000Z"),
@@ -95,9 +95,9 @@ describe("club schedule", () => {
         expect(groups.upcoming.map((schedule) => schedule.title)).toEqual(["먼저 공개 일정", "나중 공개 일정"]);
         expect(groups.past.map((schedule) => schedule.title)).toEqual(["지난 공개 일정"]);
         expect(groups.remaining?.map((schedule) => schedule.title)).toEqual([
-            "나중 공개 일정",
-            "먼저 공개 일정",
             "지난 공개 일정",
+            "먼저 공개 일정",
+            "나중 공개 일정",
         ]);
     });
 

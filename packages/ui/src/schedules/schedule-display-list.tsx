@@ -41,17 +41,7 @@ const scheduleTypeClassNames: Record<ScheduleDisplayType, string> = {
     regular_meeting: "border-emerald-200 bg-emerald-50 text-emerald-700",
 };
 
-const scheduleAccentClassNames: Record<ScheduleDisplayType, string> = {
-    recruitment: "border-l-violet-300",
-    event: "border-l-sky-300",
-    regular_meeting: "border-l-emerald-300",
-};
-
-const scheduleDateMarkerClassNames: Record<ScheduleDisplayType, string> = {
-    recruitment: "border-violet-100 bg-violet-50 text-violet-700",
-    event: "border-sky-100 bg-sky-50 text-sky-700",
-    regular_meeting: "border-emerald-100 bg-emerald-50 text-emerald-700",
-};
+const scheduleDateMarkerClassName = "border-zinc-200 bg-white text-zinc-600";
 
 function ScheduleTypeBadge({ type, label }: { type: ScheduleDisplayType; label: string }) {
     return (
@@ -83,7 +73,7 @@ function ScheduleDateMarker({ item }: { item: ScheduleDisplayItem }) {
             dateTime={item.dateBadge.dateTime}
             className={cn(
                 "flex h-[3.25rem] w-[3.25rem] shrink-0 flex-col items-center justify-center rounded-md border text-center",
-                scheduleDateMarkerClassNames[item.type]
+                scheduleDateMarkerClassName
             )}>
             <span className="text-[10px] font-extrabold leading-none">{item.dateBadge.month}</span>
             <span className="mt-0.5 text-xl font-black leading-none text-foreground">{item.dateBadge.day}</span>
@@ -126,6 +116,11 @@ export function ScheduleDisplayItemContent<TPayload = unknown>({
                         <ScheduleTypeBadge type={item.type} label={item.typeLabel} />
                         {showPublicBadge && typeof item.isPublic === "boolean" ? (
                             <SchedulePublicBadge isPublic={item.isPublic} />
+                        ) : null}
+                        {item.statusLabel ? (
+                            <span className="inline-flex h-5 shrink-0 items-center rounded border border-zinc-200 bg-zinc-50 px-1.5 text-[11px] font-bold leading-none text-zinc-600">
+                                {item.statusLabel}
+                            </span>
                         ) : null}
                         <span className="inline-flex min-w-0 items-center gap-1 text-sm font-semibold text-zinc-500">
                             <Clock className="size-4 shrink-0" aria-hidden="true" />
@@ -188,12 +183,7 @@ function ScheduleDisplayDateGroupedItems<TPayload = unknown>({
     return (
         <ol className="divide-y divide-zinc-100">
             {items.map((item) => (
-                <li
-                    key={item.id}
-                    className={cn(
-                        "border-l-2 px-4 py-4 transition-colors hover:bg-muted/40",
-                        scheduleAccentClassNames[item.type]
-                    )}>
+                <li key={item.id} className="px-4 py-4 transition-colors hover:bg-muted/40">
                     <ScheduleDisplayItemContent
                         item={item}
                         showPublicBadge={showPublicBadge}
