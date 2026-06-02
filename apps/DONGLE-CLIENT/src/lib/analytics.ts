@@ -32,7 +32,7 @@ type DongleAnalyticsProperties = {
         destination: string;
     };
     schedule_external_link_click: {
-        club_id: number;
+        club_id: number | null;
         club_name: string;
         destination: string;
     };

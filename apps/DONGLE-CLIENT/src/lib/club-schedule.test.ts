@@ -161,6 +161,26 @@ describe("club schedule", () => {
         });
     });
 
+    it("백엔드 공개 공통 일정 응답은 clubId null을 유지한다", () => {
+        const schedule: ClubSchedule = {
+            id: 9,
+            club_id: null,
+            title: "공통 행사",
+            type: "event",
+            start_at: "2026-06-10T01:00:00.000Z",
+            end_at: "2026-06-10T03:00:00.000Z",
+            is_public: true,
+            location: null,
+            description: null,
+            external_url: null,
+            created_at: "2026-06-01T00:00:00.000Z",
+            updated_at: "2026-06-01T00:00:00.000Z",
+            deleted_at: null,
+        };
+
+        expect(mapClubScheduleToPublicSchedule(schedule).clubId).toBeNull();
+    });
+
     it("백엔드 공개 일정 응답의 잘못된 외부 링크는 화면 모델에서 제거한다", () => {
         const schedule: ClubSchedule = {
             id: 8,

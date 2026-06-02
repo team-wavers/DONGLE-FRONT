@@ -2,7 +2,7 @@ export type ClubPublicScheduleType = "recruitment" | "event" | "regular_meeting"
 
 export interface ClubPublicSchedule {
     id: number;
-    clubId: number;
+    clubId: number | null;
     title: string;
     type: ClubPublicScheduleType;
     start_at: string;
@@ -11,6 +11,8 @@ export interface ClubPublicSchedule {
     location: string;
     description: string;
     external_url: string | null;
+    clubName?: string;
+    category?: string;
 }
 
 export interface ClubScheduleGroups {

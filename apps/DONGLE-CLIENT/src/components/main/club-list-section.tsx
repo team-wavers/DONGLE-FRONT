@@ -2,7 +2,9 @@
 
 import ClubIconAvatar from "@/components/main/club-icon-avatar";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
+import { Button } from "@dongle/ui/button";
 import { cn } from "@dongle/ui/utils";
+import { CalendarDays } from "lucide-react";
 import Link from "next/link";
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
 import { trackDongleEvent } from "@/lib/analytics";
@@ -25,8 +27,14 @@ interface ClubListSectionProps {
 export default function ClubListSection({ clubs, summaryText, emptyStateMessage }: ClubListSectionProps) {
     return (
         <div className="space-y-4">
-            <div className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3">
+            <div className="flex min-h-11 flex-col gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm font-bold text-zinc-500">{summaryText}</p>
+                <Button asChild variant="outline" size="sm" className="w-fit shrink-0 gap-2 font-bold">
+                    <Link href="/schedules">
+                        <CalendarDays className="h-4 w-4" />
+                        전체 일정
+                    </Link>
+                </Button>
             </div>
             {emptyStateMessage ? (
                 <div className="rounded-lg border border-zinc-200 bg-white px-6 py-10 text-center text-zinc-400">
