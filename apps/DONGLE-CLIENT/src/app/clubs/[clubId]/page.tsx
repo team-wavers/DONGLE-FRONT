@@ -1,4 +1,6 @@
 import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
+import ClubReportsTabContent from "@/components/club-detail/club-reports-tab-content";
+import ClubSchedulesTabContent from "@/components/club-detail/club-schedules-tab-content";
 import ClubSocialLinks from "@/components/club-detail/club-social-links";
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
 import ClubIconAvatar from "@/components/main/club-icon-avatar";
@@ -9,12 +11,14 @@ import {
     getClubService,
 } from "@/lib/server/cached-services";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
+import { Skeleton } from "@dongle/ui/skeleton";
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
 import { formatMobilePhoneNumber } from "@dongle/utils";
 import { ArrowLeft, CalendarDays, MapPin, Phone, UserRound } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 interface ClubDetailPageProps {
     params: Promise<{ clubId: string }>;
@@ -26,6 +30,62 @@ const defaultOgImage = "/logo/logo-og.png";
 function buildClubDescription(description: string, mainActivities: string) {
     const rawDescription = description?.trim() || mainActivities?.trim() || "동아리 상세 정보를 확인해보세요.";
     return rawDescription.length > 140 ? `${rawDescription.slice(0, 137)}...` : rawDescription;
+}
+
+function ClubTabPanelSkeleton() {
+    return (
+        <div className="space-y-4">
+            <Skeleton className="h-10 w-32 rounded-md" />
+            <Skeleton className="h-32 w-full rounded-lg" />
+            <Skeleton className="h-32 w-full rounded-lg" />
+        </div>
+    );
+}
+
+async function ClubReportsTabPanel({ clubId, clubName }: { clubId: string; clubName: string }) {
+    const clubIdNumber = Number(clubId);
+
+    try {
+        const reportsResponse = await getClubReportListService(clubIdNumber);
+
+        if (!reportsResponse.isSuccess) {
+            return <ClubReportsTabContent clubId={clubId} clubName={clubName} reports={[]} loadFailed />;
+        }
+
+        const reports = reportsResponse.result.map((report) => ({
+            id: report.id,
+            title: report.title,
+            createdAt: report.createdAt,
+            image_urls: report.image_urls,
+        }));
+
+        return <ClubReportsTabContent clubId={clubId} clubName={clubName} reports={reports} />;
+    } catch {
+        return <ClubReportsTabContent clubId={clubId} clubName={clubName} reports={[]} loadFailed />;
+    }
+}
+
+async function ClubSchedulesTabPanel({ clubIdNumber, clubName }: { clubIdNumber: number; clubName: string }) {
+    try {
+        const scheduleResponse = await getClubPublicScheduleListService(clubIdNumber);
+        const schedules = getClubScheduleGroups(scheduleResponse.map(mapClubScheduleToPublicSchedule), {
+            clubId: clubIdNumber,
+        });
+
+        return <ClubSchedulesTabContent clubName={clubName} schedules={schedules} />;
+    } catch {
+        return (
+            <ClubSchedulesTabContent
+                clubName={clubName}
+                schedules={{
+                    ongoing: [],
+                    upcoming: [],
+                    past: [],
+                }}
+                loadFailed
+            />
+        );
+    }
 }
 
 export async function generateMetadata({ params }: ClubDetailPageProps): Promise<Metadata> {
@@ -94,37 +154,17 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         notFound();
     }
 
-    const [clubResult, reportsResult, scheduleResult] = await Promise.allSettled([
-        getClubService(clubIdNumber),
-        getClubReportListService(clubIdNumber),
-        getClubPublicScheduleListService(clubIdNumber),
-    ]);
+    const clubResponse = await getClubService(clubIdNumber).catch(() => null);
 
-    if (clubResult.status === "rejected") {
+    if (!clubResponse) {
         notFound();
     }
 
-    const clubResponse = clubResult.value;
     if (!clubResponse.isSuccess || !clubResponse.result) {
         notFound();
     }
 
     const club = clubResponse.result;
-    const reportsResponse = reportsResult.status === "fulfilled" ? reportsResult.value : null;
-    const reportLoadFailed = !reportsResponse?.isSuccess;
-    const reports = reportsResponse?.isSuccess
-        ? reportsResponse.result.map((report) => ({
-              id: report.id,
-              title: report.title,
-              createdAt: report.createdAt,
-              image_urls: report.image_urls,
-          }))
-        : [];
-    const scheduleResponse = scheduleResult.status === "fulfilled" ? scheduleResult.value : [];
-    const scheduleLoadFailed = scheduleResult.status === "rejected";
-    const schedules = getClubScheduleGroups(scheduleResponse.map(mapClubScheduleToPublicSchedule), {
-        clubId: clubIdNumber,
-    });
     const intro = {
         description: club.description,
         main_activities: club.main_activities,
@@ -203,10 +243,16 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                         club={intro}
                         clubId={clubId}
                         clubName={club.name}
-                        schedules={schedules}
-                        scheduleLoadFailed={scheduleLoadFailed}
-                        reports={reports}
-                        reportLoadFailed={reportLoadFailed}
+                        reportsContent={
+                            <Suspense fallback={<ClubTabPanelSkeleton />}>
+                                <ClubReportsTabPanel clubId={clubId} clubName={club.name} />
+                            </Suspense>
+                        }
+                        schedulesContent={
+                            <Suspense fallback={<ClubTabPanelSkeleton />}>
+                                <ClubSchedulesTabPanel clubIdNumber={clubIdNumber} clubName={club.name} />
+                            </Suspense>
+                        }
                     />
                 </div>
 

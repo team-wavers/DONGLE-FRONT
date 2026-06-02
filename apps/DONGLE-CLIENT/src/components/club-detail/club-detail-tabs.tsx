@@ -1,10 +1,9 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dongle/ui/tabs";
-import type { ClubScheduleGroups } from "@/lib/club-schedule.types";
+import React from "react";
+import type { ReactNode } from "react";
 import ClubIntroTabContent from "./club-intro-tab-content";
-import ClubReportsTabContent from "./club-reports-tab-content";
-import ClubSchedulesTabContent from "./club-schedules-tab-content";
 import { trackDongleEvent } from "@/lib/analytics";
 
 type ClubDetailIntroViewModel = {
@@ -12,21 +11,12 @@ type ClubDetailIntroViewModel = {
     main_activities: string;
 };
 
-type ClubDetailReportViewModel = {
-    id: number;
-    title: string;
-    createdAt: string;
-    image_urls: string[];
-};
-
 interface ClubDetailTabsProps {
     club: ClubDetailIntroViewModel;
     clubId: string;
     clubName: string;
-    schedules: ClubScheduleGroups;
-    scheduleLoadFailed?: boolean;
-    reports: ClubDetailReportViewModel[];
-    reportLoadFailed?: boolean;
+    reportsContent: ReactNode;
+    schedulesContent: ReactNode;
 }
 
 const styles = {
@@ -39,10 +29,8 @@ export default function ClubDetailTabs({
     club,
     clubId,
     clubName,
-    schedules,
-    scheduleLoadFailed = false,
-    reports,
-    reportLoadFailed = false,
+    reportsContent,
+    schedulesContent,
 }: ClubDetailTabsProps) {
     return (
         <Tabs
@@ -73,20 +61,11 @@ export default function ClubDetailTabs({
             </TabsContent>
 
             <TabsContent value="reports" className={styles.tabContent}>
-                <ClubReportsTabContent
-                    clubId={clubId}
-                    clubName={clubName}
-                    reports={reports}
-                    loadFailed={reportLoadFailed}
-                />
+                {reportsContent}
             </TabsContent>
 
             <TabsContent value="schedules" className={styles.tabContent}>
-                <ClubSchedulesTabContent
-                    clubName={clubName}
-                    schedules={schedules}
-                    loadFailed={scheduleLoadFailed}
-                />
+                {schedulesContent}
             </TabsContent>
         </Tabs>
     );
