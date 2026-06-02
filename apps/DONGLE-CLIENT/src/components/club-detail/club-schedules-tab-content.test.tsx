@@ -264,7 +264,7 @@ describe("ClubSchedulesTabContent", () => {
         expect(html).not.toContain("다가오는 일정");
     });
 
-    it("진행 중이 아닌 일정은 Seoul 기준 시작 월별로 렌더링한다", () => {
+    it("진행 중이 아닌 일정은 현재와 가까운 순서의 월 섹션으로 렌더링한다", () => {
         const html = renderToStaticMarkup(
             <ClubSchedulesTabContent
                 clubName="동글동아리"
@@ -354,8 +354,9 @@ describe("ClubSchedulesTabContent", () => {
 
         expect(html.match(/2026년 6월/g)?.length).toBe(1);
         expect(html).toContain("2026년 5월");
-        expect(html.indexOf("5월 지난 일정")).toBeLessThan(html.indexOf("6월 첫 일정"));
+        expect(html.indexOf("2026년 6월")).toBeLessThan(html.indexOf("2026년 5월"));
         expect(html.indexOf("6월 첫 일정")).toBeLessThan(html.indexOf("6월 둘째 일정"));
+        expect(html.indexOf("6월 둘째 일정")).toBeLessThan(html.indexOf("5월 지난 일정"));
     });
 
     it("월별 일정은 처음 6개만 보여주고 남은 일정 더보기 버튼을 렌더링한다", () => {

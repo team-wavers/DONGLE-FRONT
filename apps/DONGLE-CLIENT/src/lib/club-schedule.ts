@@ -90,7 +90,7 @@ export function getClubScheduleGroups(
 
     return {
         ongoing,
-        remaining: sortByStartAt([...upcoming, ...past]),
+        remaining: sortByDistanceFromNow([...upcoming, ...past], nowTime),
         upcoming,
         past,
     };

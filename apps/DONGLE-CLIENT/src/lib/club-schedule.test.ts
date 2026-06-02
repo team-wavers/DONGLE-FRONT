@@ -85,7 +85,7 @@ const schedules: ClubPublicSchedule[] = [
 ];
 
 describe("club schedule", () => {
-    it("해당 동아리의 공개 일정은 진행 중을 따로 분리하고 나머지는 Seoul 기준 시작일시 순으로 정렬한다", () => {
+    it("해당 동아리의 공개 일정은 진행 중을 따로 분리하고 나머지는 현재와 가까운 순으로 정렬한다", () => {
         const groups = getClubScheduleGroups(schedules, {
             clubId: 12,
             now: new Date("2026-05-15T00:00:00.000Z"),

@@ -62,10 +62,16 @@ function mapScheduleToDisplayItem(schedule: ClubPublicSchedule, statusLabel?: st
     };
 }
 
-function mapSchedulesToDisplayItems(schedules: ClubPublicSchedule[], statusLabelsByScheduleId: Map<number, string>) {
-    return [...schedules]
-        .sort((a, b) => getScheduleStartTime(a) - getScheduleStartTime(b))
-        .map((schedule) => mapScheduleToDisplayItem(schedule, statusLabelsByScheduleId.get(schedule.id)));
+function mapSchedulesToDisplayItems(
+    schedules: ClubPublicSchedule[],
+    statusLabelsByScheduleId: Map<number, string>,
+    options: { preserveOrder?: boolean } = {}
+) {
+    const sourceSchedules = options.preserveOrder
+        ? schedules
+        : [...schedules].sort((a, b) => getScheduleStartTime(a) - getScheduleStartTime(b));
+
+    return sourceSchedules.map((schedule) => mapScheduleToDisplayItem(schedule, statusLabelsByScheduleId.get(schedule.id)));
 }
 
 export function getScheduleExternalLinkAnalyticsPayload(
@@ -115,8 +121,11 @@ export default function ClubSchedulesTabContent({ clubName, schedules, loadFaile
         INITIAL_VISIBLE_REMAINING_SCHEDULE_COUNT
     );
     const remainingScheduleItems = React.useMemo(
-        () => mapSchedulesToDisplayItems(remainingSchedules, statusLabelsByScheduleId),
-        [remainingSchedules, statusLabelsByScheduleId]
+        () =>
+            mapSchedulesToDisplayItems(remainingSchedules, statusLabelsByScheduleId, {
+                preserveOrder: Boolean(schedules.remaining),
+            }),
+        [remainingSchedules, schedules.remaining, statusLabelsByScheduleId]
     );
     const visibleRemainingScheduleItems = remainingScheduleItems.slice(0, visibleRemainingScheduleCount);
     const scheduleMonthGroups = React.useMemo(
