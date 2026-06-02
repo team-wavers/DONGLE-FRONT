@@ -6,6 +6,7 @@ import {
     formatScheduleDisplayDateTimeRange,
     getScheduleDisplayDateParts,
     groupScheduleDisplayItemsByMonth,
+    sortScheduleDisplayMonthGroupsByDistance,
     type ScheduleDisplayItem,
 } from "./schedule-display";
 
@@ -123,6 +124,48 @@ describe("schedule display helpers", () => {
 
         expect(groups.map((group) => group.label)).toEqual(["2026년 6월", "2026년 5월"]);
         expect(groups[0].items.map((item) => item.title)).toEqual(["6월 첫 일정", "6월 둘째 일정"]);
+    });
+
+    it("월 섹션은 Seoul 기준 현재 월과 가까운 순서로 정렬한다", () => {
+        const groups = groupScheduleDisplayItemsByMonth([
+            createItem({
+                id: 1,
+                title: "9월 일정",
+                dateKey: "2026-09-01",
+                monthKey: "2026-09",
+                monthLabel: "2026년 9월",
+            }),
+            createItem({
+                id: 2,
+                title: "5월 일정",
+                dateKey: "2026-05-01",
+                monthKey: "2026-05",
+                monthLabel: "2026년 5월",
+            }),
+            createItem({
+                id: 3,
+                title: "7월 일정",
+                dateKey: "2026-07-01",
+                monthKey: "2026-07",
+                monthLabel: "2026년 7월",
+            }),
+            createItem({
+                id: 4,
+                title: "6월 일정",
+                dateKey: "2026-06-01",
+                monthKey: "2026-06",
+                monthLabel: "2026년 6월",
+            }),
+        ]);
+
+        const sortedGroups = sortScheduleDisplayMonthGroupsByDistance(groups, new Date("2026-06-15T00:00:00.000Z"));
+
+        expect(sortedGroups.map((group) => group.label)).toEqual([
+            "2026년 6월",
+            "2026년 7월",
+            "2026년 5월",
+            "2026년 9월",
+        ]);
     });
 
     it("외부 링크 클릭 콜백을 item과 함께 호출한다", () => {

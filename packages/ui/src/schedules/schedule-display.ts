@@ -45,6 +45,44 @@ export interface ScheduleDisplayMonthGroup<TPayload = unknown> {
     items: ScheduleDisplayItem<TPayload>[];
 }
 
+function getMonthIndexFromKey(monthKey: string) {
+    const match = /^(\d{4})-(\d{2})$/.exec(monthKey);
+
+    if (!match) {
+        return null;
+    }
+
+    const [, year = "", month = ""] = match;
+    const monthNumber = Number(month);
+
+    if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+        return null;
+    }
+
+    return Number(year) * 12 + monthNumber - 1;
+}
+
+function getMonthIndexFromDate(date: Date) {
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: SCHEDULE_DISPLAY_TIME_ZONE,
+        year: "numeric",
+        month: "2-digit",
+    }).formatToParts(date);
+    const partMap = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    const year = Number(partMap.year);
+    const month = Number(partMap.month);
+
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+        return null;
+    }
+
+    return year * 12 + month - 1;
+}
+
 interface ScheduleDateTimeParts {
     year: string;
     month: string;
@@ -262,4 +300,48 @@ export function groupScheduleDisplayItemsByMonth<TPayload = unknown>(
     }
 
     return Array.from(groups.values());
+}
+
+export function sortScheduleDisplayMonthGroupsByDistance<TPayload = unknown>(
+    groups: ScheduleDisplayMonthGroup<TPayload>[],
+    referenceDate: Date
+): ScheduleDisplayMonthGroup<TPayload>[] {
+    const referenceMonthIndex = getMonthIndexFromDate(referenceDate);
+
+    if (referenceMonthIndex === null) {
+        return groups;
+    }
+
+    return groups
+        .map((group, index) => ({
+            group,
+            index,
+            monthIndex: getMonthIndexFromKey(group.key),
+        }))
+        .sort((a, b) => {
+            if (a.monthIndex === null || b.monthIndex === null) {
+                if (a.monthIndex === b.monthIndex) {
+                    return a.index - b.index;
+                }
+
+                return a.monthIndex === null ? 1 : -1;
+            }
+
+            const aDistance = Math.abs(a.monthIndex - referenceMonthIndex);
+            const bDistance = Math.abs(b.monthIndex - referenceMonthIndex);
+
+            if (aDistance !== bDistance) {
+                return aDistance - bDistance;
+            }
+
+            const aIsFuture = a.monthIndex >= referenceMonthIndex;
+            const bIsFuture = b.monthIndex >= referenceMonthIndex;
+
+            if (aIsFuture !== bIsFuture) {
+                return aIsFuture ? -1 : 1;
+            }
+
+            return a.index - b.index;
+        })
+        .map(({ group }) => group);
 }

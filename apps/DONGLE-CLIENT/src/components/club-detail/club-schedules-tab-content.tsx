@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import type { ClubPublicSchedule, ClubPublicScheduleType, ClubScheduleGroups } from "@/lib/club-schedule.types";
 import { trackDongleEvent } from "@/lib/analytics";
 import { getDateTimeTimestamp } from "@dongle/utils";
@@ -9,8 +9,11 @@ import {
     formatScheduleDisplayDateTimeRange,
     getScheduleDisplayDateParts,
     groupScheduleDisplayItemsByMonth,
+    sortScheduleDisplayMonthGroupsByDistance,
     type ScheduleDisplayItem,
+    type ScheduleDisplayMonthGroup,
 } from "@dongle/ui/schedules/schedule-display";
+import { Button } from "@dongle/ui/button";
 import { ScheduleDisplayMonthList, ScheduleDisplaySection } from "@dongle/ui/schedules/schedule-display-list";
 
 interface ClubSchedulesTabContentProps {
@@ -26,6 +29,7 @@ const SCHEDULE_TYPE_LABELS: Record<ClubPublicScheduleType, string> = {
 };
 
 const SCHEDULE_TIME_ZONE = "Asia/Seoul";
+const SCHEDULE_MONTH_SECTION_PAGE_SIZE = 3;
 
 function getScheduleStartTime(schedule: ClubPublicSchedule) {
     const time = getDateTimeTimestamp(schedule.start_at, { timeZone: SCHEDULE_TIME_ZONE });
@@ -67,14 +71,50 @@ function mapSchedulesToDisplayItems(schedules: ClubPublicSchedule[], options: { 
     return sourceSchedules.map(mapScheduleToDisplayItem);
 }
 
+function LoadableScheduleMonthList({
+    groups,
+    onExternalLinkClick,
+}: {
+    groups: ScheduleDisplayMonthGroup<ClubPublicSchedule>[];
+    onExternalLinkClick?: (item: ScheduleDisplayItem<ClubPublicSchedule>) => void;
+}) {
+    const [visibleMonthGroupCount, setVisibleMonthGroupCount] = useState(SCHEDULE_MONTH_SECTION_PAGE_SIZE);
+    const visibleGroups = groups.slice(0, visibleMonthGroupCount);
+    const hiddenMonthGroupCount = groups.length - visibleGroups.length;
+
+    return (
+        <>
+            <ScheduleDisplayMonthList groups={visibleGroups} onExternalLinkClick={onExternalLinkClick} />
+            {hiddenMonthGroupCount > 0 ? (
+                <div className="flex justify-center">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="h-11 min-w-36 cursor-pointer rounded-xl px-5 font-semibold"
+                        onClick={() =>
+                            setVisibleMonthGroupCount((currentCount) => currentCount + SCHEDULE_MONTH_SECTION_PAGE_SIZE)
+                        }
+                    >
+                        더보기 ({hiddenMonthGroupCount}개 월)
+                    </Button>
+                </div>
+            ) : null}
+        </>
+    );
+}
+
 export default function ClubSchedulesTabContent({ clubName, schedules, loadFailed = false }: ClubSchedulesTabContentProps) {
-    const hasSchedules = schedules.ongoing.length > 0 || schedules.upcoming.length > 0 || schedules.past.length > 0;
-    const ongoingScheduleItems = schedules.ongoing.map(mapScheduleToDisplayItem);
     const remainingSchedules = schedules.remaining ?? [...schedules.upcoming, ...schedules.past];
+    const hasSchedules = schedules.ongoing.length > 0 || remainingSchedules.length > 0;
+    const ongoingScheduleItems = schedules.ongoing.map(mapScheduleToDisplayItem);
     const remainingScheduleItems = mapSchedulesToDisplayItems(remainingSchedules, {
         preserveOrder: Boolean(schedules.remaining),
     });
-    const scheduleMonthGroups = groupScheduleDisplayItemsByMonth(remainingScheduleItems);
+    const referenceDate = schedules.referenceDateTime ? new Date(schedules.referenceDateTime) : new Date();
+    const scheduleMonthGroups = sortScheduleDisplayMonthGroupsByDistance(
+        groupScheduleDisplayItemsByMonth(remainingScheduleItems),
+        referenceDate
+    );
     const handleExternalLinkClick = (item: ScheduleDisplayItem<ClubPublicSchedule>) => {
         const schedule = item.payload;
 
@@ -113,7 +153,7 @@ export default function ClubSchedulesTabContent({ clubName, schedules, loadFaile
                 variant="active"
                 onExternalLinkClick={handleExternalLinkClick}
             />
-            <ScheduleDisplayMonthList groups={scheduleMonthGroups} onExternalLinkClick={handleExternalLinkClick} />
+            <LoadableScheduleMonthList groups={scheduleMonthGroups} onExternalLinkClick={handleExternalLinkClick} />
         </div>
     );
 }

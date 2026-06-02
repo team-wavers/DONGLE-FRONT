@@ -1,6 +1,5 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ScheduleDisplayMonthList } from "@dongle/ui/schedules/schedule-display-list";
 import type { ScheduleDisplayItem } from "@dongle/ui/schedules/schedule-display";
 import { describe, expect, it, vi } from "vitest";
 import type { ClubPublicSchedule } from "@/lib/club-schedule.types";
@@ -36,6 +35,34 @@ function findElementByType(node: React.ReactNode, type: React.ElementType): Reac
     }
 
     return findElementByType(children, type);
+}
+
+function findElementByProps(node: React.ReactNode, predicate: (props: Record<string, unknown>) => boolean): React.ReactElement | null {
+    if (!React.isValidElement(node)) {
+        return null;
+    }
+
+    const props = node.props as Record<string, unknown> & { children?: React.ReactNode };
+
+    if (predicate(props)) {
+        return node;
+    }
+
+    const { children } = props;
+
+    if (Array.isArray(children)) {
+        for (const child of children) {
+            const found = findElementByProps(child, predicate);
+
+            if (found) {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    return findElementByProps(children, predicate);
 }
 
 describe("ClubSchedulesTabContent", () => {
@@ -93,7 +120,7 @@ describe("ClubSchedulesTabContent", () => {
                 past: [],
             },
         });
-        const monthList = findElementByType(element, ScheduleDisplayMonthList);
+        const monthList = findElementByProps(element, (props) => Array.isArray(props.groups));
         const props = monthList?.props as {
             groups: Array<{ items: Array<ScheduleDisplayItem<ClubPublicSchedule>> }>;
             onExternalLinkClick?: (item: ScheduleDisplayItem<ClubPublicSchedule>) => void;
@@ -332,6 +359,77 @@ describe("ClubSchedulesTabContent", () => {
         );
 
         expect(html.indexOf("Seoul 저녁 일정")).toBeLessThan(html.indexOf("UTC 오후 일정"));
+    });
+
+
+    it("월별 섹션은 현재와 가까운 월부터 보여주고 남은 월은 더보기로 접는다", () => {
+        const html = renderToStaticMarkup(
+            <ClubSchedulesTabContent
+                clubName="동글동아리"
+                schedules={{
+                    referenceDateTime: "2026-06-15T00:00:00.000Z",
+                    ongoing: [],
+                    upcoming: [],
+                    past: [],
+                    remaining: [
+                        {
+                            id: 1,
+                            clubId: 12,
+                            title: "9월 일정",
+                            type: "event",
+                            start_at: "2026-09-01T10:00:00.000Z",
+                            end_at: "2026-09-01T12:00:00.000Z",
+                            is_public: true,
+                            location: "",
+                            description: "",
+                            external_url: null,
+                        },
+                        {
+                            id: 2,
+                            clubId: 12,
+                            title: "5월 일정",
+                            type: "regular_meeting",
+                            start_at: "2026-05-01T10:00:00.000Z",
+                            end_at: "2026-05-01T12:00:00.000Z",
+                            is_public: true,
+                            location: "",
+                            description: "",
+                            external_url: null,
+                        },
+                        {
+                            id: 3,
+                            clubId: 12,
+                            title: "7월 일정",
+                            type: "recruitment",
+                            start_at: "2026-07-01T10:00:00.000Z",
+                            end_at: "2026-07-01T12:00:00.000Z",
+                            is_public: true,
+                            location: "",
+                            description: "",
+                            external_url: null,
+                        },
+                        {
+                            id: 4,
+                            clubId: 12,
+                            title: "6월 일정",
+                            type: "event",
+                            start_at: "2026-06-01T10:00:00.000Z",
+                            end_at: "2026-06-01T12:00:00.000Z",
+                            is_public: true,
+                            location: "",
+                            description: "",
+                            external_url: null,
+                        },
+                    ],
+                }}
+            />
+        );
+
+        expect(html.indexOf("2026년 6월")).toBeLessThan(html.indexOf("2026년 7월"));
+        expect(html.indexOf("2026년 7월")).toBeLessThan(html.indexOf("2026년 5월"));
+        expect(html).toContain("더보기 (1개 월)");
+        expect(html).not.toContain("2026년 9월");
+        expect(html).not.toContain("9월 일정");
     });
 
     it("일정 목록은 날짜 아젠다 없이 각 아이템의 일시와 장소를 렌더링한다", () => {

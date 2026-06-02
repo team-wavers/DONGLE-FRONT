@@ -18,4 +18,5 @@ export interface ClubScheduleGroups {
     remaining?: ClubPublicSchedule[];
     upcoming: ClubPublicSchedule[];
     past: ClubPublicSchedule[];
+    referenceDateTime?: string;
 }

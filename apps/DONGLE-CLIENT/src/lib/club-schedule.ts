@@ -93,6 +93,7 @@ export function getClubScheduleGroups(
         remaining: sortByDistanceFromNow([...upcoming, ...past], nowTime),
         upcoming,
         past,
+        referenceDateTime: now.toISOString(),
     };
 }
 
