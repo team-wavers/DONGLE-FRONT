@@ -28,7 +28,8 @@ import {
 } from "@dongle/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dongle/ui/tabs";
 import { cn } from "@dongle/ui/utils";
-import { CalendarDays, ChevronLeft, ChevronRight, ListChecks } from "lucide-react";
+import type { AdminClubSchedule } from "@dongle/types/club/club.schedule";
+import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, ListChecks } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -48,9 +49,11 @@ import {
     mapAdminClubScheduleToClubSchedule,
     parseScheduleMonthKey,
     sortSchedulesByStartAt,
+    syncScheduleInVisibleMonth,
     type ScheduleStatusFilter,
 } from "../schedule.utils";
 import { ScheduleListItem } from "./schedule-list-item";
+import { ScheduleFormDialog } from "./schedule-form-dialog";
 
 interface AdminScheduleDashboardProps {
     schedules: ClubSchedule[];
@@ -105,6 +108,8 @@ export default function AdminScheduleDashboard({
     const [pendingScheduleId, setPendingScheduleId] = useState<number | null>(null);
     const [isMonthPending, setIsMonthPending] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<ClubSchedule | null>(null);
+    const [isCommonFormOpen, setIsCommonFormOpen] = useState(false);
+    const [commonFormSchedule, setCommonFormSchedule] = useState<ClubSchedule | null>(null);
     const now = useCurrentTime();
 
     const categories = useMemo(
@@ -161,6 +166,22 @@ export default function AdminScheduleDashboard({
         setVisibleMonth(nextMonth);
         setSelectedDate(nextMonth);
         void loadMonthSchedules(nextMonth);
+    };
+
+    const openCommonCreateForm = () => {
+        setCommonFormSchedule(null);
+        setIsCommonFormOpen(true);
+    };
+
+    const openCommonEditForm = (schedule: ClubSchedule) => {
+        setCommonFormSchedule(schedule);
+        setIsCommonFormOpen(true);
+        setIsDaySheetOpen(false);
+    };
+
+    const closeCommonForm = () => {
+        setIsCommonFormOpen(false);
+        setCommonFormSchedule(null);
     };
 
     const toggleScheduleVisibility = async (schedule: ClubSchedule) => {
@@ -264,16 +285,26 @@ export default function AdminScheduleDashboard({
 
             <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ScheduleViewMode)} className="gap-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <TabsList className="h-10">
-                        <TabsTrigger value="calendar" className="px-4">
-                            <CalendarDays className="h-4 w-4" />
-                            캘린더
-                        </TabsTrigger>
-                        <TabsTrigger value="list" className="px-4">
-                            <ListChecks className="h-4 w-4" />
-                            목록
-                        </TabsTrigger>
-                    </TabsList>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <TabsList className="h-10">
+                            <TabsTrigger value="calendar" className="px-4">
+                                <CalendarDays className="h-4 w-4" />
+                                캘린더
+                            </TabsTrigger>
+                            <TabsTrigger value="list" className="px-4">
+                                <ListChecks className="h-4 w-4" />
+                                목록
+                            </TabsTrigger>
+                        </TabsList>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="h-10 cursor-pointer gap-2 font-semibold"
+                            onClick={openCommonCreateForm}>
+                            <CalendarPlus className="h-4 w-4" />
+                            공통 일정 등록
+                        </Button>
+                    </div>
                     <p className="text-sm font-medium text-zinc-500">
                         {monthLabelFormatter.format(visibleMonth)} 기준 {filteredSchedules.length}건
                     </p>
@@ -378,6 +409,7 @@ export default function AdminScheduleDashboard({
                                                     schedule={schedule}
                                                     variant="admin"
                                                     isPending={pendingScheduleId === schedule.id}
+                                                    onEdit={schedule.clubId === null ? openCommonEditForm : undefined}
                                                     onToggleVisibility={toggleScheduleVisibility}
                                                     onDelete={setDeleteTarget}
                                                 />
@@ -410,6 +442,7 @@ export default function AdminScheduleDashboard({
                                     variant="admin"
                                     className="rounded-lg border"
                                     isPending={pendingScheduleId === schedule.id}
+                                    onEdit={schedule.clubId === null ? openCommonEditForm : undefined}
                                     onToggleVisibility={toggleScheduleVisibility}
                                     onDelete={setDeleteTarget}
                                 />
@@ -459,6 +492,26 @@ export default function AdminScheduleDashboard({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <ScheduleFormDialog
+                clubId={null}
+                open={isCommonFormOpen}
+                schedule={commonFormSchedule}
+                onOpenChange={(open) => {
+                    if (open) {
+                        setIsCommonFormOpen(true);
+                        return;
+                    }
+
+                    closeCommonForm();
+                }}
+                onSuccess={(schedule) => {
+                    const nextSchedule = mapAdminClubScheduleToClubSchedule(schedule as AdminClubSchedule);
+                    const visibleMonthKey = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, "0")}`;
+                    setSchedules((current) => syncScheduleInVisibleMonth(current, nextSchedule, visibleMonthKey));
+                    closeCommonForm();
+                }}
+            />
         </div>
     );
 }

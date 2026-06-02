@@ -11,7 +11,7 @@ export default async function AdminSchedulePage() {
         <div className="flex h-full w-full flex-col">
             <AdminPageHeader
                 title="일정 관리"
-                description="회장들이 등록한 동아리 일정을 캘린더와 목록으로 확인합니다."
+                description="동아리 일정과 총동연 공통 일정을 캘린더와 목록으로 확인합니다."
             />
             <AdminScheduleDashboard
                 schedules={schedules.map(mapAdminClubScheduleToClubSchedule)}

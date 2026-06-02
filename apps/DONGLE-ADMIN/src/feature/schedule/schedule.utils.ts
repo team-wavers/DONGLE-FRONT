@@ -1,3 +1,4 @@
+import { COMMON_CLUB_SCHEDULE_LABEL } from "@dongle/types";
 import type { AdminClubSchedule, ClubSchedule as ApiClubSchedule } from "@dongle/types/club/club.schedule";
 import {
     formatDateForRequest,
@@ -425,8 +426,8 @@ export function mapAdminClubScheduleToClubSchedule(schedule: AdminClubSchedule):
     return {
         id: schedule.id,
         clubId: schedule.club_id,
-        clubName: schedule.club.name,
-        category: schedule.club.category,
+        clubName: schedule.club?.name ?? COMMON_CLUB_SCHEDULE_LABEL,
+        category: schedule.club?.category ?? COMMON_CLUB_SCHEDULE_LABEL,
         title: schedule.title,
         type: schedule.type,
         startsAt: schedule.start_at,
@@ -442,11 +443,13 @@ export function mapClubScheduleToClubSchedule(
     schedule: ApiClubSchedule,
     club?: Partial<Pick<ClubSchedule, "clubName" | "category">>
 ): ClubSchedule {
+    const isCommonSchedule = schedule.club_id === null;
+
     return {
         id: schedule.id,
         clubId: schedule.club_id,
-        clubName: club?.clubName ?? "",
-        category: club?.category ?? "",
+        clubName: club?.clubName ?? (isCommonSchedule ? COMMON_CLUB_SCHEDULE_LABEL : ""),
+        category: club?.category ?? (isCommonSchedule ? COMMON_CLUB_SCHEDULE_LABEL : ""),
         title: schedule.title,
         type: schedule.type,
         startsAt: schedule.start_at,
@@ -456,4 +459,19 @@ export function mapClubScheduleToClubSchedule(
         description: schedule.description ?? "",
         externalUrl: schedule.external_url ?? undefined,
     };
+}
+
+export function syncScheduleInVisibleMonth(
+    schedules: ClubSchedule[],
+    nextSchedule: ClubSchedule,
+    visibleMonthKey: string
+) {
+    const visibleRange = getMonthScheduleQueryByMonthKey(visibleMonthKey);
+    const nextSchedules = schedules.filter((schedule) => schedule.id !== nextSchedule.id);
+
+    if (!isScheduleOverlappingDateRange(nextSchedule, visibleRange)) {
+        return sortSchedulesByStartAt(nextSchedules);
+    }
+
+    return sortSchedulesByStartAt([...nextSchedules, nextSchedule]);
 }

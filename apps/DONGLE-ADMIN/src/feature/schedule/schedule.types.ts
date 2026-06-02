@@ -2,7 +2,7 @@ export type ScheduleType = "recruitment" | "event" | "regular_meeting";
 
 export interface ClubSchedule {
     id: number;
-    clubId: number;
+    clubId: number | null;
     clubName: string;
     category: string;
     title: string;

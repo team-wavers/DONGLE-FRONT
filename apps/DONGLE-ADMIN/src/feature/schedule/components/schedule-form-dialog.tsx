@@ -7,13 +7,13 @@ import { FormRoot } from "@/shared/form/form-root";
 import { RHFDatePicker } from "@/shared/form/rhf-date-picker";
 import { RHFSelectField } from "@/shared/form/rhf-select-field";
 import { RHFTextField } from "@/shared/form/rhf-text-field";
-import type { ClubSchedule as ApiClubSchedule } from "@dongle/types/club/club.schedule";
+import type { AdminClubSchedule, ClubSchedule as ApiClubSchedule } from "@dongle/types/club/club.schedule";
 import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
 import { Label } from "@dongle/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@dongle/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
     clubScheduleSchema,
@@ -25,11 +25,11 @@ import type { ClubSchedule, ScheduleType } from "../schedule.types";
 import { SCHEDULE_TYPE_LABELS } from "../schedule.types";
 
 interface ScheduleFormDialogProps {
-    clubId: number;
+    clubId: number | null;
     open: boolean;
     schedule: ClubSchedule | null;
     onOpenChange: (open: boolean) => void;
-    onSuccess: (schedule: ApiClubSchedule) => void;
+    onSuccess: (schedule: ApiClubSchedule | AdminClubSchedule) => void;
 }
 
 function RequiredMark() {
@@ -41,7 +41,27 @@ const scheduleTypeOptions = Object.entries(SCHEDULE_TYPE_LABELS).map(([value, la
     label,
 })) as Array<{ value: ScheduleType; label: string }>;
 
+export function getScheduleDialogVisibleSchedule<TSchedule>(
+    open: boolean,
+    schedule: TSchedule | null,
+    lastOpenSchedule: TSchedule | null
+) {
+    return open ? schedule : lastOpenSchedule;
+}
+
 export function ScheduleFormDialog({ clubId, open, schedule, onOpenChange, onSuccess }: ScheduleFormDialogProps) {
+    const isCommonSchedule = clubId === null;
+    const [lastOpenSchedule, setLastOpenSchedule] = useState<ClubSchedule | null>(schedule);
+    const visibleSchedule = getScheduleDialogVisibleSchedule(open, schedule, lastOpenSchedule);
+    const isEditMode = visibleSchedule !== null;
+    const dialogTitle = isEditMode
+        ? isCommonSchedule
+            ? "공통 일정 수정"
+            : "일정 수정"
+        : isCommonSchedule
+          ? "공통 일정 등록"
+          : "일정 등록";
+    const submitLabel = isEditMode ? "수정" : "등록";
     const form = useForm<ClubScheduleFormValues>({
         resolver: zodResolver(clubScheduleSchema),
         defaultValues: createClubScheduleDefaultValues(schedule),
@@ -56,6 +76,7 @@ export function ScheduleFormDialog({ clubId, open, schedule, onOpenChange, onSuc
 
     useEffect(() => {
         if (open) {
+            setLastOpenSchedule(schedule);
             form.reset(createClubScheduleDefaultValues(schedule));
         }
     }, [form, open, schedule]);
@@ -71,11 +92,15 @@ export function ScheduleFormDialog({ clubId, open, schedule, onOpenChange, onSuc
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent
-                className="max-h-[85vh] gap-0 overflow-hidden p-0 sm:max-w-2xl"
+                className="max-h-[85vh] gap-0 overflow-hidden p-0 data-[state=closed]:hidden data-[state=closed]:animate-none data-[state=closed]:duration-0 sm:max-w-2xl"
                 onInteractOutside={(event) => event.preventDefault()}>
                 <DialogHeader className="border-b px-6 py-5">
-                    <DialogTitle>{schedule ? "일정 수정" : "일정 등록"}</DialogTitle>
-                    <DialogDescription>공개 일정은 사용자 동아리 상세에 노출됩니다.</DialogDescription>
+                    <DialogTitle>{dialogTitle}</DialogTitle>
+                    <DialogDescription>
+                        {isCommonSchedule
+                            ? "공개 공통 일정은 사용자 전체 일정 캘린더에 노출됩니다."
+                            : "공개 일정은 사용자 동아리 상세에 노출됩니다."}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <FormRoot
@@ -190,7 +215,7 @@ export function ScheduleFormDialog({ clubId, open, schedule, onOpenChange, onSuc
                             취소
                         </Button>
                         <LoadingButton size="lg" type="submit" loading={isSubmitting} loadingText="저장 중">
-                            {schedule ? "수정" : "등록"}
+                            {submitLabel}
                         </LoadingButton>
                     </AdminFormActions>
                 </FormRoot>

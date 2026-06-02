@@ -4,6 +4,7 @@ import { useCurrentTime } from "@/hooks/use-current-time";
 import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
 import { Input } from "@dongle/ui/input";
+import type { ClubSchedule as ApiClubSchedule } from "@dongle/types/club/club.schedule";
 import {
     ScheduleDisplayMonthList,
     ScheduleDisplaySection,
@@ -288,7 +289,7 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
                     setIsFormOpen(true);
                 }}
                 onSuccess={(schedule) => {
-                    const nextSchedule = mapClubScheduleToClubSchedule(schedule, editingSchedule ?? undefined);
+                    const nextSchedule = mapClubScheduleToClubSchedule(schedule as ApiClubSchedule, editingSchedule ?? undefined);
                     setSchedules((current) => {
                         if (editingSchedule) {
                             return current.map((item) => (item.id === nextSchedule.id ? nextSchedule : item));
