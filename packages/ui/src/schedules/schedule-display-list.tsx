@@ -12,7 +12,6 @@ interface ScheduleDisplayMonthListProps<TPayload = unknown> {
     ariaLabel?: string;
     className?: string;
     renderActions?: (item: ScheduleDisplayItem<TPayload>) => React.ReactNode;
-    renderGroupFooter?: (group: ScheduleDisplayMonthGroup<TPayload>) => React.ReactNode;
     onExternalLinkClick?: (item: ScheduleDisplayItem<TPayload>) => void;
 }
 
@@ -256,7 +255,6 @@ export function ScheduleDisplayMonthList<TPayload = unknown>({
     ariaLabel = "월별 일정",
     className,
     renderActions,
-    renderGroupFooter,
     onExternalLinkClick,
 }: ScheduleDisplayMonthListProps<TPayload>) {
     if (groups.length === 0) {
@@ -283,7 +281,6 @@ export function ScheduleDisplayMonthList<TPayload = unknown>({
                             renderActions={renderActions}
                             onExternalLinkClick={onExternalLinkClick}
                         />
-                        {renderGroupFooter ? renderGroupFooter(group) : null}
                     </section>
                 );
             })}

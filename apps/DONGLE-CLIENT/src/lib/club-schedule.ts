@@ -19,6 +19,12 @@ function getSortableScheduleTimestamp(value: string) {
     return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER : timestamp;
 }
 
+function getLatestSortableScheduleTimestamp(value: string) {
+    const timestamp = getScheduleTimestamp(value);
+
+    return Number.isNaN(timestamp) ? Number.MIN_SAFE_INTEGER : timestamp;
+}
+
 interface GetClubScheduleGroupsOptions {
     clubId: number;
     now?: Date;
@@ -30,6 +36,10 @@ function sortByStartAt(schedules: ClubPublicSchedule[]) {
 
 function sortByEndAt(schedules: ClubPublicSchedule[]) {
     return [...schedules].sort((a, b) => getSortableScheduleTimestamp(a.end_at) - getSortableScheduleTimestamp(b.end_at));
+}
+
+function sortByLatestStartAt(schedules: ClubPublicSchedule[]) {
+    return [...schedules].sort((a, b) => getLatestSortableScheduleTimestamp(b.start_at) - getLatestSortableScheduleTimestamp(a.start_at));
 }
 
 function getScheduleDistanceFromNow(schedule: ClubPublicSchedule, nowTime: number) {
@@ -90,7 +100,7 @@ export function getClubScheduleGroups(
 
     return {
         ongoing,
-        remaining: sortByDistanceFromNow([...upcoming, ...past], nowTime),
+        remaining: sortByLatestStartAt([...upcoming, ...past]),
         upcoming,
         past,
     };
