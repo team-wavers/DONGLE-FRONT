@@ -29,6 +29,8 @@ import {
     sortSchedulesByStartAt,
 } from "./schedule.utils";
 
+const SEOUL_MAY_20_19 = new Date("2026-05-20T10:00:00.000Z");
+
 const SCHEDULES: ClubSchedule[] = [
     {
         id: 1,
@@ -168,7 +170,7 @@ describe("schedule utils", () => {
             type: "all",
             isPublic: true,
             status: "all",
-            now: new Date("2026-05-20T19:00:00"),
+            now: SEOUL_MAY_20_19,
         });
 
         expect(schedules.map((schedule) => schedule.clubName)).toEqual(["UCDC"]);
@@ -203,7 +205,7 @@ describe("schedule utils", () => {
             category: "all",
             type: "all" as const,
             isPublic: "all" as const,
-            now: new Date("2026-05-20T19:00:00"),
+            now: SEOUL_MAY_20_19,
         };
 
         expect(filterSchedules(schedules, { ...baseFilters, status: "past" }).map((schedule) => schedule.id)).toEqual([
@@ -251,7 +253,7 @@ describe("schedule utils", () => {
             type: "all",
             isPublic: false,
             status: "all",
-            now: new Date("2026-05-20T19:00:00"),
+            now: SEOUL_MAY_20_19,
             dateRange: { from: "2026-05-01", to: "2026-05-31" },
         });
 
@@ -273,7 +275,7 @@ describe("schedule utils", () => {
                 type: "all",
                 isPublic: "all",
                 status: "all",
-                now: new Date("2026-05-20T19:00:00"),
+                now: SEOUL_MAY_20_19,
                 dateRange: { from: "2026-05-21", to: "2026-05-21" },
             }).map((schedule) => schedule.id)
         ).toEqual([23]);
@@ -284,7 +286,7 @@ describe("schedule utils", () => {
                 type: "all",
                 isPublic: "all",
                 status: "all",
-                now: new Date("2026-05-20T19:00:00"),
+                now: SEOUL_MAY_20_19,
                 dateRange: { from: "2026-05-23", to: "2026-05-23" },
             })
         ).toEqual([]);
@@ -314,7 +316,7 @@ describe("schedule utils", () => {
     });
 
     it("일정 상태는 현재 시각과 시작/종료일시 기준으로 판단한다", () => {
-        const now = new Date("2026-05-20T19:00:00");
+        const now = SEOUL_MAY_20_19;
         const ongoingSchedule: ClubSchedule = {
             ...SCHEDULES[0],
             startsAt: "2026-05-20T18:00:00",
@@ -351,7 +353,7 @@ describe("schedule utils", () => {
     });
 
     it("진행 중 일정은 별도 분리하고 나머지는 현재와 가까운 순으로 정렬한다", () => {
-        const now = new Date("2026-05-20T19:00:00");
+        const now = SEOUL_MAY_20_19;
         const schedules: ClubSchedule[] = [
             {
                 ...SCHEDULES[0],
