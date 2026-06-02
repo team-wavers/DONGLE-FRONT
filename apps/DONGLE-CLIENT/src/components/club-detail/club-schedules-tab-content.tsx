@@ -3,7 +3,6 @@
 import React from "react";
 import type { ClubPublicSchedule, ClubPublicScheduleType, ClubScheduleGroups } from "@/lib/club-schedule.types";
 import { trackDongleEvent } from "@/lib/analytics";
-import { getDateTimeTimestamp } from "@dongle/utils";
 import {
     formatScheduleDisplayDateRange,
     formatScheduleDisplayDateTimeRange,
@@ -24,14 +23,6 @@ const SCHEDULE_TYPE_LABELS: Record<ClubPublicScheduleType, string> = {
     event: "행사",
     regular_meeting: "정기모임",
 };
-
-const SCHEDULE_TIME_ZONE = "Asia/Seoul";
-
-function getScheduleStartTime(schedule: ClubPublicSchedule) {
-    const time = getDateTimeTimestamp(schedule.start_at, { timeZone: SCHEDULE_TIME_ZONE });
-
-    return Number.isNaN(time) ? Number.MAX_SAFE_INTEGER : time;
-}
 
 function mapScheduleToDisplayItem(schedule: ClubPublicSchedule): ScheduleDisplayItem<ClubPublicSchedule> {
     const dateParts = getScheduleDisplayDateParts(schedule.start_at);
@@ -59,22 +50,17 @@ function mapScheduleToDisplayItem(schedule: ClubPublicSchedule): ScheduleDisplay
     };
 }
 
-function mapSchedulesToDisplayItems(schedules: ClubPublicSchedule[], options: { preserveOrder?: boolean } = {}) {
-    const sourceSchedules = options.preserveOrder
-        ? schedules
-        : [...schedules].sort((a, b) => getScheduleStartTime(a) - getScheduleStartTime(b));
-
-    return sourceSchedules.map(mapScheduleToDisplayItem);
+function mapSchedulesToDisplayItems(schedules: ClubPublicSchedule[]) {
+    return schedules.map(mapScheduleToDisplayItem);
 }
 
 export default function ClubSchedulesTabContent({ clubName, schedules, loadFailed = false }: ClubSchedulesTabContentProps) {
     const hasSchedules = schedules.ongoing.length > 0 || schedules.upcoming.length > 0 || schedules.past.length > 0;
     const ongoingScheduleItems = schedules.ongoing.map(mapScheduleToDisplayItem);
-    const remainingSchedules = schedules.remaining ?? [...schedules.upcoming, ...schedules.past];
-    const remainingScheduleItems = mapSchedulesToDisplayItems(remainingSchedules, {
-        preserveOrder: Boolean(schedules.remaining),
-    });
-    const scheduleMonthGroups = groupScheduleDisplayItemsByMonth(remainingScheduleItems);
+    const upcomingScheduleItems = mapSchedulesToDisplayItems(schedules.upcoming);
+    const pastScheduleItems = mapSchedulesToDisplayItems(schedules.past);
+    const upcomingMonthGroups = groupScheduleDisplayItemsByMonth(upcomingScheduleItems);
+    const pastMonthGroups = groupScheduleDisplayItemsByMonth(pastScheduleItems);
     const handleExternalLinkClick = (item: ScheduleDisplayItem<ClubPublicSchedule>) => {
         const schedule = item.payload;
 
@@ -113,7 +99,26 @@ export default function ClubSchedulesTabContent({ clubName, schedules, loadFaile
                 variant="active"
                 onExternalLinkClick={handleExternalLinkClick}
             />
-            <ScheduleDisplayMonthList groups={scheduleMonthGroups} onExternalLinkClick={handleExternalLinkClick} />
+            {upcomingMonthGroups.length > 0 ? (
+                <section aria-label="다가오는 일정" className="space-y-3">
+                    <h2 className="text-sm font-extrabold text-foreground">다가오는 일정</h2>
+                    <ScheduleDisplayMonthList
+                        groups={upcomingMonthGroups}
+                        ariaLabel="다가오는 일정 월별 목록"
+                        onExternalLinkClick={handleExternalLinkClick}
+                    />
+                </section>
+            ) : null}
+            {pastMonthGroups.length > 0 ? (
+                <section aria-label="지난 일정" className="space-y-3">
+                    <h2 className="text-sm font-extrabold text-foreground">지난 일정</h2>
+                    <ScheduleDisplayMonthList
+                        groups={pastMonthGroups}
+                        ariaLabel="지난 일정 월별 목록"
+                        onExternalLinkClick={handleExternalLinkClick}
+                    />
+                </section>
+            ) : null}
         </div>
     );
 }

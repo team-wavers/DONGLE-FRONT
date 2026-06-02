@@ -153,7 +153,7 @@ describe("ClubSchedulesTabContent", () => {
         expect(html).not.toContain("등록된 공개 일정이 없습니다.");
     });
 
-    it("진행 중인 공개 일정은 별도 섹션으로 렌더링하고 나머지는 Seoul 기준 시작 월별로 묶는다", () => {
+    it("진행 중인 공개 일정은 별도 섹션으로 렌더링하고 다가오는 일정은 Seoul 기준 시작 월별로 묶는다", () => {
         const html = renderToStaticMarkup(
             <ClubSchedulesTabContent
                 clubName="동글동아리"
@@ -192,16 +192,16 @@ describe("ClubSchedulesTabContent", () => {
         );
 
         expect(html).toContain('aria-label="진행 중인 일정"');
-        expect(html).toContain('aria-label="월별 일정"');
+        expect(html).toContain('aria-label="다가오는 일정 월별 목록"');
         expect(html).toContain("진행 중인 일정");
+        expect(html).toContain("다가오는 일정");
         expect(html).toContain("2026년 6월");
-        expect(html.indexOf('aria-label="진행 중인 일정"')).toBeLessThan(html.indexOf('aria-label="월별 일정"'));
+        expect(html.indexOf('aria-label="진행 중인 일정"')).toBeLessThan(html.indexOf('aria-label="다가오는 일정"'));
         expect(html).toContain("진행 중인 공개 일정");
         expect(html).toContain("다가오는 공개 일정");
-        expect(html).not.toContain("다가오는 일정");
     });
 
-    it("현재 기준 가까운 순서에서 같은 월이 떨어져 있어도 월 섹션은 하나로 합친다", () => {
+    it("다가오는 일정의 같은 월 섹션은 하나로 합친다", () => {
         const html = renderToStaticMarkup(
             <ClubSchedulesTabContent
                 clubName="동글동아리"
@@ -227,99 +227,6 @@ describe("ClubSchedulesTabContent", () => {
                             type: "regular_meeting",
                             start_at: "2026-06-02T10:00:00.000Z",
                             end_at: "2026-06-02T12:00:00.000Z",
-                            is_public: true,
-                            location: "",
-                            description: "",
-                            external_url: null,
-                        },
-                    ],
-                    past: [
-                        {
-                            id: 2,
-                            clubId: 12,
-                            title: "5월 지난 일정",
-                            type: "recruitment",
-                            start_at: "2026-05-30T10:00:00.000Z",
-                            end_at: "2026-05-30T12:00:00.000Z",
-                            is_public: true,
-                            location: "",
-                            description: "",
-                            external_url: null,
-                        },
-                    ],
-                    remaining: [
-                        {
-                            id: 1,
-                            clubId: 12,
-                            title: "6월 첫 일정",
-                            type: "event",
-                            start_at: "2026-06-01T10:00:00.000Z",
-                            end_at: "2026-06-01T12:00:00.000Z",
-                            is_public: true,
-                            location: "",
-                            description: "",
-                            external_url: null,
-                        },
-                        {
-                            id: 2,
-                            clubId: 12,
-                            title: "5월 지난 일정",
-                            type: "recruitment",
-                            start_at: "2026-05-30T10:00:00.000Z",
-                            end_at: "2026-05-30T12:00:00.000Z",
-                            is_public: true,
-                            location: "",
-                            description: "",
-                            external_url: null,
-                        },
-                        {
-                            id: 3,
-                            clubId: 12,
-                            title: "6월 둘째 일정",
-                            type: "regular_meeting",
-                            start_at: "2026-06-02T10:00:00.000Z",
-                            end_at: "2026-06-02T12:00:00.000Z",
-                            is_public: true,
-                            location: "",
-                            description: "",
-                            external_url: null,
-                        },
-                    ],
-                }}
-            />
-        );
-
-        expect(html.match(/2026년 6월/g)?.length).toBe(1);
-        expect(html).toContain("6월 첫 일정");
-        expect(html).toContain("6월 둘째 일정");
-    });
-
-    it("remaining이 없을 때도 timezone 없는 일정은 Seoul 기준으로 정렬한다", () => {
-        const html = renderToStaticMarkup(
-            <ClubSchedulesTabContent
-                clubName="동글동아리"
-                schedules={{
-                    ongoing: [],
-                    upcoming: [
-                        {
-                            id: 1,
-                            clubId: 12,
-                            title: "UTC 오후 일정",
-                            type: "event",
-                            start_at: "2026-05-20T10:00:00.000Z",
-                            end_at: "2026-05-20T12:00:00.000Z",
-                            is_public: true,
-                            location: "",
-                            description: "",
-                            external_url: null,
-                        },
-                        {
-                            id: 2,
-                            clubId: 12,
-                            title: "Seoul 저녁 일정",
-                            type: "regular_meeting",
-                            start_at: "2026-05-20 18:00:00",
-                            end_at: "2026-05-20 20:00:00",
                             is_public: true,
                             location: "",
                             description: "",
@@ -331,7 +238,69 @@ describe("ClubSchedulesTabContent", () => {
             />
         );
 
-        expect(html.indexOf("Seoul 저녁 일정")).toBeLessThan(html.indexOf("UTC 오후 일정"));
+        expect(html.match(/2026년 6월/g)?.length).toBe(1);
+        expect(html).toContain("6월 첫 일정");
+        expect(html).toContain("6월 둘째 일정");
+    });
+
+    it("지난 일정은 다가오는 일정과 분리된 월별 목록 섹션으로 표시한다", () => {
+        const html = renderToStaticMarkup(
+            <ClubSchedulesTabContent
+                clubName="동글동아리"
+                schedules={{
+                    ongoing: [],
+                    upcoming: [
+                        {
+                            id: 1,
+                            clubId: 12,
+                            title: "나중 다가오는 일정",
+                            type: "event",
+                            start_at: "2026-06-02T10:00:00.000Z",
+                            end_at: "2026-06-02T12:00:00.000Z",
+                            is_public: true,
+                            location: "",
+                            description: "",
+                            external_url: null,
+                        },
+                        {
+                            id: 2,
+                            clubId: 12,
+                            title: "먼저 다가오는 일정",
+                            type: "regular_meeting",
+                            start_at: "2026-06-01T10:00:00.000Z",
+                            end_at: "2026-06-01T12:00:00.000Z",
+                            is_public: true,
+                            location: "",
+                            description: "",
+                            external_url: null,
+                        },
+                    ],
+                    past: [
+                        {
+                            id: 3,
+                            clubId: 12,
+                            title: "최근 지난 일정",
+                            type: "event",
+                            start_at: "2026-05-30T10:00:00.000Z",
+                            end_at: "2026-05-30T12:00:00.000Z",
+                            is_public: true,
+                            location: "",
+                            description: "",
+                            external_url: null,
+                        },
+                    ],
+                }}
+            />
+        );
+
+        expect(html).toContain('aria-label="다가오는 일정"');
+        expect(html).toContain('aria-label="다가오는 일정 월별 목록"');
+        expect(html).toContain('aria-label="지난 일정"');
+        expect(html).toContain('aria-label="지난 일정 월별 목록"');
+        expect(html.indexOf('aria-label="다가오는 일정"')).toBeLessThan(html.indexOf('aria-label="지난 일정"'));
+        expect(html.indexOf("나중 다가오는 일정")).toBeLessThan(html.indexOf("최근 지난 일정"));
+        expect(html.indexOf("먼저 다가오는 일정")).toBeLessThan(html.indexOf("최근 지난 일정"));
+        expect(html).toContain("2026년 5월");
     });
 
     it("일정 목록은 날짜 아젠다 없이 각 아이템의 일시와 장소를 렌더링한다", () => {
