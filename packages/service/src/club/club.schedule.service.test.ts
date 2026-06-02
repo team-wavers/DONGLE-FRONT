@@ -15,6 +15,7 @@ vi.mock("@dongle/api/instance", () => ({
 }));
 
 import {
+    createAdminCommonClubScheduleService,
     createClubScheduleService,
     deleteAdminClubScheduleService,
     deleteClubScheduleService,
@@ -23,6 +24,8 @@ import {
     getAdminClubScheduleService,
     getClubPublicScheduleListService,
     getClubScheduleListService,
+    getPublicClubScheduleCalendarService,
+    updateAdminClubScheduleService,
     updateAdminClubScheduleStatusService,
     updateClubScheduleService,
 } from "./club.schedule.service";
@@ -52,6 +55,14 @@ const adminClubSchedule = {
     },
 } satisfies AdminClubSchedule;
 
+const commonAdminClubSchedule = {
+    ...clubSchedule,
+    id: 9,
+    club_id: null,
+    title: "공통 행사",
+    club: null,
+} satisfies AdminClubSchedule;
+
 describe("club schedule service endpoints", () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -74,6 +85,27 @@ describe("club schedule service endpoints", () => {
             },
         });
         expect(result).toEqual([clubSchedule]);
+    });
+
+    test("전체 공개 월별 일정은 public 전체 일정 엔드포인트를 호출한다", async () => {
+        fetchInstanceMock.get.mockResolvedValueOnce({ isSuccess: true, result: [commonAdminClubSchedule] });
+
+        const result = await getPublicClubScheduleCalendarService({
+            from: "2026-06-01 00:00:00",
+            to: "2026-06-30 23:59:59",
+        });
+
+        expect(fetchInstanceMock.get).toHaveBeenCalledWith(
+            "/public/club-schedules?from=2026-06-01+00%3A00%3A00&to=2026-06-30+23%3A59%3A59",
+            {
+                cache: "force-cache",
+                next: {
+                    tags: ["club-schedule"],
+                    revalidate: 60,
+                },
+            }
+        );
+        expect(result).toEqual([commonAdminClubSchedule]);
     });
 
     test("회장 일정 목록은 status query를 포함해 호출하고 응답 result를 반환한다", async () => {
@@ -103,6 +135,25 @@ describe("club schedule service endpoints", () => {
 
         expect(fetchInstanceMock.post).toHaveBeenCalledWith("/clubs/1/schedules", payload);
         expect(result).toEqual({ id: 1 });
+    });
+
+    test("관리자 공통 일정 생성은 관리자 일정 엔드포인트와 payload를 호출한다", async () => {
+        const payload = {
+            title: "공통 행사",
+            type: "event" as const,
+            start_at: "2026-06-10 10:00:00",
+            end_at: "2026-06-10 12:00:00",
+            is_public: true,
+            location: "중앙광장",
+            description: null,
+            external_url: null,
+        };
+        fetchInstanceMock.post.mockResolvedValueOnce({ isSuccess: true, result: commonAdminClubSchedule });
+
+        const result = await createAdminCommonClubScheduleService(payload);
+
+        expect(fetchInstanceMock.post).toHaveBeenCalledWith("/club-schedules", payload);
+        expect(result).toEqual(commonAdminClubSchedule);
     });
 
     test("회장 일정 수정은 일정 수정 엔드포인트와 payload를 호출한다", async () => {
@@ -168,6 +219,18 @@ describe("club schedule service endpoints", () => {
             cache: "no-store",
         });
         expect(result).toEqual({ ...adminClubSchedule, id: 7 });
+    });
+
+    test("관리자 일정 수정은 관리자 일정 수정 엔드포인트와 payload를 호출한다", async () => {
+        fetchInstanceMock.patch.mockResolvedValueOnce({ isSuccess: true, result: commonAdminClubSchedule });
+
+        const result = await updateAdminClubScheduleService(7, { title: "수정된 공통 행사" });
+
+        expect(fetchInstanceMock.patch).toHaveBeenCalledWith(
+            "/club-schedules/7",
+            { title: "수정된 공통 행사" }
+        );
+        expect(result).toEqual(commonAdminClubSchedule);
     });
 
     test("관리자 공개 상태 변경은 admin-status 엔드포인트와 payload를 호출한다", async () => {
