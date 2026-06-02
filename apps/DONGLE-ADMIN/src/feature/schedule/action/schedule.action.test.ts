@@ -143,6 +143,7 @@ describe("schedule actions", () => {
         });
         expect(updateAdminClubScheduleStatusService).toHaveBeenCalledWith(7, { is_public: false });
         expect(revalidateTag).toHaveBeenCalledWith("club-schedule");
+        expect(revalidateTag).toHaveBeenCalledWith("club-schedule-club-1");
         expect(revalidateTag).toHaveBeenCalledWith("club-schedule-item-7");
     });
 

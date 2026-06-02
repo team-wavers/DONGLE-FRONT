@@ -192,7 +192,7 @@ export async function updateAdminClubScheduleStatusAction(
         await requireServerActionAccessToken();
 
         const result = await updateAdminClubScheduleStatusService(scheduleId, { is_public: isPublic });
-        revalidateScheduleTags(undefined, scheduleId);
+        revalidateScheduleTags(result.club_id, scheduleId);
 
         return actionSuccess({
             data: result,

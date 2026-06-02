@@ -167,6 +167,7 @@
 - 사용자 공개 조회는 `force-cache`, 도메인 태그, 공통 `revalidate` 값을 함께 사용해야 한다.
 - 관리자/회장/사용자 관리 조회는 `no-store`만 사용하고 `next.tags`를 붙이지 않아야 한다.
 - 생성/수정/삭제 service는 fetch cache option을 붙이지 않고, 성공한 server action이 관련 tag group을 초기화해야 한다.
+- 관리자 일정 공개 상태 변경 action은 응답의 `club_id`를 기준으로 일정 목록, 동아리 범위, 일정 item 태그를 함께 초기화해야 한다.
 
 관련 테스트:
 - [cache-tags.test.ts](../../packages/service/src/cache-tags.test.ts)
@@ -174,6 +175,7 @@
 - [user.service.test.ts](../../packages/service/src/user/user.service.test.ts)
 - [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts)
 - [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts)
+- [schedule.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/action/schedule.action.test.ts)
 
 ## Admin Schedule Management
 
