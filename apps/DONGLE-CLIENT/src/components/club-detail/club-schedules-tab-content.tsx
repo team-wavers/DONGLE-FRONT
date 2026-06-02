@@ -10,6 +10,7 @@ import {
     getScheduleDisplayDateParts,
     groupScheduleDisplayItemsByMonth,
     type ScheduleDisplayItem,
+    type ScheduleDisplayMonthGroup,
 } from "@dongle/ui/schedules/schedule-display";
 import { ScheduleDisplayMonthList, ScheduleDisplaySection } from "@dongle/ui/schedules/schedule-display-list";
 
@@ -93,9 +94,7 @@ export default function ClubSchedulesTabContent({ clubName, schedules, loadFaile
         () => schedules.remaining ?? [...schedules.upcoming, ...schedules.past],
         [schedules.past, schedules.remaining, schedules.upcoming]
     );
-    const [visibleRemainingScheduleCount, setVisibleRemainingScheduleCount] = React.useState(
-        INITIAL_VISIBLE_REMAINING_SCHEDULE_COUNT
-    );
+    const [visibleRemainingScheduleCounts, setVisibleRemainingScheduleCounts] = React.useState<Record<string, number>>({});
     const remainingScheduleItems = React.useMemo(
         () =>
             mapSchedulesToDisplayItems(remainingSchedules, {
@@ -103,13 +102,19 @@ export default function ClubSchedulesTabContent({ clubName, schedules, loadFaile
             }),
         [remainingSchedules, schedules.remaining]
     );
-    const visibleRemainingScheduleItems = remainingScheduleItems.slice(0, visibleRemainingScheduleCount);
-    const hiddenRemainingScheduleCount = Math.max(remainingScheduleItems.length - visibleRemainingScheduleItems.length, 0);
-    const nextVisibleRemainingScheduleCount = Math.min(
-        hiddenRemainingScheduleCount,
-        VISIBLE_REMAINING_SCHEDULE_INCREMENT
+    const scheduleMonthGroups = React.useMemo(() => groupScheduleDisplayItemsByMonth(remainingScheduleItems), [remainingScheduleItems]);
+    const scheduleMonthGroupByKey = React.useMemo(
+        () => new Map(scheduleMonthGroups.map((group) => [group.key, group])),
+        [scheduleMonthGroups]
     );
-    const scheduleMonthGroups = groupScheduleDisplayItemsByMonth(visibleRemainingScheduleItems);
+    const visibleScheduleMonthGroups = React.useMemo(
+        () =>
+            scheduleMonthGroups.map((group) => ({
+                ...group,
+                items: group.items.slice(0, visibleRemainingScheduleCounts[group.key] ?? INITIAL_VISIBLE_REMAINING_SCHEDULE_COUNT),
+            })),
+        [scheduleMonthGroups, visibleRemainingScheduleCounts]
+    );
     const handleExternalLinkClick = (item: ScheduleDisplayItem<ClubPublicSchedule>) => {
         const payload = getScheduleExternalLinkAnalyticsPayload(clubName, item);
 
@@ -119,15 +124,45 @@ export default function ClubSchedulesTabContent({ clubName, schedules, loadFaile
 
         trackDongleEvent("schedule_external_link_click", payload);
     };
-    const handleShowMoreSchedules = () => {
-        setVisibleRemainingScheduleCount((currentCount) =>
-            Math.min(currentCount + VISIBLE_REMAINING_SCHEDULE_INCREMENT, remainingScheduleItems.length)
-        );
-    };
+    const handleShowMoreSchedules = React.useCallback((groupKey: string, itemCount: number) => {
+        setVisibleRemainingScheduleCounts((currentCounts) => {
+            const currentCount = currentCounts[groupKey] ?? INITIAL_VISIBLE_REMAINING_SCHEDULE_COUNT;
+
+            return {
+                ...currentCounts,
+                [groupKey]: Math.min(currentCount + VISIBLE_REMAINING_SCHEDULE_INCREMENT, itemCount),
+            };
+        });
+    }, []);
 
     React.useEffect(() => {
-        setVisibleRemainingScheduleCount(INITIAL_VISIBLE_REMAINING_SCHEDULE_COUNT);
+        setVisibleRemainingScheduleCounts({});
     }, [remainingSchedules]);
+
+    const renderScheduleMonthGroupFooter = React.useCallback(
+        (visibleGroup: ScheduleDisplayMonthGroup<ClubPublicSchedule>) => {
+            const fullGroup = scheduleMonthGroupByKey.get(visibleGroup.key);
+            const hiddenScheduleCount = Math.max((fullGroup?.items.length ?? 0) - visibleGroup.items.length, 0);
+            const nextVisibleScheduleCount = Math.min(hiddenScheduleCount, VISIBLE_REMAINING_SCHEDULE_INCREMENT);
+
+            if (hiddenScheduleCount === 0) {
+                return null;
+            }
+
+            return (
+                <div className="flex justify-center border-t border-zinc-100 px-4 py-4">
+                    <button
+                        type="button"
+                        aria-label={`${visibleGroup.label} 남은 일정 ${nextVisibleScheduleCount}개 더보기`}
+                        onClick={() => handleShowMoreSchedules(visibleGroup.key, fullGroup?.items.length ?? 0)}
+                        className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-extrabold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2">
+                        일정 {nextVisibleScheduleCount}개 더보기
+                    </button>
+                </div>
+            );
+        },
+        [handleShowMoreSchedules, scheduleMonthGroupByKey]
+    );
 
     if (loadFailed) {
         return (
@@ -153,18 +188,11 @@ export default function ClubSchedulesTabContent({ clubName, schedules, loadFaile
                 variant="active"
                 onExternalLinkClick={handleExternalLinkClick}
             />
-            <ScheduleDisplayMonthList groups={scheduleMonthGroups} onExternalLinkClick={handleExternalLinkClick} />
-            {hiddenRemainingScheduleCount > 0 ? (
-                <div className="flex justify-center">
-                    <button
-                        type="button"
-                        aria-label={`남은 일정 ${nextVisibleRemainingScheduleCount}개 더보기`}
-                        onClick={handleShowMoreSchedules}
-                        className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-extrabold text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2">
-                        일정 {nextVisibleRemainingScheduleCount}개 더보기
-                    </button>
-                </div>
-            ) : null}
+            <ScheduleDisplayMonthList
+                groups={visibleScheduleMonthGroups}
+                onExternalLinkClick={handleExternalLinkClick}
+                renderGroupFooter={renderScheduleMonthGroupFooter}
+            />
         </div>
     );
 }

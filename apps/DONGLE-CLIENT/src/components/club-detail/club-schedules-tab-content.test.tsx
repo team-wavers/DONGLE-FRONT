@@ -297,7 +297,47 @@ describe("ClubSchedulesTabContent", () => {
         expect(html).toContain("6번째 일정");
         expect(html).not.toContain("7번째 일정");
         expect(html).toContain("일정 2개 더보기");
-        expect(html).toContain('aria-label="남은 일정 2개 더보기"');
+        expect(html).toContain('aria-label="2026년 6월 남은 일정 2개 더보기"');
+    });
+
+
+    it("월별 일정 더보기는 전체 목록이 아니라 각 월별로 6개씩 제한한다", () => {
+        const schedules = Array.from({ length: 16 }, (_, index) => {
+            const isJune = index < 8;
+            const day = isJune ? index + 1 : index - 7;
+            const month = isJune ? "06" : "07";
+            const monthLabel = isJune ? "6월" : "7월";
+
+            return {
+                id: index + 1,
+                clubId: 12,
+                title: `${monthLabel} ${day}번째 일정`,
+                type: "event" as const,
+                start_at: `2026-${month}-${String(day).padStart(2, "0")}T10:00:00.000Z`,
+                end_at: `2026-${month}-${String(day).padStart(2, "0")}T12:00:00.000Z`,
+                is_public: true,
+                location: "",
+                description: "",
+                external_url: null,
+            };
+        });
+
+        const html = renderToStaticMarkup(
+            <ClubSchedulesTabContent
+                clubName="동글동아리"
+                schedules={{
+                    ongoing: [],
+                    upcoming: schedules,
+                    past: [],
+                }}
+            />
+        );
+
+        expect(html).toContain("6월 6번째 일정");
+        expect(html).not.toContain("6월 7번째 일정");
+        expect(html).toContain("7월 6번째 일정");
+        expect(html).not.toContain("7월 7번째 일정");
+        expect(html.match(/aria-label="2026년 [67]월 남은 일정 2개 더보기"/g)?.length).toBe(2);
     });
 
     it("월별 일정이 6개 이하면 더보기 버튼을 렌더링하지 않는다", () => {
