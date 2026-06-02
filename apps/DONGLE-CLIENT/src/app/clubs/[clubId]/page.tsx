@@ -1,6 +1,5 @@
 import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
 import ClubSocialLinks from "@/components/club-detail/club-social-links";
-import { ClubDetailPageSkeleton } from "@/components/loading/page-skeletons";
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
 import ClubIconAvatar from "@/components/main/club-icon-avatar";
 import { getClubScheduleGroups, mapClubScheduleToPublicSchedule } from "@/lib/club-schedule";
@@ -16,7 +15,6 @@ import { ArrowLeft, CalendarDays, MapPin, Phone, UserRound } from "lucide-react"
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 
 interface ClubDetailPageProps {
     params: Promise<{ clubId: string }>;
@@ -242,9 +240,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
                 </Link>
             </div>
 
-            <Suspense fallback={<ClubDetailPageSkeleton />}>
-                <ClubDetailContent clubId={clubId} />
-            </Suspense>
+            <ClubDetailContent clubId={clubId} />
         </>
     );
 }

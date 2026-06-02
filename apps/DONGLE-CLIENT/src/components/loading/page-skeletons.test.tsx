@@ -10,9 +10,9 @@ describe("page skeletons", () => {
         expect(html).toContain("pt-12");
         expect(html).toContain("sm:grid-cols-2");
         expect(html).toContain("grid-cols-3");
-        expect(html).toContain("space-y-10");
-        expect(html).toContain("max-w-2xl");
-        expect(html.match(/data-slot="skeleton"/g)?.length ?? 0).toBeGreaterThanOrEqual(18);
+        expect(html).toContain("h-20");
+        expect(html).toContain("h-44");
+        expect(html.match(/data-slot="skeleton"/g)?.length ?? 0).toBeLessThanOrEqual(14);
     });
 
     it("활동보고서 상세 스켈레톤은 제목, 이미지, 본문, 다른 보고서 영역을 렌더링한다", () => {
