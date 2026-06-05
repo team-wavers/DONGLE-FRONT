@@ -49,7 +49,8 @@ export default function ClubDetailTabs({
                     동아리 소개
                 </TabsTrigger>
                 <TabsTrigger value="reports" className={styles.tabTrigger}>
-                    동아리 활동보고서
+                    <span className="sm:hidden">활동보고서</span>
+                    <span className="hidden sm:inline">동아리 활동보고서</span>
                 </TabsTrigger>
                 <TabsTrigger value="schedules" className={styles.tabTrigger}>
                     일정

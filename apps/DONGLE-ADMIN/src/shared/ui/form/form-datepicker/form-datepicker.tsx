@@ -27,6 +27,7 @@ interface FormDatePickerProps {
     defaultValue?: Date;
     value?: Date;
     includeTime?: boolean;
+    placeholder?: string;
     triggerClassName?: string;
     onSelect?: (date: Date | undefined) => void;
 }
@@ -59,8 +60,8 @@ function getHiddenValue(date: Date | undefined, includeTime: boolean) {
     return format(date, includeTime ? "yyyy-MM-dd HH:mm:ss" : "yyyy-MM-dd");
 }
 
-function getDisplayValue(date: Date | undefined, includeTime: boolean) {
-    if (!date) return includeTime ? "날짜와 시간을 선택하세요" : "날짜를 선택하세요";
+function getDisplayValue(date: Date | undefined, includeTime: boolean, placeholder?: string) {
+    if (!date) return placeholder ?? (includeTime ? "날짜와 시간을 선택하세요" : "날짜를 선택하세요");
 
     return format(date, includeTime ? "PPP HH:mm" : "PPP", { locale: ko });
 }
@@ -77,6 +78,7 @@ export const FormDatePicker = memo(function FormDatePicker({
     defaultValue,
     value,
     includeTime = false,
+    placeholder,
     triggerClassName,
     onSelect,
 }: FormDatePickerProps) {
@@ -91,7 +93,10 @@ export const FormDatePicker = memo(function FormDatePicker({
     }, [defaultValue, isControlled]);
 
     const hiddenValue = useMemo(() => getHiddenValue(selectedDate, includeTime), [includeTime, selectedDate]);
-    const displayValue = useMemo(() => getDisplayValue(selectedDate, includeTime), [includeTime, selectedDate]);
+    const displayValue = useMemo(
+        () => getDisplayValue(selectedDate, includeTime, placeholder),
+        [includeTime, placeholder, selectedDate]
+    );
     const selectedHour = useMemo(() => (selectedDate ? format(selectedDate, "HH") : undefined), [selectedDate]);
     const selectedMinute = useMemo(() => (selectedDate ? format(selectedDate, "mm") : undefined), [selectedDate]);
 
@@ -144,7 +149,7 @@ export const FormDatePicker = memo(function FormDatePicker({
                         variant="outline"
                         data-empty={!selectedDate}
                         className={cn(
-                            "w-[280px] justify-start text-left font-normal data-[empty=true]:text-muted-foreground",
+                            "h-10 min-h-10 w-[280px] justify-start text-left font-normal data-[empty=true]:text-muted-foreground",
                             triggerClassName
                         )}>
                         <CalendarIcon />

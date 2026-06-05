@@ -1,9 +1,10 @@
 "use client";
 
 import { useCurrentTime } from "@/hooks/use-current-time";
+import { formatDatePickerValue, parseDatePickerValue } from "@/shared/form/date-picker-value";
+import { FormDatePicker } from "@/shared/ui/form/form-datepicker/form-datepicker";
 import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
-import { Input } from "@dongle/ui/input";
 import type { ClubSchedule as ApiClubSchedule } from "@dongle/types/club/club.schedule";
 import {
     ScheduleDisplayMonthList,
@@ -51,6 +52,8 @@ const dateFilterOptions = [
     ["custom", "직접 선택"],
 ] as const satisfies ReadonlyArray<readonly [ScheduleDateFilter, string]>;
 
+const filterControlClassName = "h-10 min-h-10 w-full rounded-xl bg-white";
+
 export default function ClubScheduleManager({ clubId, initialSchedules }: ClubScheduleManagerProps) {
     const [schedules, setSchedules] = useState(initialSchedules);
     const [publicFilter, setPublicFilter] = useState<PublicFilter>("all");
@@ -90,6 +93,8 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
         () => groupScheduleDisplayItemsByMonth(separatedSchedules.remaining.map(mapScheduleToDisplayItem)),
         [separatedSchedules.remaining]
     );
+    const customDateFromValue = useMemo(() => parseDatePickerValue(customDateFrom), [customDateFrom]);
+    const customDateToValue = useMemo(() => parseDatePickerValue(customDateTo), [customDateTo]);
     const isCustomDateFilter = dateFilter === "custom";
     const hasActiveFilter = Boolean(publicFilter !== "all" || dateFilter !== "all" || customDateFrom || customDateTo);
 
@@ -108,6 +113,14 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
             setCustomDateFrom("");
             setCustomDateTo("");
         }
+    }, []);
+
+    const changeCustomDateFrom = useCallback((date: Date | undefined) => {
+        setCustomDateFrom(formatDatePickerValue(date));
+    }, []);
+
+    const changeCustomDateTo = useCallback((date: Date | undefined) => {
+        setCustomDateTo(formatDatePickerValue(date));
     }, []);
 
     const startCreate = useCallback(() => {
@@ -197,7 +210,7 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
 
                 <div className="grid gap-3 border-b border-zinc-100 pb-3 md:grid-cols-[minmax(0,180px)_minmax(0,180px)_minmax(0,1fr)] md:items-center">
                     <Select value={publicFilter} onValueChange={(value) => setPublicFilter(value as PublicFilter)}>
-                        <SelectTrigger className="h-11 w-full rounded-xl bg-white" aria-label="공개여부 필터">
+                        <SelectTrigger className={filterControlClassName} aria-label="공개여부 필터">
                             <SelectValue placeholder="공개여부" />
                         </SelectTrigger>
                         <SelectContent>
@@ -209,7 +222,7 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
                         </SelectContent>
                     </Select>
                     <Select value={dateFilter} onValueChange={changeDateFilter}>
-                        <SelectTrigger className="h-11 w-full rounded-xl bg-white" aria-label="Date 필터">
+                        <SelectTrigger className={filterControlClassName} aria-label="Date 필터">
                             <SelectValue placeholder="Date" />
                         </SelectTrigger>
                         <SelectContent>
@@ -223,21 +236,19 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         {isCustomDateFilter ? (
                             <>
-                                <Input
-                                    type="date"
-                                    value={customDateFrom}
-                                    max={customDateTo || undefined}
-                                    onChange={(event) => setCustomDateFrom(event.target.value)}
-                                    className="h-11 rounded-xl bg-white"
-                                    aria-label="시작일"
+                                <FormDatePicker
+                                    id="schedule-filter-start-date"
+                                    placeholder="시작일 선택"
+                                    value={customDateFromValue}
+                                    onSelect={changeCustomDateFrom}
+                                    triggerClassName={`${filterControlClassName} sm:min-w-[180px]`}
                                 />
-                                <Input
-                                    type="date"
-                                    value={customDateTo}
-                                    min={customDateFrom || undefined}
-                                    onChange={(event) => setCustomDateTo(event.target.value)}
-                                    className="h-11 rounded-xl bg-white"
-                                    aria-label="종료일"
+                                <FormDatePicker
+                                    id="schedule-filter-end-date"
+                                    placeholder="종료일 선택"
+                                    value={customDateToValue}
+                                    onSelect={changeCustomDateTo}
+                                    triggerClassName={`${filterControlClassName} sm:min-w-[180px]`}
                                 />
                             </>
                         ) : null}
@@ -246,7 +257,7 @@ export default function ClubScheduleManager({ clubId, initialSchedules }: ClubSc
                                 type="button"
                                 variant="outline"
                                 onClick={resetFilters}
-                                className="h-9 shrink-0 cursor-pointer rounded-xl px-4">
+                                className="h-10 min-h-10 shrink-0 cursor-pointer rounded-xl px-4">
                                 <RotateCcw className="h-4 w-4" />
                                 초기화
                             </Button>
