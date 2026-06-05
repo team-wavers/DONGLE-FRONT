@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import HeaderScheduleLink from "@/components/navigation/header-schedule-link";
 import { AppHeader } from "@dongle/ui/headers/app-header";
 import "./globals.css";
 
@@ -52,11 +53,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <body className="min-h-screen bg-white text-zinc-900">
                 <div className="min-h-screen flex flex-col pb-64">
                     <AppHeader
+                        contentClassName="mx-auto max-w-[1024px]"
                         center={
                             <Link href="/" aria-label="홈으로 이동">
                                 <Image src="/logo/logo-icon.svg" alt="dongle-logo" width={100} height={100} priority />
                             </Link>
                         }
+                        right={<HeaderScheduleLink />}
+                        rightClassName="right-6"
                     />
                     <main className="flex-1 w-full max-w-[1024px] mx-auto px-6">{children}</main>
                 </div>
