@@ -31,7 +31,6 @@ export function mapScheduleToDisplayItem(schedule: ClubSchedule): ScheduleDispla
         descriptionLabel: getScheduleDescriptionLabel(schedule.description),
         externalUrl: schedule.externalUrl,
         clubName: schedule.clubName,
-        category: schedule.category,
         isPublic: schedule.isPublic,
         payload: schedule,
     };

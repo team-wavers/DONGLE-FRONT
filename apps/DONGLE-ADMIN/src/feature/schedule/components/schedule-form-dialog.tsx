@@ -59,7 +59,7 @@ export function ScheduleFormDialog({ clubId, open, schedule, onOpenChange, onSuc
             ? "공통 일정 수정"
             : "일정 수정"
         : isCommonSchedule
-          ? "공통 일정 등록"
+          ? "일정 등록"
           : "일정 등록";
     const submitLabel = isEditMode ? "수정" : "등록";
     const form = useForm<ClubScheduleFormValues>({

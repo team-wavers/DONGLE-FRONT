@@ -30,7 +30,7 @@ describe("ScheduleListItem", () => {
         const html = renderToStaticMarkup(<ScheduleListItem schedule={schedule} variant="admin" />);
 
         expect(html).toContain("스파이크");
-        expect(html).toContain("체육분과");
+        expect(html).not.toContain("체육분과");
         expect(html).toContain("신입 부원 오리엔테이션");
         expect(html.indexOf("스파이크")).toBeLessThan(html.indexOf("신입 부원 오리엔테이션"));
         expect(html).not.toContain(">5월<");
