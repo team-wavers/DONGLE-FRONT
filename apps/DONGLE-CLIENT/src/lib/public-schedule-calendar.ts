@@ -133,7 +133,6 @@ export function mapPublicScheduleToDisplayItem(schedule: ClubPublicSchedule): Sc
         descriptionLabel: schedule.description || undefined,
         externalUrl: schedule.external_url,
         clubName: schedule.clubName ?? COMMON_CLUB_SCHEDULE_LABEL,
-        category: schedule.category ?? COMMON_CLUB_SCHEDULE_LABEL,
         payload: schedule,
     };
 }

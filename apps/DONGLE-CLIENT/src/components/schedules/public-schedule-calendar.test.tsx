@@ -40,7 +40,7 @@ const schedules: ClubPublicSchedule[] = [
 ];
 
 describe("PublicScheduleCalendar", () => {
-    it("공통 일정과 동아리 일정을 캘린더와 월별 목록에 렌더링한다", () => {
+    it("공통 일정과 동아리 일정을 캘린더와 날짜순 목록에 렌더링한다", () => {
         const html = renderToStaticMarkup(<PublicScheduleCalendar schedules={schedules} visibleMonthKey="2026-06" />);
 
         expect(html).toContain("전체 일정");
@@ -49,8 +49,12 @@ describe("PublicScheduleCalendar", () => {
         expect(html).toContain("총동아리연합회");
         expect(html).toContain("동아리 행사");
         expect(html).toContain("UCDC");
+        expect(html).not.toContain("학술분과");
         expect(html).toContain("/schedules?month=2026-05");
         expect(html).toContain("/schedules?month=2026-07");
+        expect(html.match(/2026년 6월/g)).toHaveLength(2);
+        expect(html).toContain("월간 일정 2건");
+        expect(html).not.toContain("행사 · 총동아리연합회 · 공통 행사");
     });
 
     it("전체 일정 조회 실패 상태는 일정 없음 문구 대신 실패 안내를 렌더링한다", () => {

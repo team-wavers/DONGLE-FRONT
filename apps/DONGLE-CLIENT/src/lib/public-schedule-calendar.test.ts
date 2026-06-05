@@ -71,8 +71,8 @@ describe("public schedule calendar", () => {
         });
         expect(item).toMatchObject({
             clubName: "총동아리연합회",
-            category: "총동아리연합회",
         });
+        expect(item.category).toBeUndefined();
     });
 
     it("동아리 일정은 응답의 동아리 정보를 표시용 라벨로 유지한다", () => {

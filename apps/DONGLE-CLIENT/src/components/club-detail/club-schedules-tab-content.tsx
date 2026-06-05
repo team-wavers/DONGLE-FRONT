@@ -10,7 +10,10 @@ import {
     groupScheduleDisplayItemsByMonth,
     type ScheduleDisplayItem,
 } from "@dongle/ui/schedules/schedule-display";
-import { ScheduleDisplayMonthList, ScheduleDisplaySection } from "@dongle/ui/schedules/schedule-display-list";
+import {
+    ScheduleDisplayItemContent,
+    ScheduleDisplayMonthList,
+} from "@dongle/ui/schedules/schedule-display-list";
 
 interface ClubSchedulesTabContentProps {
     clubName: string;
@@ -54,6 +57,36 @@ function mapSchedulesToDisplayItems(schedules: ClubPublicSchedule[]) {
     return schedules.map(mapScheduleToDisplayItem);
 }
 
+function OngoingSchedulesPanel({
+    items,
+    onExternalLinkClick,
+}: {
+    items: ScheduleDisplayItem<ClubPublicSchedule>[];
+    onExternalLinkClick: (item: ScheduleDisplayItem<ClubPublicSchedule>) => void;
+}) {
+    if (items.length === 0) {
+        return null;
+    }
+
+    return (
+        <section aria-label="진행 중인 일정" className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm font-extrabold text-zinc-950">지금 진행 중</h2>
+                <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-extrabold text-zinc-500">
+                    {items.length}개
+                </span>
+            </div>
+            <ol className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
+                {items.map((item) => (
+                    <li key={item.id} className="border-b border-zinc-100 px-4 py-4 last:border-b-0">
+                        <ScheduleDisplayItemContent item={item} onExternalLinkClick={onExternalLinkClick} />
+                    </li>
+                ))}
+            </ol>
+        </section>
+    );
+}
+
 export default function ClubSchedulesTabContent({ clubName, schedules, loadFailed = false }: ClubSchedulesTabContentProps) {
     const hasSchedules = schedules.ongoing.length > 0 || schedules.upcoming.length > 0 || schedules.past.length > 0;
     const ongoingScheduleItems = schedules.ongoing.map(mapScheduleToDisplayItem);
@@ -93,10 +126,8 @@ export default function ClubSchedulesTabContent({ clubName, schedules, loadFaile
 
     return (
         <div className="space-y-6">
-            <ScheduleDisplaySection
-                title="진행 중인 일정"
+            <OngoingSchedulesPanel
                 items={ongoingScheduleItems}
-                variant="active"
                 onExternalLinkClick={handleExternalLinkClick}
             />
             {upcomingMonthGroups.length > 0 ? (
