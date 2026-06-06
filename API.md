@@ -824,12 +824,12 @@ Authorization: Bearer {accessToken}
 
 #### AdminClubSchedule
 
-관리자용 일정 응답 객체입니다. `ClubSchedule`에 `club` 정보가 포함됩니다.
+관리자용 일정 응답 객체입니다. `ClubSchedule`에 `club` 정보가 포함됩니다. 공통 일정은 `club_id`와 `club`이 `null`입니다.
 
 ```json
 {
     "id": 1,
-    "club_id": 1,
+    "club_id": null,
     "title": "정기 모임",
     "type": "regular_meeting",
     "start_at": "2026-05-20T10:00:00.000Z",
@@ -838,11 +838,7 @@ Authorization: Bearer {accessToken}
     "location": "학생회관",
     "description": "5월 정기 모임",
     "external_url": "https://forms.example.com/schedule",
-    "club": {
-        "id": 1,
-        "name": "UCDC",
-        "category": "학술"
-    },
+    "club": null,
     "created_at": "2026-05-01T00:00:00.000Z",
     "updated_at": "2026-05-01T00:00:00.000Z",
     "deleted_at": null
@@ -852,10 +848,34 @@ Authorization: Bearer {accessToken}
 **비고**:
 
 -   `type`: `recruitment`, `event`, `regular_meeting`
--   `club_id`: 일정이 속한 동아리 ID입니다. 사용자/회장용 응답에는 `club` 객체 없이 `club_id`만 포함됩니다.
--   관리자용 응답은 `club_id`와 함께 `club.id`, `club.name`, `club.category`를 포함합니다.
+-   `club_id`: 일정이 속한 동아리 ID입니다. 공통 일정이면 `null`입니다.
+-   사용자/회장용 응답에는 `club` 객체 없이 `club_id`만 포함됩니다.
+-   관리자용/전체 공개 월별 응답은 동아리 일정이면 `club_id`와 함께 `club.id`, `club.name`, `club.category`를 포함하고, 공통 일정이면 `club_id`와 `club`을 `null`로 포함합니다.
 -   `location`, `description`, `external_url`, `deleted_at`은 `null`일 수 있습니다.
 -   삭제되지 않은 일정 응답의 `deleted_at`은 `null`입니다.
+
+---
+
+### GET /v1/public/club-schedules
+
+전체 공개 월별 일정 조회
+
+**인증**: 불필요
+
+**쿼리**:
+
+-   `from` (필수): 조회 시작일시
+-   `to` (필수): 조회 종료일시
+
+**조회 조건**:
+
+-   공개 일정만 반환합니다.
+-   삭제된 일정은 제외합니다.
+-   동아리 일정은 soft delete 되지 않은 동아리의 일정만 반환합니다.
+-   공통 일정은 `club_id: null`, `club: null`로 반환합니다.
+-   일정 기간이 `from`, `to` 범위와 겹치면 포함합니다.
+
+**응답**: `AdminClubSchedule[]`
 
 ---
 
@@ -967,6 +987,38 @@ Authorization: Bearer {accessToken}
 
 ---
 
+### POST /v1/club-schedules
+
+관리자용 공통 일정 생성
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**요청 바디**:
+
+```json
+{
+    "title": "string",
+    "type": "event",
+    "start_at": "2026-06-10 10:00:00",
+    "end_at": "2026-06-10 12:00:00",
+    "is_public": true,
+    "location": "string",
+    "description": "string",
+    "external_url": "string"
+}
+```
+
+**비고**:
+
+-   `club_id`는 받지 않습니다.
+-   생성된 일정은 `club_id: null`, `club: null`인 공통 일정입니다.
+-   날짜/선택값/길이 검증 기준은 회장용 동아리 일정 생성과 같습니다.
+
+**응답**: `AdminClubSchedule`
+
+---
+
 ### GET /v1/club-schedules/calendar
 
 관리자용 월간 캘린더 일정 조회
@@ -989,6 +1041,40 @@ Authorization: Bearer {accessToken}
 
 **인증**: 필요 (JWT)
 **권한**: ADMIN
+
+**응답**: `AdminClubSchedule`
+
+---
+
+### PATCH /v1/club-schedules/:scheduleId
+
+관리자용 일정 내용 수정
+
+**인증**: 필요 (JWT)
+**권한**: ADMIN
+
+**요청 바디**: 생성 요청 바디의 부분 집합
+
+```json
+{
+    "title": "string",
+    "type": "event",
+    "start_at": "2026-06-10 10:00:00",
+    "end_at": "2026-06-10 12:00:00",
+    "is_public": true,
+    "location": "string",
+    "description": "string",
+    "external_url": "string"
+}
+```
+
+**비고**:
+
+-   동아리 일정과 공통 일정 모두 수정할 수 있습니다.
+-   `club_id`는 수정할 수 없습니다.
+-   공통 일정은 수정 후에도 `club_id: null`, `club: null`로 반환합니다.
+-   날짜/선택값/길이 검증 기준은 회장용 동아리 일정 수정과 같습니다.
+-   수정할 필드가 없으면 Bad Request를 반환합니다.
 
 **응답**: `AdminClubSchedule`
 

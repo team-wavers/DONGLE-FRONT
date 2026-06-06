@@ -6,7 +6,7 @@ export type ClubScheduleStatusFilter = "all" | "public" | "private" | "upcoming"
 
 export interface ClubSchedule {
     id: number;
-    club_id: number;
+    club_id: number | null;
     title: string;
     type: ClubScheduleType;
     start_at: string;
@@ -25,7 +25,7 @@ export interface AdminClubSchedule extends ClubSchedule {
         id: number;
         name: string;
         category: string;
-    };
+    } | null;
 }
 
 export interface CreateClubScheduleRequest {
@@ -54,6 +54,8 @@ export interface AdminClubScheduleCalendarQuery {
     from: string;
     to: string;
 }
+
+export type PublicClubScheduleCalendarQuery = AdminClubScheduleCalendarQuery;
 
 export interface UpdateAdminClubScheduleStatusRequest {
     is_public: boolean;

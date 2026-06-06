@@ -15,7 +15,7 @@ export default function ClubRegisterPage() {
                     </p>
                 </div>
             </div>
-            <div className="flex w-full">
+            <div className="flex w-full justify-center">
                 <UrlGenerator />
             </div>
         </div>

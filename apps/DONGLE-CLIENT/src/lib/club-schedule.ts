@@ -32,32 +32,8 @@ function sortByEndAt(schedules: ClubPublicSchedule[]) {
     return [...schedules].sort((a, b) => getSortableScheduleTimestamp(a.end_at) - getSortableScheduleTimestamp(b.end_at));
 }
 
-function getScheduleDistanceFromNow(schedule: ClubPublicSchedule, nowTime: number) {
-    const startTime = getSortableScheduleTimestamp(schedule.start_at);
-    const endTime = getSortableScheduleTimestamp(schedule.end_at);
-
-    if (startTime > nowTime) {
-        return { distance: startTime - nowTime, priority: 0 };
-    }
-
-    return { distance: nowTime - endTime, priority: 1 };
-}
-
-function sortByDistanceFromNow(schedules: ClubPublicSchedule[], nowTime: number) {
-    return [...schedules].sort((a, b) => {
-        const aDistance = getScheduleDistanceFromNow(a, nowTime);
-        const bDistance = getScheduleDistanceFromNow(b, nowTime);
-
-        if (aDistance.distance !== bDistance.distance) {
-            return aDistance.distance - bDistance.distance;
-        }
-
-        if (aDistance.priority !== bDistance.priority) {
-            return aDistance.priority - bDistance.priority;
-        }
-
-        return getSortableScheduleTimestamp(a.start_at) - getSortableScheduleTimestamp(b.start_at);
-    });
+function sortByEndAtDesc(schedules: ClubPublicSchedule[]) {
+    return [...schedules].sort((a, b) => getSortableScheduleTimestamp(b.end_at) - getSortableScheduleTimestamp(a.end_at));
 }
 
 function isScheduleOngoing(schedule: ClubPublicSchedule, nowTime: number) {
@@ -83,14 +59,10 @@ export function getClubScheduleGroups(
     const visibleSchedules = schedules.filter((schedule) => schedule.clubId === clubId && schedule.is_public);
     const ongoing = sortByEndAt(visibleSchedules.filter((schedule) => isScheduleOngoing(schedule, nowTime)));
     const upcoming = sortByStartAt(visibleSchedules.filter((schedule) => isScheduleUpcoming(schedule, nowTime)));
-    const past = sortByDistanceFromNow(
-        visibleSchedules.filter((schedule) => isSchedulePast(schedule, nowTime)),
-        nowTime
-    );
+    const past = sortByEndAtDesc(visibleSchedules.filter((schedule) => isSchedulePast(schedule, nowTime)));
 
     return {
         ongoing,
-        remaining: sortByDistanceFromNow([...upcoming, ...past], nowTime),
         upcoming,
         past,
     };

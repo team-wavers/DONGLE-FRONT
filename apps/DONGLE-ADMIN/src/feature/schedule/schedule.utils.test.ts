@@ -27,6 +27,7 @@ import {
     mapAdminClubScheduleToClubSchedule,
     mapClubScheduleToClubSchedule,
     sortSchedulesByStartAt,
+    syncScheduleInVisibleMonth,
 } from "./schedule.utils";
 
 const SEOUL_MAY_20_19 = new Date("2026-05-20T10:00:00.000Z");
@@ -433,6 +434,34 @@ describe("schedule utils", () => {
         });
     });
 
+    it("관리자 공통 일정 응답은 공통 일정 화면 모델로 변환한다", () => {
+        const schedule: AdminClubSchedule = {
+            id: 9,
+            club_id: null,
+            title: "공통 행사",
+            type: "event",
+            start_at: "2026-06-10T01:00:00.000Z",
+            end_at: "2026-06-10T03:00:00.000Z",
+            is_public: true,
+            location: "중앙광장",
+            description: null,
+            external_url: null,
+            created_at: "2026-06-01T00:00:00.000Z",
+            updated_at: "2026-06-01T00:00:00.000Z",
+            deleted_at: null,
+            club: null,
+        };
+
+        expect(mapAdminClubScheduleToClubSchedule(schedule)).toMatchObject({
+            id: 9,
+            clubId: null,
+            clubName: "총동아리연합회",
+            category: "총동아리연합회",
+            title: "공통 행사",
+            location: "중앙광장",
+        });
+    });
+
     it("회장 일정 응답은 응답의 club_id를 화면 일정 clubId로 변환한다", () => {
         const schedule: ApiClubSchedule = {
             id: 8,
@@ -459,6 +488,32 @@ describe("schedule utils", () => {
             location: "",
             description: "",
             externalUrl: undefined,
+        });
+    });
+
+    it("club 정보 없는 공통 일정 응답은 공통 일정 화면 모델로 변환한다", () => {
+        const schedule: ApiClubSchedule = {
+            id: 10,
+            club_id: null,
+            title: "공통 안내",
+            type: "event",
+            start_at: "2026-06-03T10:00:00.000Z",
+            end_at: "2026-06-03T12:00:00.000Z",
+            is_public: true,
+            location: null,
+            description: null,
+            external_url: null,
+            created_at: "2026-06-01T00:00:00.000Z",
+            updated_at: "2026-06-01T00:00:00.000Z",
+            deleted_at: null,
+        };
+
+        expect(mapClubScheduleToClubSchedule(schedule)).toMatchObject({
+            id: 10,
+            clubId: null,
+            clubName: "총동아리연합회",
+            category: "총동아리연합회",
+            title: "공통 안내",
         });
     });
 
@@ -501,6 +556,50 @@ describe("schedule utils", () => {
                 label: "2026년 6월",
                 schedules: [SCHEDULES[2], SCHEDULES[3]],
             },
+        ]);
+    });
+
+    it("현재 표시 월과 겹치는 수정 일정만 월간 일정 상태에 반영한다", () => {
+        const currentSchedules: ClubSchedule[] = [
+            {
+                ...SCHEDULES[0],
+                id: 20,
+                title: "기존 공통 일정",
+                clubId: null,
+                clubName: "총동아리연합회",
+                category: "총동아리연합회",
+                startsAt: "2026-06-10T10:00:00.000Z",
+                endsAt: "2026-06-10T12:00:00.000Z",
+            },
+            {
+                ...SCHEDULES[1],
+                id: 21,
+                title: "다른 6월 일정",
+                startsAt: "2026-06-12T10:00:00.000Z",
+                endsAt: "2026-06-12T12:00:00.000Z",
+            },
+        ];
+        const movedOutSchedule = {
+            ...currentSchedules[0],
+            title: "7월로 이동한 공통 일정",
+            startsAt: "2026-07-02T10:00:00.000Z",
+            endsAt: "2026-07-02T12:00:00.000Z",
+        };
+
+        expect(syncScheduleInVisibleMonth(currentSchedules, movedOutSchedule, "2026-06").map((schedule) => schedule.id)).toEqual([
+            21,
+        ]);
+
+        const movedInSchedule = {
+            ...movedOutSchedule,
+            title: "6월로 돌아온 공통 일정",
+            startsAt: "2026-06-03T10:00:00.000Z",
+            endsAt: "2026-06-03T12:00:00.000Z",
+        };
+
+        expect(syncScheduleInVisibleMonth(currentSchedules, movedInSchedule, "2026-06").map((schedule) => schedule.id)).toEqual([
+            20,
+            21,
         ]);
     });
 

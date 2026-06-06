@@ -9,6 +9,7 @@ import type {
     ClubScheduleDeleteResponse,
     ClubScheduleStatusFilter,
     CreateClubScheduleRequest,
+    PublicClubScheduleCalendarQuery,
     UpdateAdminClubScheduleStatusRequest,
     UpdateClubScheduleRequest,
 } from "@dongle/types/club/club.schedule";
@@ -19,6 +20,7 @@ const instance = FetchInstance.getInstance();
 
 const CLUBS_PATH = "/clubs";
 const ADMIN_CLUB_SCHEDULES_PATH = "/club-schedules";
+const PUBLIC_CLUB_SCHEDULES_PATH = "/public/club-schedules";
 
 function getClubScheduleTags(clubId?: number, scheduleId?: number) {
     if (typeof clubId === "number" && typeof scheduleId === "number") {
@@ -37,6 +39,16 @@ function getPublicScheduleFetchOptions(clubId: number): FetchOptions {
         cache: "force-cache",
         next: {
             tags: getClubScheduleTags(clubId),
+            revalidate: PUBLIC_REVALIDATE_SECONDS,
+        },
+    };
+}
+
+function getPublicCalendarScheduleFetchOptions(): FetchOptions {
+    return {
+        cache: "force-cache",
+        next: {
+            tags: getClubScheduleTags(),
             revalidate: PUBLIC_REVALIDATE_SECONDS,
         },
     };
@@ -87,6 +99,16 @@ export async function getClubPublicScheduleListService(clubId: number): Promise<
     return getResponseResult(response);
 }
 
+export async function getPublicClubScheduleCalendarService(
+    query: PublicClubScheduleCalendarQuery
+): Promise<AdminClubSchedule[]> {
+    const response = await instance.get<Response<AdminClubSchedule[]>>(
+        appendQuery(PUBLIC_CLUB_SCHEDULES_PATH, query),
+        getPublicCalendarScheduleFetchOptions()
+    );
+    return getResponseResult(response);
+}
+
 export async function getClubScheduleListService(
     clubId: number,
     status?: ClubScheduleStatusFilter
@@ -102,6 +124,13 @@ export async function createClubScheduleService(
     payload: CreateClubScheduleRequest
 ): Promise<ClubSchedule> {
     const response = await instance.post<Response<ClubSchedule>>(getClubSchedulesPath(clubId), payload);
+    return getResponseResult(response);
+}
+
+export async function createAdminCommonClubScheduleService(
+    payload: CreateClubScheduleRequest
+): Promise<AdminClubSchedule> {
+    const response = await instance.post<Response<AdminClubSchedule>>(ADMIN_CLUB_SCHEDULES_PATH, payload);
     return getResponseResult(response);
 }
 
@@ -146,6 +175,14 @@ export async function getAdminClubScheduleService(scheduleId: number): Promise<A
     const response = await instance.get<Response<AdminClubSchedule>>(getAdminClubSchedulePath(scheduleId), {
         cache: "no-store",
     });
+    return getResponseResult(response);
+}
+
+export async function updateAdminClubScheduleService(
+    scheduleId: number,
+    payload: UpdateClubScheduleRequest
+): Promise<AdminClubSchedule> {
+    const response = await instance.patch<Response<AdminClubSchedule>>(getAdminClubSchedulePath(scheduleId), payload);
     return getResponseResult(response);
 }
 

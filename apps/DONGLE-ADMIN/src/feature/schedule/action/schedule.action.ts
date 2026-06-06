@@ -2,10 +2,13 @@
 
 import {
     clubScheduleTagGroups,
+    createAdminCommonClubScheduleService,
     createClubScheduleService,
     deleteAdminClubScheduleService,
     deleteClubScheduleService,
     getAdminClubScheduleCalendarService,
+    getAdminClubScheduleService,
+    updateAdminClubScheduleService,
     updateAdminClubScheduleStatusService,
     updateClubScheduleService,
 } from "@dongle/service";
@@ -36,7 +39,7 @@ function getServiceErrorMessage(error: { message?: string; detail?: string } | u
     return error?.detail || error?.message || fallback;
 }
 
-function revalidateScheduleTags(clubId?: number, scheduleId?: number) {
+function revalidateScheduleTags(clubId?: number | null, scheduleId?: number) {
     if (typeof clubId === "number" && typeof scheduleId === "number") {
         revalidateTags(clubScheduleTagGroups.item(clubId, scheduleId));
         return;
@@ -96,6 +99,39 @@ export async function createClubScheduleAction(
     }
 }
 
+export async function createAdminCommonClubScheduleAction(
+    values: ClubScheduleFormValues
+): Promise<ScheduleActionResult<AdminClubSchedule>> {
+    const parsed = clubScheduleSchema.safeParse(values);
+
+    if (!parsed.success) {
+        return actionFailure({
+            fieldErrors: getZodFieldErrors<ClubScheduleField>(parsed.error),
+            formError: "일정 정보를 다시 확인해주세요.",
+        });
+    }
+
+    try {
+        await requireServerActionAccessToken();
+
+        const payload = buildClubSchedulePayload(parsed.data);
+        const result = await createAdminCommonClubScheduleService(payload);
+        revalidateScheduleTags(result.club_id, result.id);
+
+        return actionSuccess({
+            data: result,
+            message: "공통 일정이 등록되었습니다.",
+        });
+    } catch (error) {
+        captureServerException(error, "관리자 공통 일정 생성 중 오류", {
+            action: "createAdminCommonClubScheduleAction",
+        });
+        return actionFailure({
+            formError: getActionErrorMessage(error, "공통 일정 등록 중 오류가 발생했습니다. 다시 시도해주세요."),
+        });
+    }
+}
+
 export async function updateClubScheduleAction(
     clubId: number,
     scheduleId: number,
@@ -131,6 +167,47 @@ export async function updateClubScheduleAction(
         captureServerException(error, "동아리 일정 수정 중 오류", {
             action: "updateClubScheduleAction",
             clubId,
+            scheduleId,
+        });
+        return actionFailure({
+            formError: getActionErrorMessage(error, "일정 수정 중 오류가 발생했습니다. 다시 시도해주세요."),
+        });
+    }
+}
+
+export async function updateAdminClubScheduleAction(
+    scheduleId: number,
+    values: ClubScheduleFormValues
+): Promise<ScheduleActionResult<AdminClubSchedule>> {
+    if (!Number.isFinite(scheduleId)) {
+        return actionFailure({
+            formError: "일정 정보를 찾을 수 없습니다.",
+        });
+    }
+
+    const parsed = clubScheduleSchema.safeParse(values);
+
+    if (!parsed.success) {
+        return actionFailure({
+            fieldErrors: getZodFieldErrors<ClubScheduleField>(parsed.error),
+            formError: "일정 정보를 다시 확인해주세요.",
+        });
+    }
+
+    try {
+        await requireServerActionAccessToken();
+
+        const payload = buildClubSchedulePayload(parsed.data);
+        const result = await updateAdminClubScheduleService(scheduleId, payload);
+        revalidateScheduleTags(result.club_id, scheduleId);
+
+        return actionSuccess({
+            data: result,
+            message: result.club_id === null ? "공통 일정이 수정되었습니다." : "일정이 수정되었습니다.",
+        });
+    } catch (error) {
+        captureServerException(error, "관리자 일정 수정 중 오류", {
+            action: "updateAdminClubScheduleAction",
             scheduleId,
         });
         return actionFailure({
@@ -218,6 +295,7 @@ export async function deleteAdminClubScheduleAction(scheduleId: number): Promise
     try {
         await requireServerActionAccessToken();
 
+        const schedule = await getAdminClubScheduleService(scheduleId);
         const result = await deleteAdminClubScheduleService(scheduleId);
 
         if (!result.isSuccess) {
@@ -226,7 +304,7 @@ export async function deleteAdminClubScheduleAction(scheduleId: number): Promise
             });
         }
 
-        revalidateScheduleTags(undefined, scheduleId);
+        revalidateScheduleTags(schedule.club_id, scheduleId);
 
         return actionSuccess({
             data: null,

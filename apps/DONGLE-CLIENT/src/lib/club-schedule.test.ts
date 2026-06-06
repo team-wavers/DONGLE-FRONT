@@ -82,10 +82,22 @@ const schedules: ClubPublicSchedule[] = [
         description: "아직 종료되지 않은 일정입니다.",
         external_url: null,
     },
+    {
+        id: 7,
+        clubId: 12,
+        title: "오래된 지난 공개 일정",
+        type: "event",
+        start_at: "2026-05-13T10:00:00.000Z",
+        end_at: "2026-05-13T12:00:00.000Z",
+        is_public: true,
+        location: "학생회관",
+        description: "더 오래전에 종료된 일정입니다.",
+        external_url: null,
+    },
 ];
 
 describe("club schedule", () => {
-    it("해당 동아리의 공개 일정은 진행 중을 따로 분리하고 나머지는 현재와 가까운 순으로 정렬한다", () => {
+    it("해당 동아리의 공개 일정은 진행 중, 예정, 지난 일정 순으로 정렬한다", () => {
         const groups = getClubScheduleGroups(schedules, {
             clubId: 12,
             now: new Date("2026-05-15T00:00:00.000Z"),
@@ -93,12 +105,7 @@ describe("club schedule", () => {
 
         expect(groups.ongoing.map((schedule) => schedule.title)).toEqual(["진행 중 공개 일정"]);
         expect(groups.upcoming.map((schedule) => schedule.title)).toEqual(["먼저 공개 일정", "나중 공개 일정"]);
-        expect(groups.past.map((schedule) => schedule.title)).toEqual(["지난 공개 일정"]);
-        expect(groups.remaining?.map((schedule) => schedule.title)).toEqual([
-            "지난 공개 일정",
-            "먼저 공개 일정",
-            "나중 공개 일정",
-        ]);
+        expect(groups.past.map((schedule) => schedule.title)).toEqual(["지난 공개 일정", "오래된 지난 공개 일정"]);
     });
 
     it("timezone 없는 공개 일정도 Seoul 로컬 시각 기준으로 분류한다", () => {
@@ -119,7 +126,8 @@ describe("club schedule", () => {
         );
 
         expect(groups.ongoing.map((schedule) => schedule.title)).toEqual(["Seoul 진행 중 일정"]);
-        expect(groups.remaining).toEqual([]);
+        expect(groups.upcoming).toEqual([]);
+        expect(groups.past).toEqual([]);
     });
 
     it("백엔드 공개 일정 응답을 화면 일정 모델로 변환하고 외부 링크를 정규화한다", () => {
@@ -151,6 +159,26 @@ describe("club schedule", () => {
             description: "",
             external_url: "https://dongle.kr/meeting",
         });
+    });
+
+    it("백엔드 공개 공통 일정 응답은 clubId null을 유지한다", () => {
+        const schedule: ClubSchedule = {
+            id: 9,
+            club_id: null,
+            title: "공통 행사",
+            type: "event",
+            start_at: "2026-06-10T01:00:00.000Z",
+            end_at: "2026-06-10T03:00:00.000Z",
+            is_public: true,
+            location: null,
+            description: null,
+            external_url: null,
+            created_at: "2026-06-01T00:00:00.000Z",
+            updated_at: "2026-06-01T00:00:00.000Z",
+            deleted_at: null,
+        };
+
+        expect(mapClubScheduleToPublicSchedule(schedule).clubId).toBeNull();
     });
 
     it("백엔드 공개 일정 응답의 잘못된 외부 링크는 화면 모델에서 제거한다", () => {

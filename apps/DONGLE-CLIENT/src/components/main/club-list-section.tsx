@@ -25,7 +25,7 @@ interface ClubListSectionProps {
 export default function ClubListSection({ clubs, summaryText, emptyStateMessage }: ClubListSectionProps) {
     return (
         <div className="space-y-4">
-            <div className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3">
+            <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3">
                 <p className="text-sm font-bold text-zinc-500">{summaryText}</p>
             </div>
             {emptyStateMessage ? (

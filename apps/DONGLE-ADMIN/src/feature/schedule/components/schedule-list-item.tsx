@@ -25,19 +25,22 @@ interface ScheduleListItemProps {
     onToggleVisibility?: (schedule: ClubSchedule) => void;
 }
 
-export const ScheduleListItem = memo(function ScheduleListItem({
+interface ScheduleListItemActionsProps {
+    schedule: ClubSchedule;
+    isPending?: boolean;
+    onEdit?: (schedule: ClubSchedule) => void;
+    onDelete?: (schedule: ClubSchedule) => void;
+    onToggleVisibility?: (schedule: ClubSchedule) => void;
+}
+
+export function ScheduleListItemActions({
     schedule,
-    variant = "default",
-    className,
     isPending,
     onEdit,
     onDelete,
     onToggleVisibility,
-}: ScheduleListItemProps) {
-    const isAdminVariant = variant === "admin";
-    const displayItem = mapScheduleToDisplayItem(schedule);
-    const dateBadge = displayItem.dateBadge;
-    const actions = (
+}: ScheduleListItemActionsProps) {
+    return (
         <>
             {onEdit ? (
                 <Button
@@ -92,6 +95,20 @@ export const ScheduleListItem = memo(function ScheduleListItem({
             </DropdownMenu>
         </>
     );
+}
+
+export const ScheduleListItem = memo(function ScheduleListItem({
+    schedule,
+    variant = "default",
+    className,
+    isPending,
+    onEdit,
+    onDelete,
+    onToggleVisibility,
+}: ScheduleListItemProps) {
+    const isAdminVariant = variant === "admin";
+    const displayItem = mapScheduleToDisplayItem(schedule);
+    const dateBadge = displayItem.dateBadge;
 
     return (
         <div
@@ -114,7 +131,15 @@ export const ScheduleListItem = memo(function ScheduleListItem({
                 showPublicBadge
                 showClubMeta={isAdminVariant}
                 showDateMarker={false}
-                actions={actions}
+                actions={
+                    <ScheduleListItemActions
+                        schedule={schedule}
+                        isPending={isPending}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onToggleVisibility={onToggleVisibility}
+                    />
+                }
             />
         </div>
     );

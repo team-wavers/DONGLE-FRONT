@@ -3,10 +3,35 @@
 import { useState } from "react";
 import type { SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
-import type { ClubSchedule as ApiClubSchedule } from "@dongle/types/club/club.schedule";
+import type { AdminClubSchedule, ClubSchedule as ApiClubSchedule } from "@dongle/types/club/club.schedule";
 import { applyServerFieldErrors } from "@/shared/form/server-errors";
-import { createClubScheduleAction, updateClubScheduleAction } from "../action/schedule.action";
+import {
+    createAdminCommonClubScheduleAction,
+    createClubScheduleAction,
+    updateAdminClubScheduleAction,
+    updateClubScheduleAction,
+} from "../action/schedule.action";
 import type { ClubScheduleFormValues } from "./schedule-form.schema";
+
+export function submitClubScheduleValues({
+    clubId,
+    scheduleId,
+    values,
+}: {
+    clubId: number | null;
+    scheduleId?: number;
+    values: ClubScheduleFormValues;
+}) {
+    if (clubId === null) {
+        return scheduleId === undefined
+            ? createAdminCommonClubScheduleAction(values)
+            : updateAdminClubScheduleAction(scheduleId, values);
+    }
+
+    return scheduleId === undefined
+        ? createClubScheduleAction(clubId, values)
+        : updateClubScheduleAction(clubId, scheduleId, values);
+}
 
 export function useClubScheduleSubmit({
     form,
@@ -15,9 +40,9 @@ export function useClubScheduleSubmit({
     onSuccess,
 }: {
     form: UseFormReturn<ClubScheduleFormValues>;
-    clubId: number;
+    clubId: number | null;
     scheduleId?: number;
-    onSuccess: (schedule: ApiClubSchedule) => void;
+    onSuccess: (schedule: ApiClubSchedule | AdminClubSchedule) => void;
 }) {
     const [formError, setFormError] = useState<string | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,10 +52,7 @@ export function useClubScheduleSubmit({
         setFormError(undefined);
 
         try {
-            const result =
-                scheduleId === undefined
-                    ? await createClubScheduleAction(clubId, values)
-                    : await updateClubScheduleAction(clubId, scheduleId, values);
+            const result = await submitClubScheduleValues({ clubId, scheduleId, values });
 
             if (!result.ok) {
                 applyServerFieldErrors(form, result.fieldErrors);
@@ -44,7 +66,9 @@ export function useClubScheduleSubmit({
             }
 
             if (result.data) {
-                toast.success(result.message ?? (scheduleId === undefined ? "일정이 등록되었습니다." : "일정이 수정되었습니다."));
+                toast.success(
+                    result.message ?? (scheduleId === undefined ? "일정이 등록되었습니다." : "일정이 수정되었습니다.")
+                );
                 onSuccess(result.data);
             }
         } finally {

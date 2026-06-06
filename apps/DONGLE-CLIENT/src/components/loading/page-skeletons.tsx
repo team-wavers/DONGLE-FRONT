@@ -12,23 +12,8 @@ function BackLinkSkeleton() {
 function InfoCardSkeleton() {
     return (
         <div className="rounded-lg border border-zinc-200 bg-white p-4">
-            <Skeleton className="mb-3 size-5 rounded-md" />
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="mt-2 h-5 w-28" />
+            <Skeleton className="h-20 w-full" />
         </div>
-    );
-}
-
-function IntroSectionSkeleton() {
-    return (
-        <section className="space-y-3">
-            <Skeleton className="h-8 w-36" />
-            <div className="space-y-2">
-                <Skeleton className="h-5 w-full max-w-2xl" />
-                <Skeleton className="h-5 w-full max-w-xl" />
-                <Skeleton className="h-5 w-4/5 max-w-lg" />
-            </div>
-        </section>
     );
 }
 
@@ -40,10 +25,7 @@ function ClubTabsSkeleton() {
                 <Skeleton className="h-11 w-full rounded-none" />
                 <Skeleton className="h-11 w-full rounded-none" />
             </div>
-            <div className="space-y-10">
-                <IntroSectionSkeleton />
-                <IntroSectionSkeleton />
-            </div>
+            <Skeleton className="h-44 w-full" />
         </div>
     );
 }
@@ -57,18 +39,11 @@ export function ClubDetailPageSkeleton({ showBackLink = false }: { showBackLink?
                     <div className="flex flex-col gap-5 py-4 md:flex-row md:items-end md:justify-between">
                         <div className="flex min-w-0 items-center gap-4">
                             <Skeleton className="size-16 rounded-full" />
-                            <div className="min-w-0 space-y-2">
-                                <Skeleton className="h-5 w-24" />
-                                <Skeleton className="h-10 w-52 md:h-12 md:w-64" />
-                            </div>
+                            <Skeleton className="h-14 w-56 md:w-72" />
                         </div>
                         <Skeleton className="h-9 w-24 rounded-full" />
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                        <Skeleton className="h-9 w-20 rounded-md" />
-                        <Skeleton className="h-9 w-24 rounded-md" />
-                        <Skeleton className="h-9 w-16 rounded-md" />
-                    </div>
+                    <Skeleton className="h-10 w-full max-w-sm rounded-md" />
                 </header>
 
                 <section className="grid gap-5 md:grid-cols-[minmax(0,1fr)_280px]">
@@ -79,16 +54,9 @@ export function ClubDetailPageSkeleton({ showBackLink = false }: { showBackLink?
                             <InfoCardSkeleton />
                             <InfoCardSkeleton />
                         </dl>
-                        <div className="flex gap-2 md:hidden">
-                            <Skeleton className="h-10 w-28 rounded-md" />
-                            <Skeleton className="h-10 w-24 rounded-md" />
-                        </div>
                         <ClubTabsSkeleton />
                     </div>
-                    <aside className="hidden md:flex md:gap-2">
-                        <Skeleton className="h-10 w-28 rounded-md" />
-                        <Skeleton className="h-10 w-24 rounded-md" />
-                    </aside>
+                    <aside className="hidden md:block" aria-hidden="true" />
                 </section>
             </section>
         </>
