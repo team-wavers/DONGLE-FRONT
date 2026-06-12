@@ -10,7 +10,15 @@ import { AdminFormShell } from "@/shared/layout/form-page/admin-form-layout";
 
 async function ClubReportListContent({ clubId }: { clubId: string }) {
     // 서버에서 데이터 가져오기
-    const { result } = await getClubReportListService(Number(clubId));
+    const { result, isSuccess } = await getClubReportListService(Number(clubId));
+
+    if (!isSuccess) {
+        return (
+            <div className="flex min-h-40 items-center justify-center rounded-lg border bg-white py-16">
+                <div className="text-red-500">활동보고서를 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</div>
+            </div>
+        );
+    }
 
     return (
         <>

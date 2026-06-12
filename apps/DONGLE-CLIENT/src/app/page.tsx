@@ -29,6 +29,7 @@ async function HomePageContent() {
         getPublicMainBannerListService(),
     ]);
 
+    const clubsLoadFailed = !clubListResponse.isSuccess;
     const clubs =
         clubListResponse.isSuccess && clubListResponse.result
             ? clubListResponse.result.map((club) => ({
@@ -45,7 +46,13 @@ async function HomePageContent() {
             ? getDisplayMainBannerItems(mainBannerResponse.result)
             : [];
 
-    return <ClubMainClient clubs={clubs} banners={getDevelopmentFallbackBanners(banners)} />;
+    return (
+        <ClubMainClient
+            clubs={clubs}
+            banners={getDevelopmentFallbackBanners(banners)}
+            clubsLoadFailed={clubsLoadFailed}
+        />
+    );
 }
 
 function HomePageFallback() {

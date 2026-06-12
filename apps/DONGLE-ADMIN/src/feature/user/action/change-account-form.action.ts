@@ -20,6 +20,10 @@ export interface ChangeAccountActionState {
     error?: string;
 }
 
+function getServiceErrorMessage(error: { message?: string; detail?: string } | undefined, fallback: string) {
+    return error?.detail || error?.message || fallback;
+}
+
 export async function changeAccountFormAction(
     prevState: ChangeAccountActionState,
     formData: FormData
@@ -121,7 +125,14 @@ export async function changeAccountFormAction(
             };
         }
 
-        await patchUserService(Number(userId), updateData);
+        const updateResult = await patchUserService(Number(userId), updateData);
+
+        if (!updateResult.isSuccess) {
+            return {
+                success: false,
+                error: getServiceErrorMessage(updateResult.error, "계정 정보 변경에 실패했습니다. 다시 시도해주세요."),
+            };
+        }
 
         // 사용자 정보 캐시 초기화
         revalidateTags(userTagGroups.detail(userId));

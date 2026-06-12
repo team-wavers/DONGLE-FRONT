@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import ClubIconAvatar from "@/components/main/club-icon-avatar";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
 import { cn } from "@dongle/ui/utils";
@@ -20,15 +21,25 @@ interface ClubListSectionProps {
     clubs: ClubListItemViewModel[];
     summaryText: string;
     emptyStateMessage: string | null;
+    loadFailed?: boolean;
 }
 
-export default function ClubListSection({ clubs, summaryText, emptyStateMessage }: ClubListSectionProps) {
+export default function ClubListSection({
+    clubs,
+    summaryText,
+    emptyStateMessage,
+    loadFailed = false,
+}: ClubListSectionProps) {
     return (
         <div className="space-y-4">
             <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3">
                 <p className="text-sm font-bold text-zinc-500">{summaryText}</p>
             </div>
-            {emptyStateMessage ? (
+            {loadFailed ? (
+                <div className="rounded-lg border border-zinc-200 bg-white px-6 py-10 text-center text-zinc-500">
+                    동아리 목록을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.
+                </div>
+            ) : emptyStateMessage ? (
                 <div className="rounded-lg border border-zinc-200 bg-white px-6 py-10 text-center text-zinc-400">
                     {emptyStateMessage}
                 </div>

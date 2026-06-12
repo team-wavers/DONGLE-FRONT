@@ -37,6 +37,18 @@ function parseRouteParams(clubId: string, reportId: string) {
     return { clubIdNumber, reportIdNumber };
 }
 
+function isReportNotFoundResponse(response: { error?: { detail?: string; message?: string } }) {
+    const detail = response.error?.detail?.toLowerCase() ?? "";
+    const message = response.error?.message?.toLowerCase() ?? "";
+
+    return (
+        detail.includes("report_id:") ||
+        message.includes("찾을 수 없습니다") ||
+        message.includes("존재하지 않습니다") ||
+        message.includes("not found")
+    );
+}
+
 export async function generateMetadata({ params }: ClubReportDetailPageProps): Promise<Metadata> {
     const { clubId, reportId } = await params;
     const parsedParams = parseRouteParams(clubId, reportId);
@@ -95,8 +107,20 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
         getClubReportService(clubIdNumber, reportIdNumber),
     ]);
 
-    if (!clubResponse.isSuccess || !clubResponse.result || !reportsResponse.isSuccess || !reportResponse.isSuccess) {
+    if (!clubResponse.isSuccess || !clubResponse.result) {
         notFound();
+    }
+
+    if (!reportsResponse.isSuccess) {
+        throw new Error("활동보고서 목록을 불러오지 못했습니다.");
+    }
+
+    if (!reportResponse.isSuccess) {
+        if (isReportNotFoundResponse(reportResponse)) {
+            notFound();
+        }
+
+        throw new Error("활동보고서를 불러오지 못했습니다.");
     }
 
     const club = clubResponse.result;

@@ -8,11 +8,11 @@ import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
 
 async function UserListSection() {
     const [userListResponse, accessToken] = await Promise.all([getUserListService(), getAccessTokenFromServerCookie()]);
-    const users = userListResponse.result || [];
+    const users = userListResponse.isSuccess ? userListResponse.result || [] : [];
     const tokenUserId = accessToken ? Number(getUserIdFromToken(accessToken)) : null;
     const currentUserId = Number.isFinite(tokenUserId) ? tokenUserId : null;
 
-    return <FilterableUserList users={users} currentUserId={currentUserId} />;
+    return <FilterableUserList users={users} currentUserId={currentUserId} loadFailed={!userListResponse.isSuccess} />;
 }
 
 function UserListFallback() {

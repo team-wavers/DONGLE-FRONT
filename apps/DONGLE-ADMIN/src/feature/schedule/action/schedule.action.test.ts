@@ -106,6 +106,27 @@ describe("schedule actions", () => {
         expect(revalidateTag).toHaveBeenCalledWith("club-schedule-item-7");
     });
 
+    test("회장 일정 생성 서비스 실패 시 실패 응답을 반환하고 태그를 초기화하지 않는다", async () => {
+        vi.mocked(createClubScheduleService).mockRejectedValue(new Error("일정 등록에 실패했습니다."));
+
+        const result = await createClubScheduleAction(1, {
+            title: "CMUX 일정",
+            type: "event",
+            startsAt: "2026-06-16T20:00",
+            endsAt: "2026-06-16T22:00",
+            isPublic: true,
+            location: "",
+            description: "",
+            externalUrl: "",
+        });
+
+        expect(result).toEqual({
+            ok: false,
+            formError: "일정 등록에 실패했습니다.",
+        });
+        expect(revalidateTag).not.toHaveBeenCalled();
+    });
+
     test("관리자 공통 일정 생성은 폼 값을 검증해 관리자 공통 일정 생성 서비스와 공통 일정 태그 초기화를 호출한다", async () => {
         const commonSchedule = {
             ...apiSchedule,
@@ -170,6 +191,27 @@ describe("schedule actions", () => {
             },
         });
         expect(updateClubScheduleService).not.toHaveBeenCalled();
+    });
+
+    test("회장 일정 수정 서비스 실패 시 실패 응답을 반환하고 태그를 초기화하지 않는다", async () => {
+        vi.mocked(updateClubScheduleService).mockRejectedValue(new Error("일정 수정에 실패했습니다."));
+
+        const result = await updateClubScheduleAction(1, 7, {
+            title: "CMUX 일정",
+            type: "event",
+            startsAt: "2026-06-16T20:00",
+            endsAt: "2026-06-16T22:00",
+            isPublic: true,
+            location: "",
+            description: "",
+            externalUrl: "",
+        });
+
+        expect(result).toEqual({
+            ok: false,
+            formError: "일정 수정에 실패했습니다.",
+        });
+        expect(revalidateTag).not.toHaveBeenCalled();
     });
 
     test("관리자 공통 일정 수정은 관리자 일정 수정 서비스와 공통 일정 태그 초기화를 호출한다", async () => {
