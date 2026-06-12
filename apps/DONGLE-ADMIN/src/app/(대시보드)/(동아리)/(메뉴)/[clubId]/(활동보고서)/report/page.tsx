@@ -1,18 +1,17 @@
 import { Suspense } from "react";
 import ReportCard from "@/feature/report/components/report-card/report-card";
-import { getClubReportListService } from "@/lib/server/cached-services";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
 import { Pencil } from "lucide-react";
 import { ClubReport } from "@dongle/types/club/club.report.d";
 import { Skeleton } from "@dongle/ui/skeleton";
 import { AdminFormShell } from "@/shared/layout/form-page/admin-form-layout";
+import { loadClubReportListViewModel } from "./club-report-list-view-model";
 
 async function ClubReportListContent({ clubId }: { clubId: string }) {
-    // 서버에서 데이터 가져오기
-    const { result, isSuccess } = await getClubReportListService(Number(clubId));
+    const { reports, loadFailed } = await loadClubReportListViewModel(clubId);
 
-    if (!isSuccess) {
+    if (loadFailed) {
         return (
             <div className="flex min-h-40 items-center justify-center rounded-lg border bg-white py-16">
                 <div className="text-red-500">활동보고서를 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</div>
@@ -22,9 +21,9 @@ async function ClubReportListContent({ clubId }: { clubId: string }) {
 
     return (
         <>
-            {result && result.length > 0 ? (
+            {reports.length > 0 ? (
                 <div className="flex w-full flex-col gap-3">
-                    {result.map((report: ClubReport) => (
+                    {reports.map((report: ClubReport) => (
                         <ReportCard
                             key={report.id}
                             title={report.title}

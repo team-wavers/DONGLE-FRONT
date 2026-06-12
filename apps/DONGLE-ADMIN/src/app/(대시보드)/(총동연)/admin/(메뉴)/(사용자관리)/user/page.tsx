@@ -1,18 +1,13 @@
 import { Suspense } from "react";
-import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
-import { getUserIdFromToken } from "@dongle/api/utils/jwt.util";
-import { getUserListService } from "@/lib/server/cached-services";
 import { Skeleton } from "@dongle/ui/skeleton";
 import FilterableUserList from "@/feature/user/components/filterable-user-list";
 import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
+import { loadUserListViewModel } from "./user-list-view-model";
 
 async function UserListSection() {
-    const [userListResponse, accessToken] = await Promise.all([getUserListService(), getAccessTokenFromServerCookie()]);
-    const users = userListResponse.isSuccess ? userListResponse.result || [] : [];
-    const tokenUserId = accessToken ? Number(getUserIdFromToken(accessToken)) : null;
-    const currentUserId = Number.isFinite(tokenUserId) ? tokenUserId : null;
+    const { users, currentUserId, loadFailed } = await loadUserListViewModel();
 
-    return <FilterableUserList users={users} currentUserId={currentUserId} loadFailed={!userListResponse.isSuccess} />;
+    return <FilterableUserList users={users} currentUserId={currentUserId} loadFailed={loadFailed} />;
 }
 
 function UserListFallback() {

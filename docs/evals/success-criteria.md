@@ -264,7 +264,7 @@
 
 - 일정 생성, 수정, 삭제, 관리자 공개 상태 변경, 관리자 월간 조회 action은 공통 `ActionResult` 형태로 성공/실패를 표현해야 한다.
 - 일정 생성/수정 action은 스키마 검증 실패 시 field error와 form error를 반환해야 한다.
-- 회장 일정 생성/수정 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+- 회장 일정 생성/수정 service가 실패하거나 예외를 던지면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
 - 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
 
 관련 테스트:
@@ -280,7 +280,7 @@
 - 사용자 공개 일정 목록은 `/clubs/:clubId/public-schedules`를 호출해야 한다.
 - 회장 일정 목록은 `/clubs/:clubId/schedules`를 호출하고 status filter가 있으면 query string에 반영해야 한다.
 - 회장 일정 생성/수정/삭제는 `/clubs/:clubId/schedules` 하위 엔드포인트를 호출하고 성공한 action이 schedule tag group을 초기화해야 한다.
-- 회장 일정 생성/수정 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+- 회장 일정 생성/수정 service가 실패하거나 예외를 던지면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
 - 회장 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
 
 ### 관리자 일정 엔드포인트

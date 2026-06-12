@@ -42,6 +42,19 @@ describe("deleteUserAction", () => {
         expect(revalidateTag).not.toHaveBeenCalled();
     });
 
+    test("토큰에서 사용자 식별 정보를 가져오지 못하면 실패하고 삭제를 진행하지 않는다", async () => {
+        vi.mocked(getUserIdFromToken).mockReturnValue(null);
+
+        const result = await deleteUserAction(7);
+
+        expect(result).toEqual({
+            success: false,
+            error: "사용자 정보를 가져올 수 없습니다.",
+        });
+        expect(deleteUserService).not.toHaveBeenCalled();
+        expect(revalidateTag).not.toHaveBeenCalled();
+    });
+
     test("다른 사용자 삭제 성공 시 사용자 태그를 초기화한다", async () => {
         vi.mocked(getUserIdFromToken).mockReturnValue(1);
         vi.mocked(deleteUserService).mockResolvedValue({

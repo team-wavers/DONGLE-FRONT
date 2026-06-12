@@ -14,7 +14,16 @@ export async function deleteUserAction(userId: number): Promise<{
 }> {
     try {
         const accessToken = await requireServerActionAccessToken();
-        const currentUserId = Number(getUserIdFromToken(accessToken));
+        const tokenUserId = getUserIdFromToken(accessToken);
+
+        if (tokenUserId === null) {
+            return {
+                success: false,
+                error: "사용자 정보를 가져올 수 없습니다.",
+            };
+        }
+
+        const currentUserId = Number(tokenUserId);
 
         if (!Number.isFinite(currentUserId)) {
             return {
