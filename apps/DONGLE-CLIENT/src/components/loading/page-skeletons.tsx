@@ -1,63 +1,36 @@
 import React from "react";
 import { Skeleton } from "@dongle/ui/skeleton";
 
-function BackLinkSkeleton() {
-    return (
-        <div className="pt-12">
-            <Skeleton className="h-10 w-36 rounded-md" />
-        </div>
-    );
-}
-
-function InfoCardSkeleton() {
-    return (
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
-            <Skeleton className="h-20 w-full" />
-        </div>
-    );
-}
-
-function ClubTabsSkeleton() {
-    return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-2 border-b border-zinc-200">
-                <Skeleton className="h-11 w-full rounded-none" />
-                <Skeleton className="h-11 w-full rounded-none" />
-                <Skeleton className="h-11 w-full rounded-none" />
-            </div>
-            <Skeleton className="h-44 w-full" />
-        </div>
-    );
-}
-
 export function ClubDetailPageSkeleton({ showBackLink = false }: { showBackLink?: boolean }) {
     return (
         <>
-            {showBackLink ? <BackLinkSkeleton /> : null}
+            {showBackLink ? (
+                <div className="pt-12">
+                    <Skeleton className="h-10 w-36 rounded-lg" />
+                </div>
+            ) : null}
             <section className="flex flex-col gap-8 py-6">
-                <header className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-5 py-4 md:flex-row md:items-end md:justify-between">
-                        <div className="flex min-w-0 items-center gap-4">
-                            <Skeleton className="size-16 rounded-full" />
-                            <Skeleton className="h-14 w-56 md:w-72" />
+                <header className="space-y-5">
+                    <div className="flex items-center gap-4 py-4">
+                        <Skeleton className="size-16 shrink-0 rounded-full" />
+                        <div className="min-w-0 flex-1 space-y-3">
+                            <Skeleton className="h-4 w-20 rounded-lg" />
+                            <Skeleton className="h-12 w-2/3 max-w-xs rounded-lg" />
                         </div>
-                        <Skeleton className="h-9 w-24 rounded-full" />
+                        <Skeleton className="hidden h-9 w-24 shrink-0 rounded-full md:block" />
                     </div>
-                    <Skeleton className="h-10 w-full max-w-sm rounded-md" />
+                    <Skeleton className="h-10 w-full max-w-md rounded-lg" />
                 </header>
 
-                <section className="grid gap-5 md:grid-cols-[minmax(0,1fr)_280px]">
-                    <div className="space-y-5">
-                        <dl className="grid gap-3 sm:grid-cols-2">
-                            <InfoCardSkeleton />
-                            <InfoCardSkeleton />
-                            <InfoCardSkeleton />
-                            <InfoCardSkeleton />
-                        </dl>
-                        <ClubTabsSkeleton />
-                    </div>
-                    <aside className="hidden md:block" aria-hidden="true" />
-                </section>
+                <div className="grid gap-4 sm:grid-cols-2">
+                    <Skeleton className="h-24 w-full rounded-xl" />
+                    <Skeleton className="h-24 w-full rounded-xl" />
+                </div>
+
+                <div className="space-y-4">
+                    <Skeleton className="h-11 w-full rounded-lg" />
+                    <Skeleton className="h-48 w-full rounded-xl" />
+                </div>
             </section>
         </>
     );
