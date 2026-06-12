@@ -1,5 +1,8 @@
 import { getClubReportListService, getClubReportService, getClubService } from "@/lib/server/cached-services";
-import type { ClubReport } from "@dongle/types/club/club.report";
+import {
+    buildReportFallbackMetadata,
+    buildReportPageMetadata,
+} from "@/lib/report-page-metadata";
 import { formatDateByLocale } from "@dongle/ui/utils";
 import { ArrowLeft, CalendarDays, PencilLine } from "lucide-react";
 import type { Metadata } from "next";
@@ -12,18 +15,6 @@ import ClientRichTextViewer from "@/components/rich-text/client-rich-text-viewer
 
 interface ClubReportDetailPageProps {
     params: Promise<{ clubId: string; reportId: string }>;
-}
-
-function buildReportDescription(report: ClubReport) {
-    const plainText = report.content
-        .replace(/<[^>]*>/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-    if (!plainText) {
-        return "활동보고서 상세 내용을 확인해보세요.";
-    }
-
-    return plainText.length > 140 ? `${plainText.slice(0, 137)}...` : plainText;
 }
 
 function parseRouteParams(clubId: string, reportId: string) {
@@ -54,10 +45,7 @@ export async function generateMetadata({ params }: ClubReportDetailPageProps): P
     const parsedParams = parseRouteParams(clubId, reportId);
 
     if (!parsedParams) {
-        return {
-            title: "활동보고서",
-            alternates: { canonical: `/clubs/${clubId}/reports/${reportId}` },
-        };
+        return buildReportFallbackMetadata(clubId, reportId, "invalid");
     }
 
     const [clubResponse, reportsResponse] = await Promise.all([
@@ -66,30 +54,13 @@ export async function generateMetadata({ params }: ClubReportDetailPageProps): P
     ]);
 
     const report = reportsResponse.isSuccess ? reportsResponse.result : null;
-    const clubName = clubResponse.isSuccess && clubResponse.result ? clubResponse.result.name : "동아리";
+    const club = clubResponse.isSuccess ? clubResponse.result : null;
 
-    if (!report) {
-        return {
-            title: "활동보고서",
-            alternates: { canonical: `/clubs/${clubId}/reports/${reportId}` },
-        };
+    if (!report || !club) {
+        return buildReportFallbackMetadata(clubId, reportId, "not_found");
     }
 
-    return {
-        title: report.title,
-        description: buildReportDescription(report),
-        alternates: {
-            canonical: `/clubs/${clubId}/reports/${reportId}`,
-        },
-        openGraph: {
-            title: `${report.title} | ${clubName}`,
-            description: buildReportDescription(report),
-            type: "article",
-            images: report.image_urls[0]
-                ? [{ url: report.image_urls[0], alt: `${report.title} 대표 사진` }]
-                : undefined,
-        },
-    };
+    return buildReportPageMetadata(report, club.name, club.id);
 }
 
 export default async function ClubReportDetailPage({ params }: ClubReportDetailPageProps) {

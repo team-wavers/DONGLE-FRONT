@@ -1,14 +1,13 @@
-import type { Metadata } from "next";
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/page-metadata";
+import { PRIVACY_PAGE_DESCRIPTION, PRIVACY_PAGE_TITLE } from "@/lib/site";
 import { PrivacyPolicy } from "@dongle/content/privacy-policy";
 
-export const metadata: Metadata = {
-  title: "개인정보처리방침",
-  description: "동글 개인정보처리방침",
-  alternates: {
-    canonical: "/privacy",
-  },
-};
+export const metadata = buildPageMetadata({
+  title: PRIVACY_PAGE_TITLE,
+  description: PRIVACY_PAGE_DESCRIPTION,
+  canonicalPath: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

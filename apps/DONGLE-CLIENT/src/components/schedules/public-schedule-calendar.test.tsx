@@ -43,7 +43,9 @@ describe("PublicScheduleCalendar", () => {
     it("공통 일정과 동아리 일정을 캘린더와 날짜순 목록에 렌더링한다", () => {
         const html = renderToStaticMarkup(<PublicScheduleCalendar schedules={schedules} visibleMonthKey="2026-06" />);
 
+        expect(html).toContain("<h1");
         expect(html).toContain("전체 일정");
+        expect(html).toContain("순천대 동아리와 총동아리연합회의 공개 일정을 월별 캘린더로 확인합니다.");
         expect(html).not.toContain(">SCHEDULE<");
         expect(html).toContain("공통 행사");
         expect(html).toContain("총동아리연합회");
