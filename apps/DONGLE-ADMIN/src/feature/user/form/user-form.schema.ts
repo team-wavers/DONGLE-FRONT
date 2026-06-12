@@ -79,8 +79,10 @@ export function buildUserEditPayload(values: UserEditFormValues, original: UserE
         payload.phone = values.phone;
     }
 
-    if (trimToEmpty(values.password)) {
-        payload.password = values.password;
+    const trimmedPassword = trimToEmpty(values.password);
+
+    if (trimmedPassword) {
+        payload.password = trimmedPassword;
     }
 
     return payload;

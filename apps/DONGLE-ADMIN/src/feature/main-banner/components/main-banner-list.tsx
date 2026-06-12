@@ -2,13 +2,22 @@ import { MainBanner } from "@dongle/types/main-banner/main-banner";
 import Link from "next/link";
 import Image from "next/image";
 import { formatKoreanDate } from "@/lib/format/date";
-import { CalendarDays, ExternalLink, Pencil } from "lucide-react";
+import { CalendarDays, ExternalLink, Images, Pencil } from "lucide-react";
 
 interface MainBannerListProps {
     banners: MainBanner[];
 }
 
 export default function MainBannerList({ banners }: MainBannerListProps) {
+    if (banners.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center rounded-lg border bg-white px-4 py-14 text-center text-muted-foreground">
+                <Images className="mb-4 h-12 w-12 opacity-50" />
+                <p className="text-base font-medium text-zinc-600">등록된 배너가 없습니다.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="overflow-hidden rounded-lg border bg-white">
             {banners.map((banner) => (

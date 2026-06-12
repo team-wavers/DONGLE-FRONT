@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import type { User } from "@dongle/types/user/user.d";
 import { Card, CardContent } from "@dongle/ui/card";
 import { User as UserIcon } from "lucide-react";
@@ -10,6 +10,7 @@ import UserCreateButton from "@/feature/user/components/user-create-button";
 
 interface FilterableUserListProps {
     users: User[];
+    currentUserId?: number | null;
 }
 
 export function normalizeUserKeyword(value: string) {
@@ -34,19 +35,10 @@ export function filterUsersByKeyword(users: User[], keyword: string) {
     return users.filter((user) => matchesUser(user, keyword));
 }
 
-export default function FilterableUserList({ users }: FilterableUserListProps) {
+export default function FilterableUserList({ users, currentUserId }: FilterableUserListProps) {
     const [inputValue, setInputValue] = useState("");
-    const [searchKeyword, setSearchKeyword] = useState("");
 
-    useEffect(() => {
-        const timer = window.setTimeout(() => {
-            setSearchKeyword(normalizeUserKeyword(inputValue));
-        }, 300);
-
-        return () => window.clearTimeout(timer);
-    }, [inputValue]);
-
-    const deferredKeyword = useDeferredValue(searchKeyword);
+    const deferredKeyword = useDeferredValue(normalizeUserKeyword(inputValue));
     const filteredUsers = useMemo(() => filterUsersByKeyword(users, deferredKeyword), [users, deferredKeyword]);
 
     if (users.length === 0) {
@@ -101,7 +93,7 @@ export default function FilterableUserList({ users }: FilterableUserListProps) {
                         <span className="text-right">관리</span>
                     </div>
                     {filteredUsers.map((user) => (
-                        <UserCard key={user.id} user={user} />
+                        <UserCard key={user.id} user={user} currentUserId={currentUserId} />
                     ))}
                 </div>
             )}

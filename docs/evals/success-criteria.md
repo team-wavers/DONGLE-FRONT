@@ -69,7 +69,7 @@
 ### 모집 기간 검증
 
 - 모집중이면 모집 시작일과 모집 마감일이 필수다.
-- 모집 마감일은 모집 시작일보다 빠를 수 없다.
+- 모집 마감일은 모집 시작일보다 늦어야 하며 같은 날짜는 허용하지 않는다.
 
 ### 회장 정보 검증 옵션
 
@@ -137,7 +137,7 @@
 ### 수정 payload 조합
 
 - 사용자 수정 payload는 변경된 필드만 포함한다.
-- 수정 폼의 비밀번호는 입력된 경우에만 payload에 포함한다.
+- 수정 폼의 비밀번호는 입력된 경우에만 trim 후 payload에 포함한다.
 
 관련 테스트:
 - [user-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/form/user-form.schema.test.ts)
@@ -152,8 +152,13 @@
 - 이름, 로그인 ID, 전화번호, 역할, 소속 동아리명이 검색 대상이다.
 - 검색 결과는 일관된 deterministic 로직으로 계산된다.
 
+### 사용자 삭제
+
+- 관리자 사용자 삭제 action은 현재 로그인한 본인 계정 삭제 요청을 서비스 호출 전에 거부해야 한다.
+
 관련 테스트:
 - [filterable-user-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/components/filterable-user-list.test.ts)
+- [delete-user.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/action/delete-user.action.test.ts)
 
 ## Next Cache Policy
 
@@ -243,7 +248,7 @@
 - 일정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
 - 일정 유형은 모집, 행사, 정기모임만 허용해야 한다.
 - 일정 제목, 시작일시, 종료일시는 필수다.
-- 종료일시는 시작일시보다 늦어야 한다.
+- 종료일시는 시작일시보다 빠를 수 없고 같은 시각은 허용한다.
 - 외부 링크는 입력값이 있으면 http 또는 https 외부 URL로 검증해야 한다.
 - 일정 저장 payload는 화면 폼 값을 trim 정규화하고 API 필드명으로 변환해야 한다.
 - 총괄관리자는 관리자 일정 화면에서 `club_id: null`인 공통 일정을 생성할 수 있어야 한다.
@@ -466,13 +471,15 @@
 - 사용자 노출용 배너는 사용 중이고 이미지 URL이 있으며 노출 기간 내인 항목만 포함한다.
 - 배너 클릭 링크는 `http(s)` URL 또는 `/`로 시작하는 내부 경로만 허용한다.
 - 허용되지 않는 링크는 사용자 노출 데이터에서 `null`로 정규화한다.
-- 사용자 배너 클릭 링크는 새 탭에서 열려야 한다.
+- 사용자 배너 클릭 링크는 내부 경로면 같은 탭, 외부 URL이면 새 탭에서 열려야 한다.
+- 관리자 배너 삭제 action은 성공/실패를 공통 `ActionResult`로 반환하고, 성공한 경우 관련 메인 배너 cache tag를 초기화해야 한다.
 
 관련 테스트:
 - [get-display-banner-image-urls.test.ts](../../packages/service/src/main-banner/get-display-banner-image-urls.test.ts)
 - [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts)
 - [main-banner-datetime.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/utils/main-banner-datetime.test.ts)
 - [main-banner-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/form/main-banner-form.schema.test.ts)
+- [delete-main-banner.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/action/delete-main-banner.action.test.ts)
 
 ### API Token Refresh Retry
 

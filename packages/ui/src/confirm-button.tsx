@@ -43,15 +43,24 @@ export function ConfirmButton({
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
+    const handleOpenChange = (nextOpen: boolean) => {
+        if (!nextOpen && isPending) return;
+        setOpen(nextOpen);
+    };
+
     const handleConfirm = () => {
         startTransition(async () => {
-            await onConfirm();
-            setOpen(false);
+            try {
+                await onConfirm();
+                setOpen(false);
+            } catch {
+                // Keep the dialog open so callers can surface the failure with their own toast/error UI.
+            }
         });
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 <Button variant={triggerVariant} className={triggerClassName} disabled={disabled}>
                     {triggerText}

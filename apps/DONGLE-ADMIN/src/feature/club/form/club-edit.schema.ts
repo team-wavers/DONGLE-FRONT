@@ -65,7 +65,7 @@ export const clubEditSchema = z
             const startDate = new Date(value.recruitmentStartDate);
             const endDate = new Date(value.recruitmentEndDate);
 
-            if (startDate > endDate) {
+            if (startDate >= endDate) {
                 context.addIssue({
                     code: z.ZodIssueCode.custom,
                     path: ["recruitmentEndDate"],

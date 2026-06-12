@@ -147,7 +147,7 @@ export const clubScheduleSchema = z
             const start = new Date(value.startsAt);
             const end = new Date(value.endsAt);
 
-            if (start >= end) {
+            if (start > end) {
                 context.addIssue({
                     code: z.ZodIssueCode.custom,
                     path: ["endsAt"],

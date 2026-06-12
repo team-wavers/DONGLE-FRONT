@@ -27,7 +27,7 @@ async function ClubReportDetailContent({ clubId, reportId }: { clubId: string; r
                 backButtonText="목록으로 돌아가기"
             />
             <div className="mt-4 flex justify-end gap-3 border-t border-gray-200 pt-4">
-                <DeleteReportButton clubId={clubId} reportId={reportId} />
+                <DeleteReportButton clubId={clubId} reportId={reportId} redirectHref={`/${clubId}/report`} />
                 <Link href={`/${clubId}/report/${reportId}/edit`}>
                     <Button className="bg-primary hover:bg-primary/90 text-white">
                         <Pencil className="w-4 h-4 mr-2" />

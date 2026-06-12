@@ -62,6 +62,19 @@ describe("clubRegisterSchema", () => {
         expect(result.error?.issues[0]?.message).toBe("모집 마감일은 모집 시작일보다 늦어야 합니다");
     });
 
+    test("모집 시작일과 마감일이 같으면 실패한다", () => {
+        const result = clubRegisterSchema.safeParse(
+            createValues({
+                recruitmentStatus: RECRUITMENT_STATUS.RECRUITING,
+                recruitmentStartDate: "2026-05-20",
+                recruitmentEndDate: "2026-05-20",
+            })
+        );
+
+        expect(result.success).toBe(false);
+        expect(result.error?.issues[0]?.message).toBe("모집 마감일은 모집 시작일보다 늦어야 합니다");
+    });
+
     test("마크업만 있는 rich text는 거부한다", () => {
         const result = clubRegisterSchema.safeParse(
             createValues({
