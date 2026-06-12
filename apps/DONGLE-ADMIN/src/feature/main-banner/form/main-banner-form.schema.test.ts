@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { buildMainBannerPayload, mainBannerSchema } from "./main-banner-form.schema";
+import { buildMainBannerPayload, createMainBannerDefaultValues, mainBannerSchema } from "./main-banner-form.schema";
 
 function createValues(overrides: Record<string, unknown> = {}) {
     return {
@@ -60,6 +60,26 @@ describe("buildMainBannerPayload", () => {
             link_url: "/clubs",
             publish_start_at: "2026-05-20 09:30:00",
             publish_end_at: "2026-05-21 09:30:15",
+            is_active: false,
+        });
+    });
+});
+
+describe("createMainBannerDefaultValues", () => {
+    test("수정 폼의 ISO 게시 일시 응답을 Seoul 기준 입력값으로 변환한다", () => {
+        const values = createMainBannerDefaultValues({
+            image_url: "https://cdn.test/banner.png",
+            link_url: "/clubs",
+            publish_start_at: "2026-05-20T10:00:00.000Z",
+            publish_end_at: "2026-05-21T10:00:00.000Z",
+            is_active: false,
+        });
+
+        expect(values).toMatchObject({
+            imageUrls: ["https://cdn.test/banner.png"],
+            link_url: "/clubs",
+            publish_start_at: "2026-05-20T19:00",
+            publish_end_at: "2026-05-21T19:00",
             is_active: false,
         });
     });

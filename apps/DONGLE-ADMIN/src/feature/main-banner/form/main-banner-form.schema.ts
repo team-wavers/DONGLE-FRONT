@@ -5,7 +5,7 @@ import type {
 } from "@dongle/types/main-banner/main-banner.response";
 import type { MainBanner } from "@dongle/types/main-banner/main-banner";
 import { normalizeDisplayBannerLinkUrl } from "@dongle/service/main-banner/main-banner.service";
-import { trimToEmpty } from "@dongle/utils";
+import { formatDateTimeForInput, trimToEmpty } from "@dongle/utils";
 import { normalizeDateTimeToApiFormat } from "@/feature/main-banner/utils/main-banner-datetime";
 
 export const mainBannerSchema = z
@@ -100,8 +100,8 @@ export function createMainBannerDefaultValues(initialData?: Partial<MainBanner>)
         imageUrls: initialData?.image_url ? [initialData.image_url] : [],
         imageFile: null,
         link_url: initialData?.link_url ?? "",
-        publish_start_at: initialData?.publish_start_at ?? "",
-        publish_end_at: initialData?.publish_end_at ?? "",
+        publish_start_at: formatDateTimeForInput(initialData?.publish_start_at),
+        publish_end_at: formatDateTimeForInput(initialData?.publish_end_at),
         is_active: initialData?.is_active ?? true,
     };
 }
