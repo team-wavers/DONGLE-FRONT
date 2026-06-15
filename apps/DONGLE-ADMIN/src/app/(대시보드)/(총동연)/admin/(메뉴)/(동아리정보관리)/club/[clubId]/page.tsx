@@ -1,6 +1,4 @@
-import { Suspense } from "react";
 import { getClubService } from "@/lib/server/cached-services";
-import { Skeleton } from "@dongle/ui/skeleton";
 import ClubForm from "@/feature/club/components/club-form/club-form";
 
 async function ClubDetailContent({ clubId }: { clubId: string }) {
@@ -23,21 +21,8 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
     );
 }
 
-function ClubDetailFallback() {
-    return (
-        <div className="flex flex-col w-full gap-4">
-            <Skeleton className="h-96 w-full rounded-2xl" />
-            <Skeleton className="h-72 w-full rounded-2xl" />
-        </div>
-    );
-}
-
 export default async function ClubDetailPage({ params }: { params: Promise<{ clubId: string }> }) {
     const { clubId } = await params;
 
-    return (
-        <Suspense fallback={<ClubDetailFallback />}>
-            <ClubDetailContent clubId={clubId} />
-        </Suspense>
-    );
+    return <ClubDetailContent clubId={clubId} />;
 }

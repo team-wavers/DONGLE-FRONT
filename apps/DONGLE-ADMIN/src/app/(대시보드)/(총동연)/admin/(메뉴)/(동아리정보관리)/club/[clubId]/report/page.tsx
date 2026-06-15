@@ -1,8 +1,6 @@
-import { Suspense } from "react";
 import ReportCard from "@/feature/report/components/report-card/report-card";
 import { getClubReportListService } from "@/lib/server/cached-services";
 import { ClubReport } from "@dongle/types/club/club.report.d";
-import { Skeleton } from "@dongle/ui/skeleton";
 import { AdminFormShell } from "@/shared/layout/form-page/admin-form-layout";
 
 async function AdminClubReportList({ clubId }: { clubId: string }) {
@@ -34,24 +32,12 @@ async function AdminClubReportList({ clubId }: { clubId: string }) {
     );
 }
 
-function AdminClubReportListFallback() {
-    return (
-        <div className="flex w-full flex-col gap-3">
-            <Skeleton className="h-28 w-full rounded-xl" />
-            <Skeleton className="h-28 w-full rounded-xl" />
-            <Skeleton className="h-28 w-full rounded-xl" />
-        </div>
-    );
-}
-
 export default async function AdminClubReportPage({ params }: { params: Promise<{ clubId: string }> }) {
     const { clubId } = await params;
 
     return (
         <AdminFormShell>
-            <Suspense fallback={<AdminClubReportListFallback />}>
-                <AdminClubReportList clubId={clubId} />
-            </Suspense>
+            <AdminClubReportList clubId={clubId} />
         </AdminFormShell>
     );
 }

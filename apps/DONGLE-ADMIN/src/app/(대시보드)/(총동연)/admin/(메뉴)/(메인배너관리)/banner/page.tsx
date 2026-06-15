@@ -1,10 +1,8 @@
-import { Suspense } from "react";
 import MainBannerList from "@/feature/main-banner/components/main-banner-list";
 import { getAdminMainBannerListService } from "@/lib/server/cached-services";
 import { ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
-import { Skeleton } from "@dongle/ui/skeleton";
 import type { MainBanner } from "@dongle/types/main-banner/main-banner";
 
 const MOCK_MAIN_BANNERS: MainBanner[] = [
@@ -82,24 +80,13 @@ async function BannerListSection() {
     }
 }
 
-function BannerListFallback() {
-    return (
-        <div className="grid gap-4">
-            <Skeleton className="h-72 w-full" />
-            <Skeleton className="h-72 w-full" />
-        </div>
-    );
-}
-
 export default function BannerManagementPage() {
     return (
         <div className="flex w-full flex-col gap-4">
             <div className="flex justify-end">
                 <BannerPageActions />
             </div>
-            <Suspense fallback={<BannerListFallback />}>
-                <BannerListSection />
-            </Suspense>
+            <BannerListSection />
         </div>
     );
 }

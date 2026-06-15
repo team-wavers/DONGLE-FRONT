@@ -1,7 +1,5 @@
-import { Suspense } from "react";
 import { getClubReportService } from "@/lib/server/cached-services";
 import ReportView from "@/feature/report/components/report-view/report-view";
-import { Skeleton } from "@dongle/ui/skeleton";
 
 async function AdminClubReportDetailContent({ clubId, reportId }: { clubId: string; reportId: string }) {
     const { result, isSuccess } = await getClubReportService(Number(clubId), Number(reportId));
@@ -30,16 +28,6 @@ async function AdminClubReportDetailContent({ clubId, reportId }: { clubId: stri
     );
 }
 
-function AdminClubReportDetailFallback() {
-    return (
-        <div className="w-full max-w-full space-y-6">
-            <Skeleton className="h-10 w-32" />
-            <Skeleton className="h-72 w-full rounded-2xl" />
-            <Skeleton className="h-64 w-full rounded-2xl" />
-        </div>
-    );
-}
-
 export default async function AdminClubReportDetailPage({
     params,
 }: {
@@ -47,9 +35,5 @@ export default async function AdminClubReportDetailPage({
 }) {
     const { reportId, clubId } = await params;
 
-    return (
-        <Suspense fallback={<AdminClubReportDetailFallback />}>
-            <AdminClubReportDetailContent clubId={clubId} reportId={reportId} />
-        </Suspense>
-    );
+    return <AdminClubReportDetailContent clubId={clubId} reportId={reportId} />;
 }
