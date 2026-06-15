@@ -1,8 +1,5 @@
-import { Suspense } from "react";
 import { getClubReportService } from "@/lib/server/cached-services";
 import ActivityReportForm from "@/feature/report/components/activity-report-form/activity-report-form";
-import { Skeleton } from "@dongle/ui/skeleton";
-import { AdminFormShell } from "@/shared/layout/form-page/admin-form-layout";
 
 async function EditReportContent({ clubId, reportId }: { clubId: string; reportId: string }) {
     const { result, isSuccess } = await getClubReportService(Number(clubId), Number(reportId));
@@ -31,22 +28,8 @@ async function EditReportContent({ clubId, reportId }: { clubId: string; reportI
     );
 }
 
-function EditReportFallback() {
-    return (
-        <AdminFormShell>
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-40" />
-            <Skeleton className="h-[34rem] w-full rounded-2xl" />
-        </AdminFormShell>
-    );
-}
-
 export default async function EditReportPage({ params }: { params: Promise<{ clubId: string; reportId: string }> }) {
     const { clubId, reportId } = await params;
 
-    return (
-        <Suspense fallback={<EditReportFallback />}>
-            <EditReportContent clubId={clubId} reportId={reportId} />
-        </Suspense>
-    );
+    return <EditReportContent clubId={clubId} reportId={reportId} />;
 }

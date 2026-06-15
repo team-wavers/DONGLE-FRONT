@@ -1,9 +1,7 @@
-import { Suspense } from "react";
 import FilterableClubList from "@/feature/club/components/filterable-club-list/filterable-club-list";
 import { getClubListService } from "@/lib/server/cached-services";
 import { Users } from "lucide-react";
 import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
-import { Skeleton } from "@dongle/ui/skeleton";
 
 async function ClubListSection() {
     const { result, isSuccess } = await getClubListService();
@@ -36,22 +34,11 @@ async function ClubListSection() {
     );
 }
 
-function ClubListFallback() {
-    return (
-        <div className="grid gap-4">
-            <Skeleton className="h-14 w-full" />
-            <Skeleton className="h-52 w-full" />
-        </div>
-    );
-}
-
 export default function ClubPage() {
     return (
         <div className="flex flex-col w-full h-full gap-4">
             <AdminPageHeader title="동아리 관리" description="동아리 정보와 활동보고서를 관리할 수 있습니다." />
-            <Suspense fallback={<ClubListFallback />}>
-                <ClubListSection />
-            </Suspense>
+            <ClubListSection />
         </div>
     );
 }

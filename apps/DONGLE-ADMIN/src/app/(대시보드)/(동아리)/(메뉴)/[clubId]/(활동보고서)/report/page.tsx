@@ -1,10 +1,8 @@
-import { Suspense } from "react";
 import ReportCard from "@/feature/report/components/report-card/report-card";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
 import { Pencil } from "lucide-react";
 import { ClubReport } from "@dongle/types/club/club.report.d";
-import { Skeleton } from "@dongle/ui/skeleton";
 import { AdminFormShell } from "@/shared/layout/form-page/admin-form-layout";
 import { loadClubReportListViewModel } from "./club-report-list-view-model";
 
@@ -42,16 +40,6 @@ async function ClubReportListContent({ clubId }: { clubId: string }) {
     );
 }
 
-function ClubReportListFallback() {
-    return (
-        <div className="flex w-full flex-col gap-3">
-            <Skeleton className="h-28 w-full rounded-xl" />
-            <Skeleton className="h-28 w-full rounded-xl" />
-            <Skeleton className="h-28 w-full rounded-xl" />
-        </div>
-    );
-}
-
 export default async function Page({ params }: { params: Promise<{ clubId: string }> }) {
     const { clubId } = await params;
 
@@ -65,9 +53,7 @@ export default async function Page({ params }: { params: Promise<{ clubId: strin
                     </Link>
                 </Button>
             </div>
-            <Suspense fallback={<ClubReportListFallback />}>
-                <ClubReportListContent clubId={clubId} />
-            </Suspense>
+            <ClubReportListContent clubId={clubId} />
         </AdminFormShell>
     );
 }
