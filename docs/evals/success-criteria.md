@@ -69,7 +69,7 @@
 ### 모집 기간 검증
 
 - 모집중이면 모집 시작일과 모집 마감일이 필수다.
-- 모집 마감일은 모집 시작일보다 빠를 수 없다.
+- 모집 마감일은 모집 시작일보다 늦어야 하며 같은 날짜는 허용하지 않는다.
 
 ### 회장 정보 검증 옵션
 
@@ -137,12 +137,14 @@
 ### 수정 payload 조합
 
 - 사용자 수정 payload는 변경된 필드만 포함한다.
-- 수정 폼의 비밀번호는 입력된 경우에만 payload에 포함한다.
+- 수정 폼의 비밀번호는 입력된 경우에만 trim 후 payload에 포함한다.
+- 계정 정보 변경 action은 사용자 수정 service 실패 응답을 성공으로 취급하지 않아야 하며, 실패 시 사용자 cache tag를 초기화하지 않아야 한다.
 
 관련 테스트:
 - [user-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/form/user-form.schema.test.ts)
 - [user-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/validation/user-form.validation.test.ts)
 - [user-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/form/user-form.action.test.ts)
+- [change-account-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/action/change-account-form.action.test.ts)
 
 ## Admin User Management
 
@@ -152,8 +154,17 @@
 - 이름, 로그인 ID, 전화번호, 역할, 소속 동아리명이 검색 대상이다.
 - 검색 결과는 일관된 deterministic 로직으로 계산된다.
 
+### 사용자 삭제
+
+- 관리자 사용자 삭제 action은 현재 로그인한 본인 계정 삭제 요청을 서비스 호출 전에 거부해야 한다.
+
+### 목록 실패 상태
+
+- 관리자 사용자 목록 조회 실패는 등록된 사용자가 없는 상태와 구분되는 실패 안내로 표시해야 한다.
+
 관련 테스트:
 - [filterable-user-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/components/filterable-user-list.test.ts)
+- [delete-user.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/action/delete-user.action.test.ts)
 
 ## Next Cache Policy
 
@@ -243,7 +254,7 @@
 - 일정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
 - 일정 유형은 모집, 행사, 정기모임만 허용해야 한다.
 - 일정 제목, 시작일시, 종료일시는 필수다.
-- 종료일시는 시작일시보다 늦어야 한다.
+- 종료일시는 시작일시보다 빠를 수 없고 같은 시각은 허용한다.
 - 외부 링크는 입력값이 있으면 http 또는 https 외부 URL로 검증해야 한다.
 - 일정 저장 payload는 화면 폼 값을 trim 정규화하고 API 필드명으로 변환해야 한다.
 - 총괄관리자는 관리자 일정 화면에서 `club_id: null`인 공통 일정을 생성할 수 있어야 한다.
@@ -253,6 +264,7 @@
 
 - 일정 생성, 수정, 삭제, 관리자 공개 상태 변경, 관리자 월간 조회 action은 공통 `ActionResult` 형태로 성공/실패를 표현해야 한다.
 - 일정 생성/수정 action은 스키마 검증 실패 시 field error와 form error를 반환해야 한다.
+- 회장 일정 생성/수정 service가 실패하거나 예외를 던지면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
 - 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
 
 관련 테스트:
@@ -268,6 +280,7 @@
 - 사용자 공개 일정 목록은 `/clubs/:clubId/public-schedules`를 호출해야 한다.
 - 회장 일정 목록은 `/clubs/:clubId/schedules`를 호출하고 status filter가 있으면 query string에 반영해야 한다.
 - 회장 일정 생성/수정/삭제는 `/clubs/:clubId/schedules` 하위 엔드포인트를 호출하고 성공한 action이 schedule tag group을 초기화해야 한다.
+- 회장 일정 생성/수정 service가 실패하거나 예외를 던지면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
 - 회장 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
 
 ### 관리자 일정 엔드포인트
@@ -369,6 +382,7 @@
 - 검색 결과가 존재하면 empty-state는 `not-empty`와 `null` message를 반환한다.
 - 검색어가 있거나 전체 필터에서 결과가 비면 `no-result`와 기본 안내 문구를 반환한다.
 - 모집중/모집마감 필터에서 해당 상태 데이터가 원천적으로 없으면 각각 `no-open-recruitment`, `no-closed-recruitment` 상태코드를 반환한다.
+- 메인 동아리 목록 조회 실패는 검색 결과 없음 또는 등록된 동아리 없음과 구분되는 실패 안내로 표시해야 한다.
 
 ### 쿼리스트링 연동
 
@@ -381,6 +395,7 @@
 관련 테스트:
 - [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts)
 - [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts)
+- [club-list-section.test.tsx](../../apps/DONGLE-CLIENT/src/components/main/club-list-section.test.tsx)
 
 ## Client Club Schedule
 
@@ -415,7 +430,14 @@
 ### 동아리 상세 활동보고서
 
 - 활동보고서 목록 조회가 실패해도 동아리 상세 페이지는 중단되지 않아야 하며, 활동보고서 탭에는 활동보고서 없음과 구분되는 실패 안내가 표시되어야 한다.
+- 활동보고서 상세 페이지는 목록 조회 실패와 단건 조회 서버 실패를 404로 처리하지 않고 오류로 전파해야 하며, 실제 not found 응답만 404로 처리해야 한다.
 - 사용자 동아리 상세의 활동보고서 탭은 기본 동아리 상세 조회와 분리된 Suspense 경계에서 조회되어야 한다.
+
+## Admin Accessibility
+
+### Viewport
+
+- 관리자 앱 viewport는 사용자의 pinch zoom을 차단하지 않아야 한다.
 
 ## Client Loading UX
 
@@ -463,16 +485,19 @@
 - 관리자 배너 폼의 시간 포함 제출값은 API가 받는 `YYYY-MM-DD HH:mm:ss` 형식이어야 한다.
 - 관리자 배너 폼은 이미지가 없으면 저장할 수 없다.
 - 관리자 배너 폼은 `http(s)` URL 또는 `/`로 시작하는 내부 경로만 링크로 허용한다.
+- 관리자 배너 payload의 빈 링크 입력값은 `null`로 정규화되어야 한다.
 - 사용자 노출용 배너는 사용 중이고 이미지 URL이 있으며 노출 기간 내인 항목만 포함한다.
 - 배너 클릭 링크는 `http(s)` URL 또는 `/`로 시작하는 내부 경로만 허용한다.
 - 허용되지 않는 링크는 사용자 노출 데이터에서 `null`로 정규화한다.
-- 사용자 배너 클릭 링크는 새 탭에서 열려야 한다.
+- 사용자 배너 클릭 링크는 내부 경로면 같은 탭, 외부 URL이면 새 탭에서 열려야 한다.
+- 관리자 배너 삭제 action은 성공/실패를 공통 `ActionResult`로 반환하고, 성공한 경우 관련 메인 배너 cache tag를 초기화해야 한다.
 
 관련 테스트:
 - [get-display-banner-image-urls.test.ts](../../packages/service/src/main-banner/get-display-banner-image-urls.test.ts)
 - [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts)
 - [main-banner-datetime.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/utils/main-banner-datetime.test.ts)
 - [main-banner-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/form/main-banner-form.schema.test.ts)
+- [delete-main-banner.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/action/delete-main-banner.action.test.ts)
 
 ### API Token Refresh Retry
 

@@ -18,6 +18,11 @@ export default function ClubDeleteButton({ clubId, clubName }: ClubDeleteButtonP
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
+    const handleOpenChange = (nextOpen: boolean) => {
+        if (!nextOpen && isPending) return;
+        setIsDeleteModalOpen(nextOpen);
+    };
+
     const handleDelete = () => {
         startTransition(async () => {
             try {
@@ -38,7 +43,7 @@ export default function ClubDeleteButton({ clubId, clubName }: ClubDeleteButtonP
     };
 
     return (
-        <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <Dialog open={isDeleteModalOpen} onOpenChange={handleOpenChange}>
             <Button type="button" variant="destructive" onClick={() => setIsDeleteModalOpen(true)} disabled={isPending}>
                 <Trash2 className="w-4 h-4 mr-2" />
                 동아리 삭제

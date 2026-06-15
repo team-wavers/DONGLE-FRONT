@@ -1,6 +1,8 @@
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
 import type { User } from "@dongle/types/user/user.d";
-import { filterUsersByKeyword, normalizeUserKeyword } from "./filterable-user-list";
+import FilterableUserList, { filterUsersByKeyword, normalizeUserKeyword } from "./filterable-user-list";
 
 const users = [
     {
@@ -43,4 +45,11 @@ test("filterUsersByKeyword는 이름, 로그인 ID, 전화번호, 역할, 동아
     expect(filterUsersByKeyword(users, "9876").map((user) => user.id)).toEqual([2]);
     expect(filterUsersByKeyword(users, "관리자").map((user) => user.id)).toEqual([1]);
     expect(filterUsersByKeyword(users, "디메이커").map((user) => user.id)).toEqual([2]);
+});
+
+test("FilterableUserList는 사용자 조회 실패 상태를 빈 목록과 구분한다", () => {
+    const html = renderToStaticMarkup(React.createElement(FilterableUserList, { users: [], loadFailed: true }));
+
+    expect(html).toContain("사용자 목록을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.");
+    expect(html).not.toContain("등록된 사용자가 없습니다.");
 });

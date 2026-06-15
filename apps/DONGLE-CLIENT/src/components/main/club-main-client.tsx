@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import ClubListSection from "@/components/main/club-list-section";
 import ClubMainHeroBannerCarousel from "@/components/main/club-main-hero-banner-carousel";
 import ClubSearchSection from "@/components/main/club-search-section";
@@ -18,9 +19,10 @@ type ClubListItemViewModel = {
 interface ClubMainClientProps {
     clubs: ClubListItemViewModel[];
     banners: DisplayMainBannerItem[];
+    clubsLoadFailed?: boolean;
 }
 
-export default function ClubMainClient({ clubs, banners }: ClubMainClientProps) {
+export default function ClubMainClient({ clubs, banners, clubsLoadFailed = false }: ClubMainClientProps) {
     const {
         searchQuery,
         setSearchQuery,
@@ -49,7 +51,12 @@ export default function ClubMainClient({ clubs, banners }: ClubMainClientProps) 
                     onCategoryChange={setActiveCategory}
                     onResetFilters={resetActiveFilters}
                 />
-                <ClubListSection clubs={filteredClubs} summaryText={summaryText} emptyStateMessage={emptyState.message} />
+                <ClubListSection
+                    clubs={filteredClubs}
+                    summaryText={clubsLoadFailed ? "동아리 목록을 불러오지 못했습니다." : summaryText}
+                    emptyStateMessage={emptyState.message}
+                    loadFailed={clubsLoadFailed}
+                />
             </section>
         </section>
     );

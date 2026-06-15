@@ -63,6 +63,24 @@ describe("buildMainBannerPayload", () => {
             is_active: false,
         });
     });
+
+    test("빈 링크는 API payload에서 null로 정규화한다", () => {
+        expect(
+            buildMainBannerPayload(
+                {
+                    imageUrls: [],
+                    imageFile: null,
+                    link_url: "   ",
+                    publish_start_at: "2026-05-20T09:30",
+                    publish_end_at: "2026-05-21T09:30",
+                    is_active: true,
+                },
+                "https://cdn.test/banner.png"
+            )
+        ).toMatchObject({
+            link_url: null,
+        });
+    });
 });
 
 describe("createMainBannerDefaultValues", () => {

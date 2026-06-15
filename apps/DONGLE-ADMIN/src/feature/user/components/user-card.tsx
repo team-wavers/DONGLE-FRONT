@@ -7,6 +7,7 @@ import { User } from "@dongle/types/user/user.d";
 import { Badge } from "@dongle/ui/badge";
 import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@dongle/ui/tooltip";
 import { Calendar, Edit, Phone, Trash2, User as UserIcon } from "lucide-react";
 import UserEditForm from "@/feature/user/components/user-edit-form";
 import { deleteUserAction } from "@/feature/user/action/delete-user.action";
@@ -16,19 +17,26 @@ import { toast } from "sonner";
 
 interface UserCardProps {
     user: User;
+    currentUserId?: number | null;
 }
 
-export default function UserCard({ user }: UserCardProps) {
+export default function UserCard({ user, currentUserId }: UserCardProps) {
     const router = useRouter();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
+    const isCurrentUser = currentUserId === user.id;
 
     const handleEditSuccess = () => {
         setIsEditModalOpen(false);
     };
 
     const handleDelete = () => {
+        if (isCurrentUser) {
+            toast.error("본인 계정은 삭제할 수 없습니다.");
+            return;
+        }
+
         startTransition(async () => {
             try {
                 const result = await deleteUserAction(user.id);
@@ -45,6 +53,11 @@ export default function UserCard({ user }: UserCardProps) {
                 toast.error("사용자 삭제 중 오류가 발생했습니다.");
             }
         });
+    };
+
+    const handleDeleteOpenChange = (nextOpen: boolean) => {
+        if (!nextOpen && isPending) return;
+        setIsDeleteModalOpen(nextOpen);
     };
 
     return (
@@ -83,15 +96,22 @@ export default function UserCard({ user }: UserCardProps) {
                         <Edit className="h-4 w-4" />
                         수정
                     </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsDeleteModalOpen(true)}
-                        className="h-9 shrink-0 gap-1 text-red-600 hover:bg-red-50 hover:text-red-700"
-                        disabled={isPending}>
-                        <Trash2 className="h-4 w-4" />
-                        삭제
-                    </Button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setIsDeleteModalOpen(true)}
+                                    className="h-9 shrink-0 gap-1 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                    disabled={isPending || isCurrentUser}>
+                                    <Trash2 className="h-4 w-4" />
+                                    삭제
+                                </Button>
+                            </span>
+                        </TooltipTrigger>
+                        {isCurrentUser ? <TooltipContent>본인 계정은 삭제할 수 없습니다.</TooltipContent> : null}
+                    </Tooltip>
                 </div>
             </div>
 
@@ -104,7 +124,7 @@ export default function UserCard({ user }: UserCardProps) {
                 />
             )}
 
-            <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+            <Dialog open={isDeleteModalOpen} onOpenChange={handleDeleteOpenChange}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>사용자 삭제 확인</DialogTitle>

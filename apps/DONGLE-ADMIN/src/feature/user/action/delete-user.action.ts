@@ -2,6 +2,7 @@
 
 import { deleteUserService } from "@dongle/service/user/user.service";
 import { userTagGroups } from "@dongle/service";
+import { getUserIdFromToken } from "@dongle/api/utils/jwt.util";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
@@ -12,7 +13,31 @@ export async function deleteUserAction(userId: number): Promise<{
     error?: string;
 }> {
     try {
-        await requireServerActionAccessToken();
+        const accessToken = await requireServerActionAccessToken();
+        const tokenUserId = getUserIdFromToken(accessToken);
+
+        if (tokenUserId === null) {
+            return {
+                success: false,
+                error: "사용자 정보를 가져올 수 없습니다.",
+            };
+        }
+
+        const currentUserId = Number(tokenUserId);
+
+        if (!Number.isFinite(currentUserId)) {
+            return {
+                success: false,
+                error: "사용자 정보를 가져올 수 없습니다.",
+            };
+        }
+
+        if (currentUserId === userId) {
+            return {
+                success: false,
+                error: "본인 계정은 삭제할 수 없습니다.",
+            };
+        }
 
         const result = await deleteUserService(userId);
 

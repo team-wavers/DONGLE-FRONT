@@ -1,10 +1,6 @@
 import { Suspense } from "react";
-import {
-    getClubListService,
-    getDisplayMainBannerItems,
-    getPublicMainBannerListService,
-} from "@/lib/server/cached-services";
 import ClubMainClient from "@/components/main/club-main-client";
+import { loadHomePageViewData } from "./home-page-data";
 import { Skeleton } from "@dongle/ui/skeleton";
 import type { DisplayMainBannerItem } from "@dongle/service/main-banner/get-display-banner-image-urls";
 
@@ -24,28 +20,15 @@ function getDevelopmentFallbackBanners(banners: DisplayMainBannerItem[]) {
 }
 
 async function HomePageContent() {
-    const [clubListResponse, mainBannerResponse] = await Promise.all([
-        getClubListService(),
-        getPublicMainBannerListService(),
-    ]);
+    const { clubs, banners, clubsLoadFailed } = await loadHomePageViewData();
 
-    const clubs =
-        clubListResponse.isSuccess && clubListResponse.result
-            ? clubListResponse.result.map((club) => ({
-                  id: club.id,
-                  name: club.name,
-                  icon_url: club.icon_url,
-                  category: club.category,
-                  tags: club.tags,
-                  is_recruiting: club.is_recruiting,
-              }))
-            : [];
-    const banners =
-        mainBannerResponse.isSuccess && mainBannerResponse.result
-            ? getDisplayMainBannerItems(mainBannerResponse.result)
-            : [];
-
-    return <ClubMainClient clubs={clubs} banners={getDevelopmentFallbackBanners(banners)} />;
+    return (
+        <ClubMainClient
+            clubs={clubs}
+            banners={getDevelopmentFallbackBanners(banners)}
+            clubsLoadFailed={clubsLoadFailed}
+        />
+    );
 }
 
 function HomePageFallback() {

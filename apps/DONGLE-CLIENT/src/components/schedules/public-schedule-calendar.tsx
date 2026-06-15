@@ -248,6 +248,13 @@ export default function PublicScheduleCalendar({
 
     return (
         <section className="space-y-5 py-6 md:py-10">
+            <header className="space-y-1">
+                <h1 className="text-2xl font-bold text-zinc-950 md:text-3xl">전체 일정</h1>
+                <p className="text-sm font-medium text-zinc-500">
+                    순천대 동아리와 총동아리연합회의 공개 일정을 월별 캘린더로 확인합니다.
+                </p>
+            </header>
+
             <div className="md:hidden">
                 <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-3">
                     <Button asChild variant="outline" size="icon">

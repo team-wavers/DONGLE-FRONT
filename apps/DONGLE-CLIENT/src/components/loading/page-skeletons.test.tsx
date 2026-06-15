@@ -4,15 +4,13 @@ import { describe, expect, it } from "vitest";
 import { ClubDetailPageSkeleton, ClubReportDetailPageSkeleton } from "./page-skeletons";
 
 describe("page skeletons", () => {
-    it("동아리 상세 스켈레톤은 주요 상세 영역과 탭 영역을 렌더링한다", () => {
+    it("동아리 상세 스켈레톤은 border 없이 큰 블록 위주로 렌더링한다", () => {
         const html = renderToStaticMarkup(<ClubDetailPageSkeleton showBackLink />);
 
         expect(html).toContain("pt-12");
-        expect(html).toContain("sm:grid-cols-2");
-        expect(html).toContain("grid-cols-3");
-        expect(html).toContain("h-20");
-        expect(html).toContain("h-44");
-        expect(html.match(/data-slot="skeleton"/g)?.length ?? 0).toBeLessThanOrEqual(14);
+        expect(html).toContain("rounded-xl");
+        expect(html).not.toContain("border");
+        expect(html.match(/data-slot="skeleton"/g)?.length ?? 0).toBeLessThanOrEqual(10);
     });
 
     it("활동보고서 상세 스켈레톤은 제목, 이미지, 본문, 다른 보고서 영역을 렌더링한다", () => {

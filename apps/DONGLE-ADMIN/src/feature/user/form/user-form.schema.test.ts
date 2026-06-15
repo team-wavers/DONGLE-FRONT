@@ -69,4 +69,25 @@ describe("buildUserEditPayload", () => {
             password: "new-password",
         });
     });
+
+    test("입력된 비밀번호는 trim 후 payload에 포함한다", () => {
+        expect(
+            buildUserEditPayload(
+                {
+                    name: "운영자",
+                    login_id: "admin",
+                    password: " new-password ",
+                    phone: "010-9999-9999",
+                },
+                {
+                    name: "운영자",
+                    login_id: "admin",
+                    password: "",
+                    phone: "010-9999-9999",
+                }
+            )
+        ).toEqual({
+            password: "new-password",
+        });
+    });
 });

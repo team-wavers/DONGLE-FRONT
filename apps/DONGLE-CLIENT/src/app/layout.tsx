@@ -3,43 +3,40 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import HeaderScheduleLink from "@/components/navigation/header-schedule-link";
+import SiteJsonLd from "@/components/seo/site-json-ld";
+import { DEFAULT_OG_IMAGE_PATH, SITE_DESCRIPTION, SITE_HOME_TITLE, SITE_TITLE, SITE_URL } from "@/lib/site";
 import { AppHeader } from "@dongle/ui/headers/app-header";
 import "./globals.css";
 
-const siteUrl = "https://dongle.wavers.kr";
-const siteTitle = "동글";
-const siteDescription = "우리의 동아리, 우리의 동글";
-const defaultOgImage = "/logo/logo-og.png";
-
 export const metadata: Metadata = {
-    metadataBase: new URL(siteUrl),
+    metadataBase: new URL(SITE_URL),
     title: {
-        default: siteTitle,
+        default: SITE_TITLE,
         template: "%s | 동글",
     },
-    description: siteDescription,
+    description: SITE_DESCRIPTION,
     alternates: {
         canonical: "/",
     },
     openGraph: {
-        title: siteTitle,
-        description: siteDescription,
-        url: siteUrl,
-        siteName: siteTitle,
+        title: SITE_HOME_TITLE,
+        description: SITE_DESCRIPTION,
+        url: SITE_URL,
+        siteName: SITE_TITLE,
         locale: "ko_KR",
         type: "website",
         images: [
             {
-                url: defaultOgImage,
+                url: DEFAULT_OG_IMAGE_PATH,
                 alt: "동글 로고",
             },
         ],
     },
     twitter: {
         card: "summary_large_image",
-        title: siteTitle,
-        description: siteDescription,
-        images: [defaultOgImage],
+        title: SITE_HOME_TITLE,
+        description: SITE_DESCRIPTION,
+        images: [DEFAULT_OG_IMAGE_PATH],
     },
     icons: {
         icon: "/favicon.ico",
@@ -50,6 +47,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
     return (
         <html lang="ko">
+            <head>
+                <SiteJsonLd />
+            </head>
             <body className="min-h-screen bg-white text-zinc-900">
                 <div className="min-h-screen flex flex-col pb-64">
                     <AppHeader

@@ -1,7 +1,7 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useDeferredValue, useMemo, useState } from "react";
+import Link from "next/link";
 import { ArrowRight, Building2, Users } from "lucide-react";
 import { Club } from "@dongle/types/club/club.d";
 import { Badge } from "@dongle/ui/badge";
@@ -38,19 +38,9 @@ export default function FilterableClubList({
     emptySearchMessage,
     searchPlaceholder,
 }: FilterableClubListProps) {
-    const router = useRouter();
     const [inputValue, setInputValue] = useState("");
-    const [searchKeyword, setSearchKeyword] = useState("");
 
-    useEffect(() => {
-        const timer = window.setTimeout(() => {
-            setSearchKeyword(normalizeClubKeyword(inputValue));
-        }, 300);
-
-        return () => window.clearTimeout(timer);
-    }, [inputValue]);
-
-    const deferredKeyword = useDeferredValue(searchKeyword);
+    const deferredKeyword = useDeferredValue(normalizeClubKeyword(inputValue));
     const filteredClubs = useMemo(() => filterClubsByKeyword(clubs, deferredKeyword), [clubs, deferredKeyword]);
 
     if (clubs.length === 0) {
@@ -81,10 +71,9 @@ export default function FilterableClubList({
             ) : (
                 <div className="overflow-hidden rounded-lg border bg-white">
                     {filteredClubs.map((club) => (
-                        <button
+                        <Link
                             key={club.id}
-                            type="button"
-                            onClick={() => router.push(`/admin/club/${club.id}`)}
+                            href={`/admin/club/${club.id}`}
                             className="grid w-full cursor-pointer grid-cols-1 items-center gap-4 border-b px-5 py-4 text-left transition-colors last:border-b-0 hover:bg-zinc-50 md:grid-cols-[minmax(0,1fr)_140px_120px_40px]">
                             <div className="flex min-w-0 items-center gap-3">
                                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600">
@@ -109,7 +98,7 @@ export default function FilterableClubList({
                             <div className="hidden justify-self-end text-muted-foreground md:block">
                                 <ArrowRight className="h-5 w-5" />
                             </div>
-                        </button>
+                        </Link>
                     ))}
                 </div>
             )}

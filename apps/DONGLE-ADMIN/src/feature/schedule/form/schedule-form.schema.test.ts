@@ -70,6 +70,21 @@ describe("clubScheduleSchema", () => {
         );
     });
 
+    it("시작일시와 종료일시가 같으면 허용한다", () => {
+        const result = clubScheduleSchema.safeParse({
+            title: "CMUX 일정",
+            type: "event",
+            startsAt: "2026-06-16T20:00",
+            endsAt: "2026-06-16T20:00",
+            isPublic: true,
+            location: "",
+            description: "",
+            externalUrl: "",
+        });
+
+        expect(result.success).toBe(true);
+    });
+
     it("date-only 또는 존재하지 않는 날짜시간은 일정 일시로 허용하지 않는다", () => {
         const result = clubScheduleSchema.safeParse({
             title: "CMUX 일정",

@@ -1,14 +1,13 @@
 import { Suspense } from "react";
-import { getUserListService } from "@/lib/server/cached-services";
 import { Skeleton } from "@dongle/ui/skeleton";
 import FilterableUserList from "@/feature/user/components/filterable-user-list";
 import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
+import { loadUserListViewModel } from "./user-list-view-model";
 
 async function UserListSection() {
-    const userListResponse = await getUserListService();
-    const users = userListResponse.result || [];
+    const { users, currentUserId, loadFailed } = await loadUserListViewModel();
 
-    return <FilterableUserList users={users} />;
+    return <FilterableUserList users={users} currentUserId={currentUserId} loadFailed={loadFailed} />;
 }
 
 function UserListFallback() {

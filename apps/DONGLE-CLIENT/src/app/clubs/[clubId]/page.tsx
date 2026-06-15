@@ -19,17 +19,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { buildClubFallbackMetadata, buildClubPageMetadata } from "@/lib/club-page-metadata";
 
 interface ClubDetailPageProps {
     params: Promise<{ clubId: string }>;
-}
-
-const siteTitle = "동글";
-const defaultOgImage = "/logo/logo-og.png";
-
-function buildClubDescription(description: string, mainActivities: string) {
-    const rawDescription = description?.trim() || mainActivities?.trim() || "동아리 상세 정보를 확인해보세요.";
-    return rawDescription.length > 140 ? `${rawDescription.slice(0, 137)}...` : rawDescription;
 }
 
 function ClubTabPanelSkeleton() {
@@ -93,59 +86,16 @@ export async function generateMetadata({ params }: ClubDetailPageProps): Promise
     const clubIdNumber = Number(clubId);
 
     if (Number.isNaN(clubIdNumber)) {
-        return {
-            title: "동아리 상세",
-            alternates: {
-                canonical: `/clubs/${clubId}`,
-            },
-        };
+        return buildClubFallbackMetadata(clubId, "invalid");
     }
 
     const clubResponse = await getClubService(clubIdNumber);
 
     if (!clubResponse.isSuccess || !clubResponse.result) {
-        return {
-            title: "동아리 상세",
-            description: "동아리 상세 정보를 확인해보세요.",
-            alternates: {
-                canonical: `/clubs/${clubId}`,
-            },
-        };
+        return buildClubFallbackMetadata(clubId, "not_found");
     }
 
-    const club = clubResponse.result;
-    const title = club.name;
-    const description = buildClubDescription(club.description, club.main_activities);
-    const image = club.icon_url || defaultOgImage;
-    const canonicalPath = `/clubs/${club.id}`;
-
-    return {
-        title,
-        description,
-        alternates: {
-            canonical: canonicalPath,
-        },
-        openGraph: {
-            title: `${title} | ${siteTitle}`,
-            description,
-            url: canonicalPath,
-            siteName: siteTitle,
-            locale: "ko_KR",
-            type: "article",
-            images: [
-                {
-                    url: image,
-                    alt: `${title} 대표 이미지`,
-                },
-            ],
-        },
-        twitter: {
-            card: "summary_large_image",
-            title: `${title} | ${siteTitle}`,
-            description,
-            images: [image],
-        },
-    };
+    return buildClubPageMetadata(clubResponse.result);
 }
 
 async function ClubDetailContent({ clubId }: { clubId: string }) {

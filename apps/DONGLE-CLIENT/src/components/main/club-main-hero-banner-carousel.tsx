@@ -68,6 +68,7 @@ export default function ClubMainHeroBannerCarousel({ banners }: ClubMainHeroBann
                 <CarouselContent className="ml-0">
                     {banners.map((banner, index) => {
                         const linkUrl = banner.linkUrl;
+                        const isInternalLink = linkUrl?.startsWith("/") ?? false;
                         const image = (
                             <div className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-50">
                                 <Image
@@ -88,8 +89,8 @@ export default function ClubMainHeroBannerCarousel({ banners }: ClubMainHeroBann
                                 {linkUrl ? (
                                     <Link
                                         href={linkUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                        target={isInternalLink ? undefined : "_blank"}
+                                        rel={isInternalLink ? undefined : "noopener noreferrer"}
                                         onClick={() =>
                                             trackDongleEvent("banner_click", {
                                                 destination: linkUrl,

@@ -53,7 +53,7 @@ export const clubRegisterSchema = z
             const startDate = new Date(values.recruitmentStartDate);
             const endDate = new Date(values.recruitmentEndDate);
 
-            if (startDate > endDate) {
+            if (startDate >= endDate) {
                 ctx.addIssue({
                     code: "custom",
                     path: ["recruitmentEndDate"],
