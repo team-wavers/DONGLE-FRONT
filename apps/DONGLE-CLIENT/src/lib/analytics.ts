@@ -68,7 +68,7 @@ export function getPostHogInitOptions() {
         ui_host: "https://us.posthog.com",
         autocapture: false,
         defaults: "2026-01-30" as const,
-        capture_exceptions: true,
+        capture_exceptions: false,
         disable_session_recording: true,
         respect_dnt: true,
         debug: process.env.NODE_ENV === "development",
