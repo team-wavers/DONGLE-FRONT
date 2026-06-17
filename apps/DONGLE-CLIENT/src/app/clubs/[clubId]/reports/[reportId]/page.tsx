@@ -3,6 +3,7 @@ import {
     buildReportFallbackMetadata,
     buildReportPageMetadata,
 } from "@/lib/report-page-metadata";
+import { isClubReportNotFoundResponse } from "@dongle/service/club/club.report.service";
 import { formatDateByLocale } from "@dongle/ui/utils";
 import { ArrowLeft, CalendarDays, PencilLine } from "lucide-react";
 import type { Metadata } from "next";
@@ -26,18 +27,6 @@ function parseRouteParams(clubId: string, reportId: string) {
     }
 
     return { clubIdNumber, reportIdNumber };
-}
-
-function isReportNotFoundResponse(response: { error?: { detail?: string; message?: string } }) {
-    const detail = response.error?.detail?.toLowerCase() ?? "";
-    const message = response.error?.message?.toLowerCase() ?? "";
-
-    return (
-        detail.includes("report_id:") ||
-        message.includes("찾을 수 없습니다") ||
-        message.includes("존재하지 않습니다") ||
-        message.includes("not found")
-    );
 }
 
 export async function generateMetadata({ params }: ClubReportDetailPageProps): Promise<Metadata> {
@@ -87,7 +76,7 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
     }
 
     if (!reportResponse.isSuccess) {
-        if (isReportNotFoundResponse(reportResponse)) {
+        if (isClubReportNotFoundResponse(reportResponse)) {
             notFound();
         }
 

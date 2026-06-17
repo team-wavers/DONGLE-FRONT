@@ -66,6 +66,22 @@ function isClubReportNotFoundError(error: unknown): boolean {
     );
 }
 
+export function isClubReportNotFoundResponse(response: ClubReportResponse): boolean {
+    if (response.isSuccess) {
+        return false;
+    }
+
+    const detail = response.error.detail.toLowerCase();
+    const message = response.error.message.toLowerCase();
+
+    return (
+        detail.includes("report_id:") ||
+        message.includes("찾을 수 없습니다") ||
+        message.includes("존재하지 않습니다") ||
+        message.includes("not found")
+    );
+}
+
 function createClubReportNotFoundResponse(reportId: number): ClubReportResponse {
     return {
         isSuccess: false,
