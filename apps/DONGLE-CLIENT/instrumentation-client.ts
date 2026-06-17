@@ -1,4 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
+import posthog from "posthog-js";
+import { getPostHogInitOptions } from "@/lib/analytics";
 import { isLocalBrowserRuntime, isSentryDisabledByEnv } from "./sentry.shared";
 
 const sentryDsn =
@@ -22,5 +24,11 @@ Sentry.init({
     }),
   ],
 });
+
+const posthogToken = process.env.NEXT_PUBLIC_POSTHOG_TOKEN;
+
+if (posthogToken) {
+    posthog.init(posthogToken, getPostHogInitOptions());
+}
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

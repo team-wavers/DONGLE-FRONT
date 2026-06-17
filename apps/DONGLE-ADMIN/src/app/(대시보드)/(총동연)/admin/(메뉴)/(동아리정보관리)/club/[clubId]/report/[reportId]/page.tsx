@@ -1,10 +1,17 @@
 import { getClubReportService } from "@/lib/server/cached-services";
 import ReportView from "@/feature/report/components/report-view/report-view";
+import { isClubReportNotFoundResponse } from "@dongle/service/club/club.report.service";
+import { notFound } from "next/navigation";
 
 async function AdminClubReportDetailContent({ clubId, reportId }: { clubId: string; reportId: string }) {
-    const { result, isSuccess } = await getClubReportService(Number(clubId), Number(reportId));
+    const reportResponse = await getClubReportService(Number(clubId), Number(reportId));
+    const { result, isSuccess } = reportResponse;
 
     if (!isSuccess) {
+        if (isClubReportNotFoundResponse(reportResponse)) {
+            notFound();
+        }
+
         throw new Error("활동보고서를 가져오는데 실패했습니다.");
     }
 

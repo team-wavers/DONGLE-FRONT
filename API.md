@@ -938,7 +938,7 @@ Authorization: Bearer {accessToken}
 -   `title`, `location`은 최대 100자입니다.
 -   `external_url`은 최대 2048자이며 공백 또는 누락 시 `null`로 저장됩니다.
 -   timezone이 없는 날짜/시간은 Seoul 기준으로 해석됩니다.
--   시작일시는 종료일시보다 이전이어야 합니다.
+-   시작일시는 종료일시보다 늦을 수 없습니다(시작일시와 종료일시가 같은 값도 허용됩니다).
 
 **응답**: `ClubSchedule`
 
