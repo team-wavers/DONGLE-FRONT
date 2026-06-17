@@ -1,6 +1,6 @@
 import type { FetchOptions } from "./fetch-types";
 import { makeRequest } from "./make-request";
-import { createSyntheticErrorResponse } from "./handle-error-response";
+import { parseJsonOrSynthetic } from "./parse-json";
 import { refreshToken } from "./refresh-token";
 
 class FetchInstance {
@@ -38,31 +38,6 @@ class FetchInstance {
         });
     }
 
-    private async parseJsonOrSynthetic<T = unknown>({
-        response,
-        requestPayload,
-        url,
-        method,
-    }: {
-        response: Response;
-        requestPayload?: unknown;
-        url: string;
-        method: string;
-    }): Promise<T> {
-        try {
-            return (await response.json()) as T;
-        } catch (error) {
-            // 서버 인터셉터를 거치지 않은 진짜 예외(HTML body 등)도 throw하지 않고 합성 실패 응답을 반환한다.
-            return createSyntheticErrorResponse({
-                response,
-                requestPayload,
-                url,
-                method,
-                parseError: error,
-            }) as unknown as T;
-        }
-    }
-
     private async refreshToken(): Promise<{ success: boolean; accessToken?: string }> {
         return refreshToken({ baseUrl: this.baseUrl });
     }
@@ -75,7 +50,7 @@ class FetchInstance {
      */
     public async get<T = unknown>(url: string, options?: FetchOptions): Promise<T> {
         const response = await this.makeRequest({ url, method: "GET", options });
-        return this.parseJsonOrSynthetic<T>({ response, url, method: "GET" });
+        return parseJsonOrSynthetic<T>({ response, url, method: "GET" });
     }
 
     /**
@@ -92,7 +67,7 @@ class FetchInstance {
             data,
             options,
         });
-        return this.parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "POST" });
+        return parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "POST" });
     }
 
     /**
@@ -109,7 +84,7 @@ class FetchInstance {
             data,
             options,
         });
-        return this.parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "PUT" });
+        return parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "PUT" });
     }
 
     /**
@@ -126,7 +101,7 @@ class FetchInstance {
             data,
             options,
         });
-        return this.parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "PATCH" });
+        return parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "PATCH" });
     }
 
     /**
@@ -137,7 +112,7 @@ class FetchInstance {
      */
     public async delete<T = unknown>(url: string, options?: FetchOptions): Promise<T> {
         const response = await this.makeRequest({ url, method: "DELETE", options });
-        return this.parseJsonOrSynthetic<T>({ response, url, method: "DELETE" });
+        return parseJsonOrSynthetic<T>({ response, url, method: "DELETE" });
     }
 }
 

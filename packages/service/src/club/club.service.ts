@@ -9,11 +9,13 @@ import {
     ClubIconImageResponse,
 } from "@dongle/types/club/club.response";
 import FetchInstance from "@dongle/api/instance";
+import BrowserInstance from "@dongle/api/browser-instance";
 import { Response } from "@dongle/types/response";
 import type { FetchOptions } from "@dongle/api/fetch-types";
 import { clubTagGroups, PUBLIC_REVALIDATE_SECONDS } from "../cache-tags";
 
 const instance = FetchInstance.getInstance();
+const browserInstance = BrowserInstance.getInstance();
 
 export type ServiceFetchPolicy = "public" | "admin";
 
@@ -55,16 +57,7 @@ export const deleteClubService = async (id: number): Promise<ClubDeleteResponse>
 
 export const issueClubRegisterUrlService = async (): Promise<Response<string>> => {
     // Next.js API Route를 통해 요청 (same-origin, 쿠키 자동 전송)
-    const response = await fetch("/api/clubs/registration-urls", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        credentials: "include",
-    });
-
-    const data: Response<string> = await response.json();
-    return data;
+    return browserInstance.post<Response<string>>("/api/clubs/registration-urls");
 };
 
 export const uploadClubIconService = async (id: number, icon: File): Promise<ClubIconImageResponse> => {
