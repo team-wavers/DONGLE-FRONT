@@ -16,9 +16,9 @@
 | RT-3 | `report.image_urls.some()` null guard 없음 | 런타임 | High | pending |
 | RT-4 | `response.error?.detail` 미검증 | 런타임 | High | pending |
 | RT-5 | logout startTransition 에러 미처리 | 런타임 | Medium | pending |
-| API-1 | `schedule.isPublic` — 실제 타입은 `is_public` | API 계약 | Critical | pending |
-| API-2 | 삭제 Action `.success` vs `.ok` 혼용 | API 계약 | Critical | pending |
-| API-3 | service layer throw vs return 불일치 | API 계약 | High | pending |
+| API-1 | ~~`schedule.isPublic` — 실제 타입은 `is_public`~~ | API 계약 | ~~Critical~~ | **closed (오탐)** |
+| API-2 | 삭제 Action `.success` vs `.ok` 혼용 (프론트 컨벤션 미준수) | API 계약 | Critical | pending |
+| API-3 | `instance` throw-on-error로 `isSuccess` 분기 도달 불가능 (서버 스펙 확인됨) | API 계약 | Critical | pending |
 | CACHE-1 | 클럽/배너 삭제 후 list 캐시 태그 누락 | 캐시/상태 | High | pending |
 | CACHE-2 | 월간 이동 시 로컬 상태 전체 교체 | 캐시/상태 | Medium | pending |
 | CACHE-3 | schedule 삭제 후 list 태그 범위 누락 | 캐시/상태 | Medium | pending |
@@ -182,33 +182,33 @@ startTransition(async () => {
 
 ## 3. API 계약 위험
 
-### API-1. `schedule.isPublic` — 실제 타입은 `is_public` (snake_case)
+> 2026-06-17 추가 검증: `../DONGLE-SERVER` 실제 소스(엔티티/DTO/매퍼/전역 인터셉터)를 확인하여 아래 3개 항목을 서버 스펙 기준으로 재작성함.
+
+### API-1. (제거됨 — false positive) `schedule.isPublic` 관련 항목
 
 | | |
 |---|---|
-| **심각도** | Critical |
-| **상태** | pending |
+| **심각도** | ~~Critical~~ |
+| **상태** | **closed (오탐)** |
 | **파일** | `apps/DONGLE-ADMIN/src/feature/schedule/form/schedule-form.schema.ts` L175 |
 
-**문제**
+**재검증 결과 (2026-06-17)**
+
+최초 리뷰는 `createClubScheduleDefaultValues`가 `@dongle/types/club/club.schedule`의 `ClubSchedule`(snake_case `is_public`)을 받는다고 가정했으나, 실제로 이 함수가 import하는 `ClubSchedule`은 **로컬 타입** `apps/DONGLE-ADMIN/src/feature/schedule/schedule.types.ts`이며 여기는 `isPublic: boolean`(camelCase)으로 정의돼 있다.
 
 ```typescript
-export function createClubScheduleDefaultValues(schedule?: ClubSchedule | null) {
-    return {
-        isPublic: schedule.isPublic, // 항상 undefined — 타입 정의는 is_public
-    };
-}
+// schedule-form.schema.ts L4 — @dongle/types가 아니라 로컬 타입을 import
+import type { ClubSchedule, ScheduleType } from "../schedule.types";
 ```
 
-`packages/types/src/club/club.schedule.d.ts`에 `is_public: boolean`으로 정의돼 있으나 코드는 camelCase로 접근한다. 폼 기본값이 항상 `undefined`가 되어 공개/비공개 설정이 초기화된다.
-
-**수정**
+그리고 raw API 응답(`is_public`)에서 로컬 뷰(`isPublic`)로의 변환은 `schedule.utils.ts` L435, L457에서 이미 이뤄지고 있다.
 
 ```typescript
-isPublic: schedule?.is_public,
+// schedule.utils.ts
+isPublic: schedule.is_public, // raw API → 로컬 뷰 변환, 정상 동작
 ```
 
-매핑 레이어(`schedule.utils.ts`)에서 이미 변환하는지 확인 후, 변환된 값이 전달되는 경로인지 원본 API 데이터가 전달되는 경로인지 명확히 분리할 것.
+호출부(`schedule-form-dialog.tsx`)도 항상 이 변환을 거친 로컬 `ClubSchedule`을 전달하므로 `schedule.isPublic`은 `undefined`가 되지 않는다. 실제 버그가 아니므로 항목을 닫는다.
 
 ---
 
@@ -219,54 +219,96 @@ isPublic: schedule?.is_public,
 | **심각도** | Critical |
 | **상태** | pending |
 
-**문제**
+**서버 스펙 확인**
 
-| 액션 | 반환 형태 | 호출부 확인 키 |
-|---|---|---|
-| `deleteClubAction` | `{ success: boolean; error?: string }` | `.success` |
-| `deleteUserAction` | `{ success: boolean; error?: string }` | `.success` |
-| `deleteReportAction` | `{ success: boolean; error?: string }` | `.success` |
-| `deleteMainBannerAction` | `ActionResult<string, null>` | `.ok` |
+`DONGLE-SERVER`에는 `success`/`ok` 개념이 존재하지 않는다. 전역 인터셉터(`src/common/response.interceptor.ts`)가 모든 응답을 `{ isSuccess, result }` / `{ isSuccess, error }`로만 통일해서 내려준다. 즉 이 항목은 서버 계약 불일치가 아니라 **프론트 내부 컨벤션 미준수**다.
 
-`main-banner-delete-button.tsx` L29에서 `result.ok`를 쓰는 반면 다른 삭제 버튼은 `result.success`를 사용한다. 타입이 혼용되면 잘못된 키를 참조해 에러 처리가 무력화된다.
+`apps/DONGLE-ADMIN/src/shared/action/action-result.ts`에 정의된 정식 헬퍼(`ActionResult`, `actionSuccess`, `actionFailure`)는 이미 `.ok` 필드로 표준화돼 있다.
+
+| 액션 | 반환 형태 | 호출부 확인 키 | 정식 `ActionResult` 사용 여부 |
+|---|---|---|---|
+| `deleteClubAction` | `{ success: boolean; error?: string }` | `.success` | ❌ 자체 타입 |
+| `deleteUserAction` | `{ success: boolean; error?: string }` | `.success` | ❌ 자체 타입 |
+| `deleteReportAction` | `{ success: boolean; error?: string }` | `.success` | ❌ 자체 타입 |
+| `deleteMainBannerAction` | `ActionResult<string, null>` | `.ok` | ✅ |
+
+`main-banner-delete-button.tsx`만 정식 `ActionResult`(`.ok`)를 따르고, 나머지 삭제 액션들은 헬퍼를 쓰지 않고 임의로 `{success, error}` 형태를 만들어 사용 중이다.
 
 **수정**
 
-신규 삭제 액션은 `ActionResult<void, null>`로 통일한다. 기존 액션은 점진 마이그레이션.
+신규/기존 삭제 액션 모두 `apps/DONGLE-ADMIN/src/shared/action/action-result.ts`의 `ActionResult<void, null>` + `actionSuccess`/`actionFailure`로 통일한다.
 
 ```typescript
 // 통일 패턴
-export async function deleteXxxAction(id: number): Promise<ActionResult<void, null>> {
+export async function deleteXxxAction(id: number): Promise<ActionResult<string, null>> {
     ...
-    if (!result.isSuccess) return actionFailure(null);
+    if (!result.isSuccess) return actionFailure({ formError: "..." });
     revalidateTags(...);
-    return actionSuccess(undefined);
+    return actionSuccess();
 }
 ```
 
 ---
 
-### API-3. service layer — throw vs `{ isSuccess: false }` 반환 불일치
+### API-3. `instance`의 throw-on-error로 인해 service layer의 `isSuccess` 분기가 도달 불가능
 
 | | |
 |---|---|
-| **심각도** | High |
+| **심각도** | Critical (기존 문서의 "High"에서 상향) |
 | **상태** | pending |
-| **파일** | `packages/service/src/club/club.schedule.service.ts`, `packages/service/src/club/club.report.service.ts`, `packages/service/src/club/club.service.ts` |
+| **파일** | `packages/api/src/instance.ts`, `packages/api/src/handle-error-response.ts`, `packages/service/src/club/club.schedule.service.ts`, `packages/service/src/club/club.service.ts`, `apps/DONGLE-ADMIN/src/feature/club/action/delete-club.action.ts` |
 
-**문제**
+**서버 스펙 확인**
 
-| 서비스 | 실패 시 동작 |
-|---|---|
-| `club.schedule.service` | `getResponseResult()` → throw |
-| `club.report.service` | catch → synthetic `ErrorResponse` 반환 |
-| `club.service`, `user.service` | `{ isSuccess: false }` 반환 (throw 없음) |
+`DONGLE-SERVER/src/common/response.interceptor.ts`(전역 `useGlobalInterceptors`)는 다음을 보장한다.
 
-호출부가 패턴을 혼용하면 throw를 기대하는 쪽이 `isSuccess: false`를 성공으로 오인하거나, `{ isSuccess: false }`를 기대하는 쪽이 예외를 catch하지 못한다.
+- 성공: 2xx + `{ isSuccess: true, result: data }`
+- 실패: 실제 HTTP 에러 상태코드(400/401/403/404/409/500 등) + `{ isSuccess: false, error: { message, detail, stack? } }`
+
+즉 서버는 **모든 도메인에서 항상 일관되게** `isSuccess` 필드와 함께 응답하며, 실패는 항상 non-2xx 상태코드를 동반한다. 서버 자체는 불일치가 없다.
+
+**실제 문제 — 프론트 `FetchInstance`가 이 계약을 깨고 있음**
+
+`packages/api/src/instance.ts`의 `get/post/put/patch/delete`는 모두 다음 패턴이다.
+
+```typescript
+const response = await this.makeRequest({ url, method: "DELETE", options });
+if (!response.ok) {
+    await this.handleErrorResponse(response, undefined, url, "DELETE"); // 항상 throw
+}
+return response.json() as Promise<T>;
+```
+
+`handleErrorResponse`(`packages/api/src/handle-error-response.ts`)는 서버가 내려준 `{ isSuccess: false, error: { message, detail } }` 바디를 파싱해 메시지만 추출한 뒤 **평범한 `Error`를 throw**하고 끝난다. 구조화된 `error.detail`/`error.message`는 여기서 모두 버려진다.
+
+결과적으로 `response.json()`까지 도달했다는 것 자체가 `response.ok === true`였다는 뜻이므로, 서비스 레이어가 받는 `Response<T>`는 **런타임에 항상 `isSuccess: true`**다. 즉 다음 코드들의 실패 분기는 전부 도달 불가능한 죽은 코드다.
+
+```typescript
+// packages/service/src/club/club.schedule.service.ts
+function getResponseResult<T>(response: Response<T>): T {
+    if (!response.isSuccess) { // never true — 여기 오기 전에 이미 instance가 throw함
+        throw new Error(response.error.detail || response.error.message);
+    }
+    return response.result;
+}
+
+// apps/DONGLE-ADMIN/src/feature/club/action/delete-club.action.ts
+const result = await deleteClubService(clubId);
+if (!result.isSuccess) { // never true — 실패 시 deleteClubService 호출에서 이미 throw됨
+    return { success: false, error: result.error?.detail || ... };
+}
+```
+
+유일하게 `club.report.service.ts`의 `getClubReportService`만 try/catch로 throw된 `Error`를 받아 메시지 문자열을 정규식/포함(includes) 매칭해서 `ErrorResponse`를 수동으로 재구성하는 우회를 쓰고 있는데, 이는 한국어 에러 문구에 의존하는 취약한 방식이다(`isClubReportNotFoundError`, `isClubReportNotFoundResponse` 참고).
 
 **수정 방향**
 
-service layer에서 `getResponseResult()` 래퍼로 unwrap 패턴을 통일한다. 최소한 같은 도메인 내부에서는 동일한 패턴을 사용해야 한다.
+서버가 이미 구조화된 `{isSuccess, error:{message, detail}}`를 일관되게 내려주므로, 프론트는 이를 그대로 활용하도록 다음 중 하나로 통일해야 한다.
+
+1. **(권장)** `FetchInstance`가 `!response.ok`일 때도 throw하지 않고 `response.json()`(즉 서버의 `ErrorResponse` 바디)을 그대로 반환하도록 변경. 이렇게 하면 `Response<T>` 유니온 타입과 `isSuccess` 분기가 실제로 의미를 갖게 되고, `club.report.service.ts`의 문자열 매칭 우회도 제거 가능.
+2. 위 변경이 부담스럽다면, `handleErrorResponse`가 평범한 `Error` 대신 `error.message`/`error.detail`을 보존하는 커스텀 에러 클래스(예: `ApiError`)를 throw하도록 바꾸고, 모든 service/action이 `try/catch`로 `ApiError`를 받는 패턴으로 통일. 이 경우 `getResponseResult`나 `if (!result.isSuccess)` 같은 도달 불가능한 분기는 전부 제거해야 한다(혼란 방지).
+
+어느 쪽을 택하든 "throw 후 isSuccess 체크"가 같은 호출 경로에 동시에 존재하는 현재 상태(`club.schedule.service.ts`, `delete-club.action.ts` 등)는 제거 대상이다.
 
 ---
 
@@ -362,25 +404,24 @@ revalidateTags(clubScheduleTagGroups.list()); // 추가
 
 ## 5. 구현 순서 (권장)
 
-### 즉시 수정 — 기능 오류 / 데이터 크래시
+### 즉시 수정 — 기능 오류 / 데이터 크래시 / 계약 핵심 불일치
 
-1. **RT-1** `parseJsonStringArray` try-catch
-2. **API-1** `schedule.isPublic` → `is_public` 접근 경로 확인 후 수정
+1. **API-3** `instance` throw-on-error 정책 결정(권장안 1 또는 2) → 적용 후 도달 불가능한 `isSuccess` 분기 전부 제거
+   - 영향 범위가 가장 크므로(모든 service/action) 다른 API/캐시 항목보다 먼저 결정해야 후속 수정이 헛수고가 되지 않음
+2. **RT-1** `parseJsonStringArray` try-catch
 3. **RT-2** `club.sns?.instagram` optional chaining
 4. **RT-3** `report.image_urls` null guard
 5. **RT-4** `response.error?.detail`
 6. **CACHE-1** 클럽/배너 삭제 list 태그 추가
 
+(API-1은 오탐으로 닫혀 작업 대상에서 제외)
+
 ### 단기 수정 — 계약 불일치 / 상태 회귀
 
-7. **API-2** 삭제 Action 반환 타입 `ActionResult` 통일
-8. **CACHE-3** 일정 삭제 list 태그 추가
-9. **RT-5** logout startTransition 에러 처리
-10. **CACHE-2** 월간 이동 로컬 상태 동기화
-
-### 중기 — 아키텍처 일관성
-
-11. **API-3** service layer unwrap 패턴 통일
+8. **API-2** 삭제 Action 반환 타입 `ActionResult` 통일 (API-3 적용 이후 진행 — 에러 처리 방식이 바뀌므로 동시 작업 시 충돌)
+9. **CACHE-3** 일정 삭제 list 태그 추가
+10. **RT-5** logout startTransition 에러 처리
+11. **CACHE-2** 월간 이동 로컬 상태 동기화
 
 ---
 
