@@ -3,7 +3,6 @@ import {
     buildReportFallbackMetadata,
     buildReportPageMetadata,
 } from "@/lib/report-page-metadata";
-import { isClubReportNotFoundResponse } from "@dongle/service/club/club.report.service";
 import { formatDateByLocale } from "@dongle/ui/utils";
 import { ArrowLeft, CalendarDays, PencilLine } from "lucide-react";
 import type { Metadata } from "next";
@@ -76,7 +75,7 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
     }
 
     if (!reportResponse.isSuccess) {
-        if (isClubReportNotFoundResponse(reportResponse)) {
+        if (reportResponse.error.status === 404) {
             notFound();
         }
 

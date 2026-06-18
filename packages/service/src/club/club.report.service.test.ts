@@ -13,22 +13,7 @@ vi.mock("@dongle/api/instance", () => ({
     },
 }));
 
-import type { ClubReportResponse } from "@dongle/types/club/club.report";
-import { getClubReportListService, getClubReportService, isClubReportNotFoundResponse } from "./club.report.service";
-
-const successfulClubReportResponse: ClubReportResponse = {
-    isSuccess: true,
-    result: {
-        id: 3,
-        club_id: 1,
-        title: "활동보고서",
-        content: "내용",
-        image_urls: [],
-        createdAt: "2026-06-17T00:00:00.000Z",
-        updatedAt: "2026-06-17T00:00:00.000Z",
-        deletedAt: null,
-    },
-};
+import { getClubReportListService, getClubReportService } from "./club.report.service";
 
 describe("club report service endpoints", () => {
     beforeEach(() => {
@@ -76,12 +61,13 @@ describe("club report service endpoints", () => {
         });
     });
 
-    test("활동보고서 단건이 없으면 404 예외를 실패 응답으로 정규화한다", async () => {
+    test("활동보고서 단건이 없으면 status 404 실패 응답을 반환한다", async () => {
         fetchInstanceMock.get.mockResolvedValueOnce({
             isSuccess: false,
             error: {
                 message: "해당 활동보고서가 존재하지 않습니다.",
                 detail: "report_id: 999",
+                status: 404,
             },
         });
 
@@ -92,16 +78,18 @@ describe("club report service endpoints", () => {
             error: {
                 message: "해당 활동보고서가 존재하지 않습니다.",
                 detail: "report_id: 999",
+                status: 404,
             },
         });
     });
 
-    test("활동보고서 단건 조회의 API 문서 404 문구도 실패 응답으로 정규화한다", async () => {
+    test("활동보고서 단건 조회는 API 문서 404 문구와 함께 status 404를 유지한다", async () => {
         fetchInstanceMock.get.mockResolvedValueOnce({
             isSuccess: false,
             error: {
                 message: "해당 활동보고서가 존재하지 않습니다.",
                 detail: "Not Found",
+                status: 404,
             },
         });
 
@@ -112,6 +100,7 @@ describe("club report service endpoints", () => {
             error: {
                 message: "해당 활동보고서가 존재하지 않습니다.",
                 detail: "Not Found",
+                status: 404,
             },
         });
     });
@@ -134,65 +123,5 @@ describe("club report service endpoints", () => {
                 detail: "server_error",
             },
         });
-    });
-});
-
-describe("isClubReportNotFoundResponse", () => {
-    test("실패 응답 detail에 report_id가 포함되면 not-found로 판별한다", () => {
-        expect(
-            isClubReportNotFoundResponse({
-                isSuccess: false,
-                error: {
-                    message: "해당 활동보고서를 찾을 수 없습니다.",
-                    detail: "report_id: 999",
-                },
-            })
-        ).toBe(true);
-    });
-
-    test("실패 응답 message에 찾을 수 없음 문구가 포함되면 not-found로 판별한다", () => {
-        expect(
-            isClubReportNotFoundResponse({
-                isSuccess: false,
-                error: {
-                    message: "해당 활동보고서를 찾을 수 없습니다.",
-                    detail: "Not Found",
-                },
-            })
-        ).toBe(true);
-        expect(
-            isClubReportNotFoundResponse({
-                isSuccess: false,
-                error: {
-                    message: "해당 활동보고서가 존재하지 않습니다.",
-                    detail: "Not Found",
-                },
-            })
-        ).toBe(true);
-        expect(
-            isClubReportNotFoundResponse({
-                isSuccess: false,
-                error: {
-                    message: "report not found",
-                    detail: "Not Found",
-                },
-            })
-        ).toBe(true);
-    });
-
-    test("성공 응답은 not-found로 판별하지 않는다", () => {
-        expect(isClubReportNotFoundResponse(successfulClubReportResponse)).toBe(false);
-    });
-
-    test("무관한 실패 응답은 not-found로 판별하지 않는다", () => {
-        expect(
-            isClubReportNotFoundResponse({
-                isSuccess: false,
-                error: {
-                    message: "Internal Server Error",
-                    detail: "server_error",
-                },
-            })
-        ).toBe(false);
     });
 });

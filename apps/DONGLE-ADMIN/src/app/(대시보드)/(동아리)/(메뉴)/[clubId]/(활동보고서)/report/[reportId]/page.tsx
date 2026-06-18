@@ -1,12 +1,22 @@
-import { getClubReportService } from "@/lib/server/cached-services";
+import DeleteReportButton from "@/feature/report/components/delete-report-button";
 import ReportView from "@/feature/report/components/report-view/report-view";
-import Link from "next/link";
+import { getClubReportService } from "@/lib/server/cached-services";
 import { Button } from "@dongle/ui/button";
 import { Pencil } from "lucide-react";
-import DeleteReportButton from "@/feature/report/components/delete-report-button";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
 async function ClubReportDetailContent({ clubId, reportId }: { clubId: string; reportId: string }) {
-    const { result } = await getClubReportService(Number(clubId), Number(reportId));
+    const reportResponse = await getClubReportService(Number(clubId), Number(reportId));
+    const { result, isSuccess, error } = reportResponse;
+
+    if (!isSuccess) {
+        if (error.status === 404) {
+            notFound();
+        }
+
+        throw new Error("활동보고서를 가져오는데 실패했습니다.");
+    }
 
     if (!result) {
         return <div className="flex justify-center items-center py-16 text-zinc-500">활동 보고서가 없습니다.</div>;

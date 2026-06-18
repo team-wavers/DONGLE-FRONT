@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import FetchInstance from "./instance";
 
 type SuccessBody<T> = { isSuccess: true; result: T };
-type ErrorBody = { isSuccess: false; error: { message: string; detail: string } };
+type ErrorBody = { isSuccess: false; error: { message: string; detail: string; status?: number } };
 
 function createJsonResponse(body: unknown, init: ResponseInit) {
     return new Response(JSON.stringify(body), {
@@ -57,7 +57,13 @@ describe("FetchInstance (instance.ts)", () => {
         const instance = FetchInstance.getInstance();
         const res = await instance.get<typeof body>("/clubs/1/reports/999");
 
-        expect(res).toEqual(body);
+        expect(res).toEqual({
+            ...body,
+            error: {
+                ...body.error,
+                status: 404,
+            },
+        });
     });
 
     test("GET 502 + JSON 파싱 불가(HTML body 등) → throw 없이 synthetic {isSuccess:false,error:{message,detail}} 반환", async () => {
@@ -78,6 +84,7 @@ describe("FetchInstance (instance.ts)", () => {
         if (!res.isSuccess) {
             expect(res.error.message).toContain("HTTP 502");
             expect(res.error.detail).toContain("Bad Gateway");
+            expect(res.error.status).toBe(502);
         }
     });
 
@@ -109,7 +116,12 @@ describe("FetchInstance (instance.ts)", () => {
         const instance = FetchInstance.getInstance();
         const res = await instance.delete<typeof body>("/posts/1");
 
-        expect(res).toEqual(body);
+        expect(res).toEqual({
+            ...body,
+            error: {
+                ...body.error,
+                status: 403,
+            },
+        });
     });
 });
-

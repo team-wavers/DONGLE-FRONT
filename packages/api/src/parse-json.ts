@@ -14,7 +14,27 @@ export async function parseJsonOrSynthetic<T = unknown>({
     method,
 }: ParseJsonOrSyntheticParams): Promise<T> {
     try {
-        return (await response.json()) as T;
+        const body = await response.json();
+
+        if (
+            body &&
+            typeof body === "object" &&
+            "isSuccess" in body &&
+            body.isSuccess === false &&
+            "error" in body &&
+            body.error &&
+            typeof body.error === "object"
+        ) {
+            return {
+                ...body,
+                error: {
+                    ...body.error,
+                    status: response.status,
+                },
+            } as T;
+        }
+
+        return body as T;
     } catch (error) {
         return createSyntheticErrorResponse({
             response,

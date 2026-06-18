@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import BrowserInstance from "./browser-instance";
 
 type SuccessBody<T> = { isSuccess: true; result: T };
-type ErrorBody = { isSuccess: false; error: { message: string; detail: string } };
+type ErrorBody = { isSuccess: false; error: { message: string; detail: string; status?: number } };
 
 function createJsonResponse(body: unknown, init: ResponseInit) {
     return new Response(JSON.stringify(body), {
@@ -61,7 +61,13 @@ describe("BrowserInstance (browser-instance.ts)", () => {
         const instance = BrowserInstance.getInstance();
         const res = await instance.post<ErrorBody>("/api/clubs/registration-urls");
 
-        expect(res).toEqual(body);
+        expect(res).toEqual({
+            ...body,
+            error: {
+                ...body.error,
+                status: 401,
+            },
+        });
     });
 
     test("JSON 파싱 불가(HTML body 등) 응답은 throw 없이 synthetic 실패로 정규화한다", async () => {
@@ -79,6 +85,7 @@ describe("BrowserInstance (browser-instance.ts)", () => {
         expect(res.isSuccess).toBe(false);
         if (!res.isSuccess) {
             expect(res.error.message).toContain("HTTP 502");
+            expect(res.error.status).toBe(502);
         }
     });
 });

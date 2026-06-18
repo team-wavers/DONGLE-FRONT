@@ -95,6 +95,7 @@ export function createSyntheticErrorResponse({
         error: {
             message: `HTTP ${response.status}: ${response.statusText}`,
             detail: `${response.statusText || "Unknown Error"} (url: ${targetUrl}, method: ${safeMethod})`,
+            status: response.status,
         },
     };
 }
