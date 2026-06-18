@@ -171,18 +171,29 @@ export function RichTextEditor({
 
         setIsUploadingImage(true);
 
-        const data = await browserInstance.post<Response<string>>(`/api/clubs/${clubId}/report-images`, formData);
+        try {
+            const data = await browserInstance.post<Response<string>>(
+                `/api/clubs/${clubId}/report-images`,
+                formData
+            );
 
-        if (!data.isSuccess) {
-            console.error("리치텍스트 이미지 업로드 실패:", data.error.detail);
-            toast.error(data.error.detail || "이미지 업로드에 실패했습니다.");
-        } else {
-            editor.chain().focus().setImage({ src: data.result }).run();
-            toast.success("이미지를 본문에 추가했습니다.");
+            if (!data.isSuccess) {
+                console.error("리치텍스트 이미지 업로드 실패:", data.error.detail);
+                toast.error(data.error.detail || "이미지 업로드에 실패했습니다.");
+            } else {
+                editor.chain().focus().setImage({ src: data.result }).run();
+                toast.success("이미지를 본문에 추가했습니다.");
+            }
+        } catch (uploadError) {
+            console.error(
+                "리치텍스트 이미지 업로드 실패:",
+                uploadError instanceof Error ? uploadError.message : uploadError
+            );
+            toast.error("이미지 업로드에 실패했습니다.");
+        } finally {
+            setIsUploadingImage(false);
+            event.target.value = "";
         }
-
-        setIsUploadingImage(false);
-        event.target.value = "";
     };
 
     const toolbarButtons: ToolbarButton[] = editor
