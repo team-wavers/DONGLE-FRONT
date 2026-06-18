@@ -33,7 +33,7 @@ import { Tabs, TabsContent } from "@dongle/ui/tabs";
 import { cn } from "@dongle/ui/utils";
 import type { AdminClubSchedule } from "@dongle/types/club/club.schedule";
 import { CalendarPlus, ChevronLeft, ChevronRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
     deleteAdminClubScheduleAction,
@@ -98,6 +98,7 @@ export default function AdminScheduleDashboard({
     const [visibleMonth, setVisibleMonth] = useState(
         () => new Date(initialMonthDate.getFullYear(), initialMonthDate.getMonth(), 1)
     );
+    const visibleMonthRef = useRef(visibleMonth);
     const [selectedDate, setSelectedDate] = useState(initialMonthDate);
     const [keyword, setKeyword] = useState("");
     const [category, setCategory] = useState("all");
@@ -187,6 +188,7 @@ export default function AdminScheduleDashboard({
         const nextMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + amount, 1);
 
         setVisibleMonth(nextMonth);
+        visibleMonthRef.current = nextMonth;
         setSelectedDate(nextMonth);
         void loadMonthSchedules(nextMonth);
     };
@@ -219,7 +221,8 @@ export default function AdminScheduleDashboard({
 
         // 로컬 상태를 직접 갱신하지 않고 현재 보이는 월을 서버 기준으로 재조회한다.
         // (월 이동 중 loadMonthSchedules의 전체 교체와 경쟁해 변경 사항이 덮어써지는 것을 방지)
-        await loadMonthSchedules(visibleMonth);
+        // visibleMonthRef를 사용해 대기 중 월이 바뀌어도 항상 최신 월을 재조회한다.
+        await loadMonthSchedules(visibleMonthRef.current);
     };
 
     const deleteSchedule = async (schedule: ClubSchedule) => {
@@ -233,7 +236,7 @@ export default function AdminScheduleDashboard({
         }
 
         setDeleteTarget(null);
-        await loadMonthSchedules(visibleMonth);
+        await loadMonthSchedules(visibleMonthRef.current);
     };
 
     const renderScheduleActions = (item: ReturnType<typeof mapScheduleToDisplayItem>) => {
