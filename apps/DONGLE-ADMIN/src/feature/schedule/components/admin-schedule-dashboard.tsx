@@ -217,17 +217,9 @@ export default function AdminScheduleDashboard({
             return;
         }
 
-        if (!result.data) {
-            toast.error("공개 상태 변경 중 오류가 발생했습니다. 다시 시도해주세요.");
-            return;
-        }
-
-        const updatedSchedule = mapAdminClubScheduleToClubSchedule(result.data);
-        setSchedules((current) =>
-            current.map((currentSchedule) =>
-                currentSchedule.id === updatedSchedule.id ? updatedSchedule : currentSchedule
-            )
-        );
+        // 로컬 상태를 직접 갱신하지 않고 현재 보이는 월을 서버 기준으로 재조회한다.
+        // (월 이동 중 loadMonthSchedules의 전체 교체와 경쟁해 변경 사항이 덮어써지는 것을 방지)
+        await loadMonthSchedules(visibleMonth);
     };
 
     const deleteSchedule = async (schedule: ClubSchedule) => {
@@ -240,8 +232,8 @@ export default function AdminScheduleDashboard({
             return;
         }
 
-        setSchedules((current) => current.filter((currentSchedule) => currentSchedule.id !== schedule.id));
         setDeleteTarget(null);
+        await loadMonthSchedules(visibleMonth);
     };
 
     const renderScheduleActions = (item: ReturnType<typeof mapScheduleToDisplayItem>) => {
