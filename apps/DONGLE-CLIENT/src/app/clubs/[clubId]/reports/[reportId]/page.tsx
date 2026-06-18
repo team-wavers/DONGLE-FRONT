@@ -99,7 +99,7 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
             image_urls: item.image_urls,
         }));
     const wasUpdated = report.updatedAt !== report.createdAt;
-    const hasReportImages = report.image_urls.some((url) => url.trim().length > 0);
+    const hasReportImages = Array.isArray(report.image_urls) && report.image_urls.some((url) => url.trim().length > 0);
 
     return (
         <article className="py-6 md:py-10">

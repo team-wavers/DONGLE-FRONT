@@ -46,8 +46,9 @@ export function useUrlGenerator() {
                 const response = await issueClubRegisterUrlService();
 
                 if (!response.isSuccess) {
-                    setState({ success: false, error: response.error.detail });
-                    toast.error(response.error.detail);
+                    const errorMessage = response.error?.detail || "URL 생성 중 오류가 발생했습니다.";
+                    setState({ success: false, error: errorMessage });
+                    toast.error(errorMessage);
                     return;
                 }
 

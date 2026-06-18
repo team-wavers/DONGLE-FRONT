@@ -119,8 +119,8 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         description: club.description,
         main_activities: club.main_activities,
     };
-    const instagramUrl = normalizeSocialUrl("instagram", club.sns.instagram);
-    const youtubeUrl = normalizeSocialUrl("youtube", club.sns.youtube);
+    const instagramUrl = normalizeSocialUrl("instagram", club.sns?.instagram);
+    const youtubeUrl = normalizeSocialUrl("youtube", club.sns?.youtube);
     const hasSocialLinks = Boolean(instagramUrl || youtubeUrl);
     const categoryPresentation = getClubCategoryPresentation(club.category);
     const recruitPeriod =
