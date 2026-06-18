@@ -1,10 +1,19 @@
 import { getClubService } from "@/lib/server/cached-services";
 import ClubForm from "@/feature/club/components/club-form/club-form";
+import { notFound } from "next/navigation";
 
 async function ClubDetailContent({ clubId }: { clubId: string }) {
-    const { result, isSuccess } = await getClubService(Number(clubId));
+    const { result, isSuccess, error } = await getClubService(Number(clubId));
 
-    if (!isSuccess || !result) {
+    if (!isSuccess) {
+        if (error.status === 404) {
+            notFound();
+        }
+
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
+    }
+
+    if (!result) {
         return (
             <div className="flex flex-col items-center justify-center py-8">
                 <p className="text-red-500">동아리 정보를 불러오는데 실패했습니다.</p>

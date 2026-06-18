@@ -104,13 +104,17 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         notFound();
     }
 
-    const clubResponse = await getClubService(clubIdNumber).catch(() => null);
+    const clubResponse = await getClubService(clubIdNumber);
 
-    if (!clubResponse) {
-        notFound();
+    if (!clubResponse.isSuccess) {
+        if (clubResponse.error.status === 404) {
+            notFound();
+        }
+
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
     }
 
-    if (!clubResponse.isSuccess || !clubResponse.result) {
+    if (!clubResponse.result) {
         notFound();
     }
 
