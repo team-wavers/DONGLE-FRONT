@@ -1,8 +1,14 @@
 # Codex Delegation
 
-Claude는 계획, 검토, 오케스트레이션을 담당한다. 실제 파일 수정은 필요한 경우 Codex CLI에 위임한다.
+Claude는 계획, 검토, 오케스트레이션을 담당한다. Codex CLI 위임은 [[TDD 적용 기준]]에 해당하는 규모/성격의 작업에만 사용한다.
 
-## 기본 원칙
+## 위임 대상 기준
+
+- Codex 위임은 **TDD 적용 기준에 해당하는 작업**(pure logic, validation, formatter, parser, helper, payload transform 등)에만 사용한다.
+- 단순 rename, import 정리, 스타일 조정, UI 배치 변경, 한두 파일짜리 소규모 수정처럼 TDD 대상에서 제외되는 작업은 Codex에 위임하지 않고 Claude가 직접 Edit/Write로 수정한다.
+- 애매한 경우 작업 규모(파일 수, 로직 복잡도)를 먼저 판단하고, TDD 기준에 못 미치면 직접 수정한다.
+
+## 기본 원칙 (Codex 위임 시)
 
 - Claude는 Plan 모드에서 성공 기준, 수정 범위, 검증 방법을 먼저 정리한다.
 - Codex 호출은 `codex exec "<task>"` 형식을 사용한다.
