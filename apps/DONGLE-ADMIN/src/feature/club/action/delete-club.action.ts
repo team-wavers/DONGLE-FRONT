@@ -2,13 +2,15 @@
 
 import { deleteClubService } from "@dongle/service/club/club.service";
 import { clubTagGroups } from "@dongle/service";
-import { actionFailure, actionSuccess, requireServerActionAccessToken, type ActionResult } from "@/shared/action";
+import {
+    actionFailure,
+    actionSuccess,
+    getActionErrorMessage,
+    requireServerActionAccessToken,
+    type ActionResult,
+} from "@/shared/action";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
-
-function getActionErrorMessage(error: unknown, fallback: string): string {
-    return error instanceof Error && error.message ? error.message : fallback;
-}
 
 export async function deleteClubAction(clubId: number): Promise<ActionResult<string, null>> {
     try {
