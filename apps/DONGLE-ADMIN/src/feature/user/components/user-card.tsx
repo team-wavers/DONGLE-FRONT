@@ -40,12 +40,12 @@ export default function UserCard({ user, currentUserId }: UserCardProps) {
         startTransition(async () => {
             const result = await deleteUserAction(user.id);
 
-            if (result.success) {
-                toast.success("사용자가 성공적으로 삭제되었습니다.");
+            if (result.ok) {
+                toast.success(result.message ?? "사용자가 성공적으로 삭제되었습니다.");
                 setIsDeleteModalOpen(false);
                 router.refresh();
             } else {
-                toast.error(result.error ?? "사용자 삭제에 실패했습니다.");
+                toast.error(result.formError ?? "사용자 삭제에 실패했습니다.");
             }
         });
     };
