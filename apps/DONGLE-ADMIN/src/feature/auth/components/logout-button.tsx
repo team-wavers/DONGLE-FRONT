@@ -4,6 +4,7 @@ import { LogOutIcon } from "lucide-react";
 import { useTransition } from "react";
 import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 import { useRouter } from "next/navigation";
+import { requestLogout } from "@/feature/auth/utils/request-logout";
 
 interface LogoutButtonProps {
     accessToken: string | null;
@@ -23,7 +24,7 @@ export default function LogoutButton({ accessToken }: LogoutButtonProps) {
             disabled={isPending}
             onClick={() => {
                 startTransition(async () => {
-                    await fetch("/api/auth/logout", { method: "POST" });
+                    await requestLogout();
                     router.replace("/login");
                     router.refresh();
                 });
