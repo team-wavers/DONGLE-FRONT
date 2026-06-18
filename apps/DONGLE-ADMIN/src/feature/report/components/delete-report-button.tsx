@@ -37,15 +37,20 @@ export default function DeleteReportButton({
 
   const handleDelete = () => {
     startTransition(async () => {
-      const result = await deleteReportAction(Number(clubId), Number(reportId));
+      try {
+        const result = await deleteReportAction(Number(clubId), Number(reportId));
 
-      if (result.ok) {
-        toast.success(result.message ?? "활동 보고서가 성공적으로 삭제되었습니다.");
-        setOpen(false);
-        router.push(redirectHref);
-        router.refresh();
-      } else {
-        toast.error(result.formError ?? "보고서 삭제에 실패했습니다.");
+        if (result.ok) {
+          toast.success(result.message ?? "활동 보고서가 성공적으로 삭제되었습니다.");
+          setOpen(false);
+          router.push(result.redirectTo ?? redirectHref);
+          router.refresh();
+        } else {
+          toast.error(result.formError ?? "보고서 삭제에 실패했습니다.");
+        }
+      } catch (error) {
+        console.error("보고서 삭제 실패:", error);
+        toast.error("삭제 중 오류가 발생했습니다.");
       }
     });
   };

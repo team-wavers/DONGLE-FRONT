@@ -19,7 +19,11 @@ export async function deleteReportAction(clubId: number, reportId: number): Prom
 
         revalidateTags(reportTagGroups.item(clubId, reportId));
 
-        return actionSuccess({ data: null, message: "활동 보고서가 성공적으로 삭제되었습니다." });
+        return actionSuccess({
+            data: null,
+            message: "활동 보고서가 성공적으로 삭제되었습니다.",
+            redirectTo: `/${clubId}/report`,
+        });
     } catch (error) {
         captureServerException(error, "보고서 삭제 중 오류", {
             action: "deleteReportAction",
