@@ -22,7 +22,7 @@ import { Input } from "@dongle/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@dongle/ui/popover";
 import { cn } from "@dongle/ui/utils";
 import { toast } from "sonner";
-import { getServiceErrorMessage } from "@/shared/action";
+import { getServiceErrorMessage } from "@/shared/action/get-service-error-message";
 import { createRichTextExtensions, normalizeRichTextHtml, richTextContentClassName } from "@dongle/rich-text";
 import BrowserInstance from "@dongle/api/browser-instance";
 import type { Response } from "@dongle/types/response";

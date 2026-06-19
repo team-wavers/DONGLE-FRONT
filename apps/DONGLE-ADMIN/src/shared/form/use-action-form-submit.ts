@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { FieldValues, SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
-import type { ActionResult } from "@/shared/action";
+import type { ActionResult } from "@/shared/action/action-result";
 import { applyServerFieldErrors } from "./server-errors";
 
 type FormActionResult<TValues extends FieldValues, TData = unknown> = ActionResult<Extract<keyof TValues, string>, TData>;

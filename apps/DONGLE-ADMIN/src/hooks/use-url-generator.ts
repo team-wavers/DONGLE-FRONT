@@ -3,7 +3,7 @@
 import { useState, useTransition, useCallback } from "react";
 import { toast } from "sonner";
 import { issueClubRegisterUrlService } from "@dongle/service/club/club.service";
-import { getServiceErrorMessage } from "@/shared/action";
+import { getServiceErrorMessage } from "@/shared/action/get-service-error-message";
 
 interface GenerateUrlState {
     success?: boolean;
