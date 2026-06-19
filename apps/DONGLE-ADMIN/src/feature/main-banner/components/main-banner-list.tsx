@@ -6,9 +6,21 @@ import { CalendarDays, ExternalLink, Images, Pencil } from "lucide-react";
 
 interface MainBannerListProps {
     banners: MainBanner[];
+    loadFailed?: boolean;
 }
 
-export default function MainBannerList({ banners }: MainBannerListProps) {
+export default function MainBannerList({ banners, loadFailed = false }: MainBannerListProps) {
+    if (loadFailed) {
+        return (
+            <div className="flex flex-col items-center justify-center rounded-lg border bg-white px-4 py-14 text-center text-muted-foreground">
+                <Images className="mb-4 h-12 w-12 opacity-50" />
+                <p className="text-base font-medium text-zinc-600">
+                    배너 목록을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.
+                </p>
+            </div>
+        );
+    }
+
     if (banners.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center rounded-lg border bg-white px-4 py-14 text-center text-muted-foreground">

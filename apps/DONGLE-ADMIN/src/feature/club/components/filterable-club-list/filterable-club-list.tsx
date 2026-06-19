@@ -12,6 +12,7 @@ interface FilterableClubListProps {
     emptyMessage: string;
     emptySearchMessage: string;
     searchPlaceholder: string;
+    loadFailed?: boolean;
 }
 
 export function normalizeClubKeyword(value: string) {
@@ -37,11 +38,21 @@ export default function FilterableClubList({
     emptyMessage,
     emptySearchMessage,
     searchPlaceholder,
+    loadFailed = false,
 }: FilterableClubListProps) {
     const [inputValue, setInputValue] = useState("");
 
     const deferredKeyword = useDeferredValue(normalizeClubKeyword(inputValue));
     const filteredClubs = useMemo(() => filterClubsByKeyword(clubs, deferredKeyword), [clubs, deferredKeyword]);
+
+    if (loadFailed) {
+        return (
+            <div className="text-center py-8 text-muted-foreground">
+                <Users className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                <p>동아리 목록을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</p>
+            </div>
+        );
+    }
 
     if (clubs.length === 0) {
         return (

@@ -60,6 +60,12 @@
 - **오류 처리 기본값**
     - 가능하면 `try/catch`보다 `isSuccess` 분기로 UI 상태를 나누는 방식을 우선한다.
 
+## 5) "진짜 throw"의 최종 종착점
+
+- RSC 렌더 경로에서 끝까지 안 잡힌 throw → 가장 가까운 `error.tsx` (Next.js가 자동 처리)
+- Server Action(`"use server"`)은 `error.tsx` 경계가 없다 → **액션 함수 자신의 `try/catch`가 최종 종착점**이어야 한다 (모든 액션은 자체 catch 후 `ActionResult`를 반환)
+- 3)의 "UI를 깨면 안 되는 경로" 예외를 쓴 곳은 `error.tsx`에 닿기 전에 의도적으로 그 자리에서 끝낸 것 — 이때도 catch는 명시적으로 어딘가에 있어야 한다
+
 ## 체크리스트
 
 - `Response<T>`를 다루는 코드에서 실패 분기가 실제로 도달 가능한가?
