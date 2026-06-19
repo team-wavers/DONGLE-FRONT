@@ -91,7 +91,15 @@ export async function generateMetadata({ params }: ClubDetailPageProps): Promise
 
     const clubResponse = await getClubService(clubIdNumber);
 
-    if (!clubResponse.isSuccess || !clubResponse.result) {
+    if (!clubResponse.isSuccess) {
+        if (clubResponse.error.status === 404) {
+            return buildClubFallbackMetadata(clubId, "not_found");
+        }
+
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
+    }
+
+    if (!clubResponse.result) {
         return buildClubFallbackMetadata(clubId, "not_found");
     }
 
