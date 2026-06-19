@@ -3,6 +3,21 @@ const TIME_ZONE_OFFSET_REGEXP = /[zZ]|[+-]\d{2}:?\d{2}$/;
 const DATE_TIME_WITHOUT_TIME_ZONE_REGEXP =
     /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/;
 
+const scheduleDateTimePartsFormatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: SCHEDULE_DISPLAY_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+});
+
+const scheduleWeekdayFormatter = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "UTC",
+    weekday: "short",
+});
+
 export type ScheduleDisplayType = "recruitment" | "event" | "regular_meeting";
 
 export interface ScheduleDisplayDateBadge {
@@ -100,15 +115,7 @@ function getScheduleDateTimeParts(value: string): ScheduleDateTimeParts | null {
         return null;
     }
 
-    const parts = new Intl.DateTimeFormat("en-CA", {
-        timeZone: SCHEDULE_DISPLAY_TIME_ZONE,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hourCycle: "h23",
-    }).formatToParts(date);
+    const parts = scheduleDateTimePartsFormatter.formatToParts(date);
     const partMap = Object.fromEntries(parts.map((part) => [part.type, part.value]));
 
     return {
@@ -146,10 +153,7 @@ function isSameScheduleDate(a: ScheduleDateTimeParts, b: ScheduleDateTimeParts) 
 function formatScheduleWeekday(parts: ScheduleDateTimeParts) {
     const date = new Date(Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day)));
 
-    return new Intl.DateTimeFormat("ko-KR", {
-        timeZone: "UTC",
-        weekday: "short",
-    }).format(date);
+    return scheduleWeekdayFormatter.format(date);
 }
 
 export function getScheduleDisplayDateParts(value: string): ScheduleDisplayDateParts {

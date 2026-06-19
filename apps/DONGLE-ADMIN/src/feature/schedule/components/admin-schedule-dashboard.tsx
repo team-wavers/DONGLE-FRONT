@@ -33,7 +33,7 @@ import { Tabs, TabsContent } from "@dongle/ui/tabs";
 import { cn } from "@dongle/ui/utils";
 import type { AdminClubSchedule } from "@dongle/types/club/club.schedule";
 import { CalendarPlus, ChevronLeft, ChevronRight } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useDeferredValue, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
     deleteAdminClubScheduleAction,
@@ -43,11 +43,12 @@ import {
 import type { ClubSchedule, ScheduleType } from "../schedule.types";
 import { SCHEDULE_TYPE_LABELS } from "../schedule.types";
 import {
+    buildScheduleCalendarIndex,
     filterSchedules,
     getMonthCalendarDates,
     getMonthScheduleQueryByMonthKey,
+    getScheduleCalendarDateKey,
     getSchedulesForDate,
-    isSameCalendarDate,
     mapAdminClubScheduleToClubSchedule,
     parseScheduleMonthKey,
     sortSchedulesByStartAt,
@@ -113,6 +114,7 @@ export default function AdminScheduleDashboard({
     const [isCommonFormOpen, setIsCommonFormOpen] = useState(false);
     const [commonFormSchedule, setCommonFormSchedule] = useState<ClubSchedule | null>(null);
     const now = useCurrentTime();
+    const deferredKeyword = useDeferredValue(keyword);
 
     const categories = useMemo(
         () => Array.from(new Set(schedules.map((schedule) => schedule.category))).sort(),
@@ -120,33 +122,43 @@ export default function AdminScheduleDashboard({
     );
     const scheduleFilter = useMemo(
         () => ({
-            keyword,
+            keyword: deferredKeyword,
             category,
             type,
             isPublic,
             status,
             now,
         }),
-        [category, isPublic, keyword, now, status, type]
+        [category, deferredKeyword, isPublic, now, status, type]
     );
     const filteredSchedules = useMemo(
         () => sortSchedulesByStartAt(filterSchedules(schedules, scheduleFilter)),
         [scheduleFilter, schedules]
     );
+    const commonSourceSchedules = useMemo(
+        () => schedules.filter((schedule) => schedule.clubId === null),
+        [schedules]
+    );
     const commonSchedules = useMemo(
         () =>
             sortSchedulesByStartAt(
-                filterSchedules(schedules, {
+                filterSchedules(commonSourceSchedules, {
                     ...scheduleFilter,
                     category: "all",
-                }).filter((schedule) => schedule.clubId === null)
+                })
             ),
-        [scheduleFilter, schedules]
+        [commonSourceSchedules, scheduleFilter]
     );
     const calendarDates = useMemo(
         () => getMonthCalendarDates(visibleMonth.getFullYear(), visibleMonth.getMonth()),
         [visibleMonth]
     );
+    const calendarDateKeys = useMemo(() => calendarDates.map(getScheduleCalendarDateKey), [calendarDates]);
+    const calendarScheduleIndex = useMemo(
+        () => buildScheduleCalendarIndex(filteredSchedules, calendarDateKeys),
+        [filteredSchedules, calendarDateKeys]
+    );
+    const selectedDateKey = useMemo(() => getScheduleCalendarDateKey(selectedDate), [selectedDate]);
     const selectedSchedules = useMemo(
         () => sortSchedulesByStartAt(getSchedulesForDate(filteredSchedules, selectedDate)),
         [filteredSchedules, selectedDate]
@@ -212,9 +224,9 @@ export default function AdminScheduleDashboard({
     const toggleScheduleVisibility = async (schedule: ClubSchedule) => {
         setPendingScheduleId(schedule.id);
         const result = await updateAdminClubScheduleStatusAction(schedule.id, !schedule.isPublic);
-        setPendingScheduleId(null);
 
         if (!result.ok) {
+            setPendingScheduleId(null);
             toast.error(result.formError ?? "공개 상태 변경 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
@@ -222,21 +234,25 @@ export default function AdminScheduleDashboard({
         // 로컬 상태를 직접 갱신하지 않고 현재 보이는 월을 서버 기준으로 재조회한다.
         // (월 이동 중 loadMonthSchedules의 전체 교체와 경쟁해 변경 사항이 덮어써지는 것을 방지)
         // visibleMonthRef를 사용해 대기 중 월이 바뀌어도 항상 최신 월을 재조회한다.
+        // 재조회가 끝나기 전에 pending을 풀면, 재조회로 화면이 갱신되기 전까지 버튼이 다시
+        // 눌릴 수 있어 중복 토글/삭제로 이어질 수 있으므로 재조회 완료 후에 풀어준다.
         await loadMonthSchedules(visibleMonthRef.current);
+        setPendingScheduleId(null);
     };
 
     const deleteSchedule = async (schedule: ClubSchedule) => {
         setPendingScheduleId(schedule.id);
         const result = await deleteAdminClubScheduleAction(schedule.id);
-        setPendingScheduleId(null);
 
         if (!result.ok) {
+            setPendingScheduleId(null);
             toast.error(result.formError ?? "일정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
             return;
         }
 
         setDeleteTarget(null);
         await loadMonthSchedules(visibleMonthRef.current);
+        setPendingScheduleId(null);
     };
 
     const renderScheduleActions = (item: ReturnType<typeof mapScheduleToDisplayItem>) => {
@@ -370,14 +386,15 @@ export default function AdminScheduleDashboard({
                                         {weekday}
                                     </div>
                                 ))}
-                                {calendarDates.map((date) => {
-                                    const daySchedules = getSchedulesForDate(filteredSchedules, date);
+                                {calendarDates.map((date, index) => {
+                                    const dateKey = calendarDateKeys[index];
+                                    const daySchedules = calendarScheduleIndex.get(dateKey) ?? [];
                                     const isCurrentMonth = date.getMonth() === visibleMonth.getMonth();
-                                    const isSelected = isSameCalendarDate(date, selectedDate);
+                                    const isSelected = dateKey === selectedDateKey;
 
                                     return (
                                         <button
-                                            key={date.toISOString()}
+                                            key={dateKey}
                                             type="button"
                                             onClick={() => {
                                                 setSelectedDate(date);
