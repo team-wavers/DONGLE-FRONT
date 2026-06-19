@@ -18,7 +18,7 @@ export interface ClubRegisterFormProps {
 }
 
 export default function ClubRegisterForm({ registrationKey }: ClubRegisterFormProps) {
-    const { form, onSubmit, onInvalid, formError, isSubmitting } = useClubRegisterForm(registrationKey);
+    const { form, formError, onSubmit, onInvalid, isSubmitting } = useClubRegisterForm(registrationKey);
 
     return (
         <FormRoot

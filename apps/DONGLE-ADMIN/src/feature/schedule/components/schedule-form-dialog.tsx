@@ -12,15 +12,9 @@ import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
 import { Label } from "@dongle/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@dongle/ui/select";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import {
-    clubScheduleSchema,
-    createClubScheduleDefaultValues,
-    type ClubScheduleFormValues,
-} from "../form/schedule-form.schema";
-import { useClubScheduleSubmit } from "../form/use-club-schedule-submit";
+import { Controller } from "react-hook-form";
+import type { ClubScheduleFormValues } from "../form/schedule-form.schema";
+import { useClubScheduleForm } from "../form/use-club-schedule-form";
 import type { ClubSchedule, ScheduleType } from "../schedule.types";
 import { SCHEDULE_TYPE_LABELS } from "../schedule.types";
 
@@ -41,19 +35,16 @@ const scheduleTypeOptions = Object.entries(SCHEDULE_TYPE_LABELS).map(([value, la
     label,
 })) as Array<{ value: ScheduleType; label: string }>;
 
-export function getScheduleDialogVisibleSchedule<TSchedule>(
-    open: boolean,
-    schedule: TSchedule | null,
-    lastOpenSchedule: TSchedule | null
-) {
-    return open ? schedule : lastOpenSchedule;
-}
-
 export function ScheduleFormDialog({ clubId, open, schedule, onOpenChange, onSuccess }: ScheduleFormDialogProps) {
     const isCommonSchedule = clubId === null;
-    const [lastOpenSchedule, setLastOpenSchedule] = useState<ClubSchedule | null>(schedule);
-    const visibleSchedule = getScheduleDialogVisibleSchedule(open, schedule, lastOpenSchedule);
-    const isEditMode = visibleSchedule !== null;
+    const { form, formError, visibleSchedule, isEditMode, isSubmitting, onSubmit, onInvalid, handleOpenChange } =
+        useClubScheduleForm({
+            clubId,
+            open,
+            schedule,
+            onOpenChange,
+            onSuccess,
+        });
     const dialogTitle = isEditMode
         ? isCommonSchedule
             ? "공통 일정 수정"
@@ -62,32 +53,6 @@ export function ScheduleFormDialog({ clubId, open, schedule, onOpenChange, onSuc
           ? "일정 등록"
           : "일정 등록";
     const submitLabel = isEditMode ? "수정" : "등록";
-    const form = useForm<ClubScheduleFormValues>({
-        resolver: zodResolver(clubScheduleSchema),
-        defaultValues: createClubScheduleDefaultValues(schedule),
-        mode: "onSubmit",
-    });
-    const { formError, isSubmitting, onSubmit, onInvalid } = useClubScheduleSubmit({
-        form,
-        clubId,
-        scheduleId: schedule?.id,
-        onSuccess,
-    });
-
-    useEffect(() => {
-        if (open) {
-            setLastOpenSchedule(schedule);
-            form.reset(createClubScheduleDefaultValues(schedule));
-        }
-    }, [form, open, schedule]);
-
-    const handleOpenChange = (nextOpen: boolean) => {
-        if (!nextOpen && isSubmitting) {
-            return;
-        }
-
-        onOpenChange(nextOpen);
-    };
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>

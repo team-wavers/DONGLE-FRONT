@@ -1,26 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import type { Club } from "@dongle/types/club/club.d";
 import { Calendar, Mail, Tag } from "lucide-react";
 import { RECRUITMENT_STATUS, RECRUITMENT_STATUS_LABEL } from "@/feature/club/constants/club.constants";
-import {
-    clubEditSchema,
-    createClubEditDefaultValues,
-    createClubEditDraftValues,
-    type ClubEditFormValues,
-} from "@/feature/club/form/club-edit.schema";
-import {
-    clubPresidentSchema,
-    createClubPresidentDefaultValues,
-    type ClubPresidentFormValues,
-} from "@/feature/club/form/club-president.schema";
-import { useClubEditSubmit } from "@/feature/club/form/use-club-edit-submit";
-import { useClubPresidentSubmit } from "@/feature/club/form/use-club-president-submit";
+import type { ClubEditFormValues } from "@/feature/club/form/club-edit.schema";
+import { useClubForm } from "@/feature/club/form/use-club-form";
 import ClubDeleteButton from "../club-delete-button";
 import { ClubPresidentEditForm } from "./club-president-edit-form";
 import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
@@ -35,8 +19,6 @@ import { RHFFileUpload } from "@/shared/form/rhf-file-upload";
 import { RHFRichTextEditor } from "@/shared/form/rhf-rich-text-editor";
 import { RHFSelectField } from "@/shared/form/rhf-select-field";
 import { RHFTextField } from "@/shared/form/rhf-text-field";
-import { useSessionStorageDraft } from "@/hooks/use-session-storage-draft";
-import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 
 export interface ClubFormProps {
     club: Club;
@@ -44,183 +26,27 @@ export interface ClubFormProps {
     presidentId: number;
 }
 
-const UNSAVED_CHANGES_MESSAGE = "작성 중인 동아리 정보가 저장되지 않았습니다. 정말 페이지를 떠날까요?";
-
-function getMainDraftStorageKey(clubId: string) {
-    return `club-edit-draft:${clubId}:main`;
-}
-
-function getPresidentDraftStorageKey(clubId: string) {
-    return `club-edit-draft:${clubId}:president`;
-}
-
-function areEqual<T>(left: T, right: T) {
-    return JSON.stringify(left) === JSON.stringify(right);
-}
-
-function createInitialPresidentValues(club: Club): ClubPresidentFormValues {
-    return createClubPresidentDefaultValues({
-        presidentName: club.president?.name ?? "",
-        presidentContact: club.president?.phone ?? "",
-    });
-}
-
 export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
-    const pathname = usePathname();
-    const initialMainValues = useMemo(() => createClubEditDefaultValues(club), [club]);
-    const initialPresidentValues = useMemo(() => createInitialPresidentValues(club), [club]);
-    const mainDraftStorageKey = useMemo(() => getMainDraftStorageKey(clubId), [clubId]);
-    const presidentDraftStorageKey = useMemo(() => getPresidentDraftStorageKey(clubId), [clubId]);
-    const [mainBaseline, setMainBaseline] = useState<ClubEditFormValues>(initialMainValues);
-    const [presidentBaseline, setPresidentBaseline] = useState<ClubPresidentFormValues>(initialPresidentValues);
-    const [didRestoreMainDraft, setDidRestoreMainDraft] = useState(false);
-    const [didRestorePresidentDraft, setDidRestorePresidentDraft] = useState(false);
-
-    const mainForm = useForm<ClubEditFormValues>({
-        resolver: zodResolver(clubEditSchema),
-        defaultValues: initialMainValues,
-        mode: "onSubmit",
-    });
-    const presidentForm = useForm<ClubPresidentFormValues>({
-        resolver: zodResolver(clubPresidentSchema),
-        defaultValues: initialPresidentValues,
-        mode: "onSubmit",
-    });
-
-    const watchedMainValues = useWatch({
-        control: mainForm.control,
-    }) as ClubEditFormValues;
-    const watchedPresidentName = useWatch({
-        control: presidentForm.control,
-        name: "presidentName",
-    });
-    const watchedPresidentContact = useWatch({
-        control: presidentForm.control,
-        name: "presidentContact",
-    });
-
-    const mainDraft = createClubEditDraftValues({
-        ...initialMainValues,
-        ...watchedMainValues,
-    });
-    const presidentDraft = createClubPresidentDefaultValues({
-        presidentName: watchedPresidentName ?? "",
-        presidentContact: watchedPresidentContact ?? "",
-    });
-    const isMainDirty = mainForm.formState.isDirty || !areEqual(mainDraft, mainBaseline);
-    const isPresidentDirty = !areEqual(presidentDraft, presidentBaseline);
-
-    useEffect(() => {
-        setMainBaseline(initialMainValues);
-        mainForm.reset(initialMainValues);
-    }, [initialMainValues, mainForm]);
-
-    useEffect(() => {
-        setPresidentBaseline(initialPresidentValues);
-        presidentForm.reset(initialPresidentValues);
-    }, [initialPresidentValues, presidentForm]);
-
-    const { saveNow: saveMainDraftNow, clear: clearMainDraft } = useSessionStorageDraft<ClubEditFormValues>({
-        key: mainDraftStorageKey,
-        currentValue: mainDraft,
-        baselineValue: mainBaseline,
-        isDirty: isMainDirty,
-        success: false,
-        shouldRestore: (savedDraft, baseDraft) => !areEqual(savedDraft, baseDraft),
-        onRestore: (savedDraft) => {
-            const draft = createClubEditDraftValues(savedDraft);
-            mainForm.reset(draft);
-            setDidRestoreMainDraft(true);
-            toast.success("임시 저장된 동아리 정보를 복구했습니다.");
-        },
-    });
-
-    const { saveNow: savePresidentDraftNow, clear: clearPresidentDraft } = useSessionStorageDraft<ClubPresidentFormValues>({
-        key: presidentDraftStorageKey,
-        currentValue: presidentDraft,
-        baselineValue: presidentBaseline,
-        isDirty: isPresidentDirty,
-        success: false,
-        shouldRestore: (savedDraft, baseDraft) => !areEqual(savedDraft, baseDraft),
-        onRestore: (savedDraft) => {
-            presidentForm.reset(savedDraft);
-            setDidRestorePresidentDraft(true);
-            toast.success("임시 저장된 회장 정보를 복구했습니다.");
-        },
-    });
-
-    const saveDirtyDrafts = useCallback(() => {
-        if (isMainDirty) {
-            saveMainDraftNow(createClubEditDraftValues(mainForm.getValues()));
-        }
-        if (isPresidentDirty) {
-            savePresidentDraftNow(presidentForm.getValues());
-        }
-    }, [isMainDirty, isPresidentDirty, mainForm, presidentForm, saveMainDraftNow, savePresidentDraftNow]);
-
     const {
-        formError: mainFormError,
-        isSubmitting: isMainPending,
-        onSubmit: onMainSubmit,
-        onInvalid: onMainInvalid,
-        submitSucceeded: didSubmitMain,
-    } = useClubEditSubmit({
-        clubId,
-        form: mainForm,
-        returnTo: pathname,
-        onSuccess: (values) => {
-            const savedValues = createClubEditDraftValues(values);
-            setMainBaseline(savedValues);
-            mainForm.reset(savedValues);
-        },
-        onSessionExpired: saveDirtyDrafts,
-    });
-
-    const {
-        formError: presidentFormError,
-        isSubmitting: isPresidentPending,
-        onSubmit: onPresidentSubmit,
-        onInvalid: onPresidentInvalid,
-        submitSucceeded: didSubmitPresident,
-    } = useClubPresidentSubmit({
+        mainForm,
+        presidentForm,
+        didRestoreMainDraft,
+        didRestorePresidentDraft,
+        mainSubmit,
+        presidentSubmit,
+    } = useClubForm({
+        club,
         clubId,
         presidentId,
-        form: presidentForm,
-        returnTo: pathname,
-        onSuccess: (values) => {
-            const savedValues = createClubPresidentDefaultValues(values);
-            setPresidentBaseline(savedValues);
-            presidentForm.reset(savedValues);
-        },
-        onSessionExpired: saveDirtyDrafts,
     });
-
-    useUnsavedChangesGuard({
-        isDirty: isMainDirty || isPresidentDirty,
-        message: UNSAVED_CHANGES_MESSAGE,
-    });
-
-    useEffect(() => {
-        if (didSubmitMain) {
-            clearMainDraft();
-            setDidRestoreMainDraft(false);
-        }
-    }, [clearMainDraft, didSubmitMain]);
-
-    useEffect(() => {
-        if (didSubmitPresident) {
-            clearPresidentDraft();
-            setDidRestorePresidentDraft(false);
-        }
-    }, [clearPresidentDraft, didSubmitPresident]);
 
     return (
         <AdminFormShell className="mx-0 max-w-none">
             <FormRoot
                 form={mainForm}
-                onSubmit={onMainSubmit}
-                onInvalid={onMainInvalid}
-                formError={mainFormError}
+                onSubmit={mainSubmit.onSubmit}
+                onInvalid={mainSubmit.onInvalid}
+                formError={mainSubmit.formError}
                 className="flex flex-col gap-4">
                 {didRestoreMainDraft ? (
                     <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -386,7 +212,11 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
 
                 <AdminFormActions>
                     {club ? <ClubDeleteButton clubId={Number(clubId)} clubName={club.name} /> : null}
-                    <LoadingButton type="submit" loading={isMainPending} loadingText="수정 중..." className="min-w-32">
+                    <LoadingButton
+                        type="submit"
+                        loading={mainSubmit.isSubmitting}
+                        loadingText="수정 중..."
+                        className="min-w-32">
                         동아리 정보 수정
                     </LoadingButton>
                 </AdminFormActions>
@@ -394,10 +224,10 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
 
             <ClubPresidentEditForm
                 form={presidentForm}
-                onSubmit={onPresidentSubmit}
-                onInvalid={onPresidentInvalid}
-                formError={presidentFormError}
-                isPending={isPresidentPending}
+                onSubmit={presidentSubmit.onSubmit}
+                onInvalid={presidentSubmit.onInvalid}
+                formError={presidentSubmit.formError}
+                isPending={presidentSubmit.isSubmitting}
                 didRestoreDraft={didRestorePresidentDraft}
             />
         </AdminFormShell>
