@@ -6,6 +6,7 @@ import {
     actionFailure,
     actionSuccess,
     getActionErrorMessage,
+    getServiceErrorMessage,
     requireServerActionAccessToken,
     type ActionResult,
 } from "@/shared/action";
@@ -20,8 +21,7 @@ export async function deleteClubAction(clubId: number): Promise<ActionResult<str
 
         if (!result.isSuccess) {
             return actionFailure({
-                formError:
-                    result.error?.detail || result.error?.message || "동아리 삭제에 실패했습니다. 다시 시도해주세요.",
+                formError: getServiceErrorMessage(result.error, "동아리 삭제에 실패했습니다. 다시 시도해주세요."),
             });
         }
 

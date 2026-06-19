@@ -22,6 +22,7 @@ import { Input } from "@dongle/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@dongle/ui/popover";
 import { cn } from "@dongle/ui/utils";
 import { toast } from "sonner";
+import { getServiceErrorMessage } from "@/shared/action";
 import { createRichTextExtensions, normalizeRichTextHtml, richTextContentClassName } from "@dongle/rich-text";
 import BrowserInstance from "@dongle/api/browser-instance";
 import type { Response } from "@dongle/types/response";
@@ -179,7 +180,7 @@ export function RichTextEditor({
 
             if (!data.isSuccess) {
                 console.error("리치텍스트 이미지 업로드 실패:", data.error.detail);
-                toast.error(data.error.detail || "이미지 업로드에 실패했습니다.");
+                toast.error(getServiceErrorMessage(data.error, "이미지 업로드에 실패했습니다."));
             } else {
                 editor.chain().focus().setImage({ src: data.result }).run();
                 toast.success("이미지를 본문에 추가했습니다.");

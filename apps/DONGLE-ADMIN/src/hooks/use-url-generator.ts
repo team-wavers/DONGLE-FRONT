@@ -3,6 +3,7 @@
 import { useState, useTransition, useCallback } from "react";
 import { toast } from "sonner";
 import { issueClubRegisterUrlService } from "@dongle/service/club/club.service";
+import { getServiceErrorMessage } from "@/shared/action";
 
 interface GenerateUrlState {
     success?: boolean;
@@ -46,7 +47,7 @@ export function useUrlGenerator() {
                 const response = await issueClubRegisterUrlService();
 
                 if (!response.isSuccess) {
-                    const errorMessage = response.error?.detail || "URL 생성 중 오류가 발생했습니다.";
+                    const errorMessage = getServiceErrorMessage(response.error, "URL 생성 중 오류가 발생했습니다.");
                     setState({ success: false, error: errorMessage });
                     toast.error(errorMessage);
                     return;

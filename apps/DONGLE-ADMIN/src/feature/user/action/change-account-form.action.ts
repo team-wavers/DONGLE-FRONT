@@ -8,6 +8,7 @@ import { getUserIdFromToken } from "@dongle/api/utils/jwt.util";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
 import { loginService } from "@dongle/service/auth/auth.service";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { getServiceErrorMessage } from "@/shared/action";
 
 export interface ChangeAccountActionState {
     fieldErrors?: {
@@ -18,10 +19,6 @@ export interface ChangeAccountActionState {
     };
     success?: boolean;
     error?: string;
-}
-
-function getServiceErrorMessage(error: { message?: string; detail?: string } | undefined, fallback: string) {
-    return error?.detail || error?.message || fallback;
 }
 
 export async function changeAccountFormAction(

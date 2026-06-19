@@ -25,6 +25,13 @@ export async function parseJsonOrSynthetic<T = unknown>({
             body.error &&
             typeof body.error === "object"
         ) {
+            console.error("error response:", {
+                body,
+                url,
+                method,
+                requestPayload,
+            });
+
             return {
                 ...body,
                 error: {
@@ -36,6 +43,13 @@ export async function parseJsonOrSynthetic<T = unknown>({
 
         return body as T;
     } catch (error) {
+        console.error("JSON 파싱 실패:", {
+            error,
+            url,
+            method,
+            requestPayload,
+        });
+
         return createSyntheticErrorResponse({
             response,
             requestPayload,

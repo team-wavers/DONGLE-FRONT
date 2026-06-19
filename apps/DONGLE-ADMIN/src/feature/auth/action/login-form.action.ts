@@ -9,6 +9,7 @@ import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "@dongle/api
 
 import { cookies } from "next/headers";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { getServiceErrorMessage } from "@/shared/action";
 import { mapLoginActionError, normalizeUsernameInput, preservePasswordInput, toFieldErrorState, validateLoginFields } from "@/feature/auth/utils/login-form-policy";
 
 // 서버 액션 (실제로는 별도 파일에 있을 수 있음)
@@ -33,7 +34,7 @@ export async function loginFormAction(prevState: LoginActionState, formData: For
         if (!response.isSuccess) {
             return {
                 success: false,
-                error: response.error?.detail || "로그인에 실패했습니다.",
+                error: getServiceErrorMessage(response.error, "로그인에 실패했습니다."),
             };
         }
         // JWT 토큰 파싱 (club_id, role 추출용)

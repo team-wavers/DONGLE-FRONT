@@ -2,7 +2,7 @@
 
 import { updateClubService, uploadClubIconService } from "@dongle/service/club/club.service";
 import { clubTagGroups } from "@dongle/service";
-import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
+import { actionFailure, actionSuccess, getServiceErrorMessage, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
@@ -94,7 +94,7 @@ export async function submitClubEditAction({
 
         if (!isSuccess) {
             return actionFailure({
-                formError: error?.detail || error?.message || "동아리 수정에 실패했습니다.",
+                formError: getServiceErrorMessage(error, "동아리 수정에 실패했습니다."),
             });
         }
 

@@ -2,7 +2,7 @@
 
 import { createUserService, patchUserService } from "@dongle/service/user/user.service";
 import { userTagGroups } from "@dongle/service";
-import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
+import { actionFailure, actionSuccess, getActionErrorMessage, getServiceErrorMessage, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
@@ -18,10 +18,6 @@ import {
 
 export type UserCreateActionResult = ActionResult<UserCreateField>;
 export type UserEditActionResult = ActionResult<UserEditField>;
-
-function getActionErrorMessage(error: unknown, fallback: string): string {
-    return error instanceof Error && error.message ? error.message : fallback;
-}
 
 export async function submitUserCreateAction(values: UserCreateFormValues): Promise<UserCreateActionResult> {
     const parsed = userCreateSchema.safeParse(values);
@@ -46,7 +42,7 @@ export async function submitUserCreateAction(values: UserCreateFormValues): Prom
 
         if (!isSuccess) {
             return actionFailure({
-                formError: error?.message ?? "관리자 생성에 실패했습니다. 다시 시도해주세요.",
+                formError: getServiceErrorMessage(error, "관리자 생성에 실패했습니다. 다시 시도해주세요."),
             });
         }
 
@@ -107,7 +103,7 @@ export async function submitUserEditAction({
 
         if (!isSuccess) {
             return actionFailure({
-                formError: error?.message ?? "사용자 정보 수정에 실패했습니다. 다시 시도해주세요.",
+                formError: getServiceErrorMessage(error, "사용자 정보 수정에 실패했습니다. 다시 시도해주세요."),
             });
         }
 

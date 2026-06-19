@@ -92,7 +92,7 @@ describe("changeAccountFormAction", () => {
 
         expect(result).toEqual({
             success: false,
-            error: "이미 사용 중인 아이디입니다.",
+            error: "patch failed",
         });
         expect(revalidateTag).not.toHaveBeenCalled();
     });

@@ -1,5 +1,6 @@
 import MainBannerList from "@/feature/main-banner/components/main-banner-list";
 import { getAdminMainBannerListService } from "@/lib/server/cached-services";
+import { getServiceErrorMessage } from "@/shared/action";
 import { ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
@@ -44,7 +45,7 @@ async function BannerListSection() {
                 <>
                     <div className="text-center py-8 text-muted-foreground">
                         <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>{error?.message || "배너 목록을 불러오는 중 오류가 발생했습니다."}</p>
+                        <p>{getServiceErrorMessage(error, "배너 목록을 불러오는 중 오류가 발생했습니다.")}</p>
                     </div>
                 </>
             );
