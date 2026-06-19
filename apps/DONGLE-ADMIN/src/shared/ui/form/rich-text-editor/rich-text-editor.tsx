@@ -179,7 +179,6 @@ export function RichTextEditor({
             );
 
             if (!data.isSuccess) {
-                console.error("리치텍스트 이미지 업로드 실패:", data.error.detail);
                 toast.error(getServiceErrorMessage(data.error, "이미지 업로드에 실패했습니다."));
             } else {
                 editor.chain().focus().setImage({ src: data.result }).run();
