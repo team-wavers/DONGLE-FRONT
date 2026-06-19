@@ -41,7 +41,6 @@ export default function ActivityReportForm({
 }: ActivityReportFormProps) {
     const {
         form,
-        formError,
         didRestoreDraft,
         isSubmitting,
         onSubmit,
@@ -57,7 +56,7 @@ export default function ActivityReportForm({
     });
 
     return (
-        <FormRoot form={form} onSubmit={onSubmit} onInvalid={onInvalid} formError={formError} className="w-full">
+        <FormRoot form={form} onSubmit={onSubmit} onInvalid={onInvalid} className="w-full">
             <AdminFormShell>
                 {backHref ? <AdminBackAction href={backHref} /> : null}
 

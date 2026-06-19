@@ -46,7 +46,6 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
                 form={mainForm}
                 onSubmit={mainSubmit.onSubmit}
                 onInvalid={mainSubmit.onInvalid}
-                formError={mainSubmit.formError}
                 className="flex flex-col gap-4">
                 {didRestoreMainDraft ? (
                     <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -226,7 +225,6 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
                 form={presidentForm}
                 onSubmit={presidentSubmit.onSubmit}
                 onInvalid={presidentSubmit.onInvalid}
-                formError={presidentSubmit.formError}
                 isPending={presidentSubmit.isSubmitting}
                 didRestoreDraft={didRestorePresidentDraft}
             />

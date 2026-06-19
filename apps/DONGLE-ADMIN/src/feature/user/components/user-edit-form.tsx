@@ -18,7 +18,7 @@ interface UserEditFormProps {
 }
 
 export default function UserEditForm({ user, isOpen, onClose, onSuccess }: UserEditFormProps) {
-    const { form, formError, isSubmitting, onSubmit, onInvalid } = useUserEditForm({
+    const { form, isSubmitting, onSubmit, onInvalid } = useUserEditForm({
         user,
         isOpen,
         onClose,
@@ -35,7 +35,6 @@ export default function UserEditForm({ user, isOpen, onClose, onSuccess }: UserE
                     form={form}
                     onSubmit={onSubmit}
                     onInvalid={onInvalid}
-                    formError={formError}
                     className="flex flex-col">
                     <div className="flex flex-col gap-4 px-6 py-5">
                         <RHFTextField<UserEditFormValues>

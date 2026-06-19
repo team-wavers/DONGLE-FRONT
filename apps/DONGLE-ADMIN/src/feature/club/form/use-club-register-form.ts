@@ -51,7 +51,6 @@ export function useClubRegisterForm(registrationKey: string) {
 
   return {
     form,
-    formError: submit.formError,
     onSubmit: submit.onSubmit,
     onInvalid: submit.onInvalid,
     isSubmitting: submit.isSubmitting || form.formState.isSubmitting,

@@ -37,7 +37,7 @@ const scheduleTypeOptions = Object.entries(SCHEDULE_TYPE_LABELS).map(([value, la
 
 export function ScheduleFormDialog({ clubId, open, schedule, onOpenChange, onSuccess }: ScheduleFormDialogProps) {
     const isCommonSchedule = clubId === null;
-    const { form, formError, visibleSchedule, isEditMode, isSubmitting, onSubmit, onInvalid, handleOpenChange } =
+    const { form, visibleSchedule, isEditMode, isSubmitting, onSubmit, onInvalid, handleOpenChange } =
         useClubScheduleForm({
             clubId,
             open,
@@ -72,7 +72,6 @@ export function ScheduleFormDialog({ clubId, open, schedule, onOpenChange, onSuc
                     form={form}
                     onSubmit={onSubmit}
                     onInvalid={onInvalid}
-                    formError={formError}
                     className="flex max-h-[calc(85vh-5rem)] flex-col">
                     <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-5">
                         <RHFTextField<ClubScheduleFormValues>

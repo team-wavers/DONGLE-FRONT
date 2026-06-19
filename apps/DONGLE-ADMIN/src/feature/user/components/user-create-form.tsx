@@ -16,7 +16,7 @@ interface UserCreateFormProps {
 }
 
 export default function UserCreateForm({ isOpen, onClose, onSuccess }: UserCreateFormProps) {
-    const { form, formError, isSubmitting, onSubmit, onInvalid } = useUserCreateForm({
+    const { form, isSubmitting, onSubmit, onInvalid } = useUserCreateForm({
         isOpen,
         onClose,
         onSuccess,
@@ -32,7 +32,6 @@ export default function UserCreateForm({ isOpen, onClose, onSuccess }: UserCreat
                     form={form}
                     onSubmit={onSubmit}
                     onInvalid={onInvalid}
-                    formError={formError}
                     className="flex flex-col">
                     <div className="flex flex-col gap-4 px-6 py-5">
                         <RHFTextField<UserCreateFormValues>

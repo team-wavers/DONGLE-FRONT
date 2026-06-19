@@ -83,7 +83,6 @@ export function useActionFormSubmit<
     onSessionExpired,
     onSubmittingChange,
 }: UseActionFormSubmitOptions<TValues, TResult>) {
-    const [formError, setFormError] = useState<string | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSucceeded, setSubmitSucceeded] = useState(false);
 
@@ -94,7 +93,6 @@ export function useActionFormSubmit<
 
     const onSubmit: SubmitHandler<TValues> = async (values) => {
         setSubmitting(true);
-        setFormError(undefined);
         setSubmitSucceeded(false);
 
         try {
@@ -102,10 +100,7 @@ export function useActionFormSubmit<
                 form,
                 values,
                 action,
-                onFailure: async (context) => {
-                    setFormError(context.result.formError);
-                    await onFailure?.(context);
-                },
+                onFailure,
                 onSessionExpired,
                 onSuccess: async (context) => {
                     setSubmitSucceeded(true);
@@ -118,7 +113,6 @@ export function useActionFormSubmit<
     };
 
     return {
-        formError,
         isSubmitting,
         submitSucceeded,
         onSubmit,

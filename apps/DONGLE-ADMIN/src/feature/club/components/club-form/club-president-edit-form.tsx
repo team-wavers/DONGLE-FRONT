@@ -12,7 +12,6 @@ interface ClubPresidentEditFormProps {
     form: UseFormReturn<ClubPresidentFormValues>;
     onSubmit: SubmitHandler<ClubPresidentFormValues>;
     onInvalid: SubmitErrorHandler<ClubPresidentFormValues>;
-    formError?: string;
     isPending: boolean;
     didRestoreDraft: boolean;
 }
@@ -21,7 +20,6 @@ export function ClubPresidentEditForm({
     form,
     onSubmit,
     onInvalid,
-    formError,
     isPending,
     didRestoreDraft,
 }: ClubPresidentEditFormProps) {
@@ -30,7 +28,6 @@ export function ClubPresidentEditForm({
             form={form}
             onSubmit={onSubmit}
             onInvalid={onInvalid}
-            formError={formError}
             className="flex flex-col gap-4">
             {didRestoreDraft ? (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">

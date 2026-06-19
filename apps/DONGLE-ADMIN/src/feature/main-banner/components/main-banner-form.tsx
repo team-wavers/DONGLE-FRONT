@@ -41,7 +41,6 @@ export default function MainBannerForm({
     const router = useRouter();
     const {
         form,
-        formError,
         isSubmitting,
         onSubmit,
         onInvalid,
@@ -58,7 +57,6 @@ export default function MainBannerForm({
             form={form}
             onSubmit={onSubmit}
             onInvalid={onInvalid}
-            formError={formError}
             className="w-full">
             <AdminFormShell>
                 <AdminBackAction onClick={() => router.back()} />
