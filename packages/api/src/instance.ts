@@ -1,6 +1,6 @@
 import type { FetchOptions } from "./fetch-types";
 import { makeRequest } from "./make-request";
-import { handleErrorResponse } from "./handle-error-response";
+import { parseJsonOrSynthetic } from "./parse-json";
 import { refreshToken } from "./refresh-token";
 
 class FetchInstance {
@@ -38,15 +38,6 @@ class FetchInstance {
         });
     }
 
-    private async handleErrorResponse(
-        response: Response,
-        requestPayload?: unknown,
-        url?: string,
-        method?: string
-    ): Promise<never> {
-        return handleErrorResponse({ response, requestPayload, url, method });
-    }
-
     private async refreshToken(): Promise<{ success: boolean; accessToken?: string }> {
         return refreshToken({ baseUrl: this.baseUrl });
     }
@@ -57,14 +48,9 @@ class FetchInstance {
      * @param options - 요청 옵션
      * @returns 응답 데이터
      */
-    public async get(url: string, options?: FetchOptions): Promise<unknown> {
+    public async get<T = unknown>(url: string, options?: FetchOptions): Promise<T> {
         const response = await this.makeRequest({ url, method: "GET", options });
-
-        if (!response.ok) {
-            await this.handleErrorResponse(response, undefined, url, "GET");
-        }
-
-        return response.json();
+        return parseJsonOrSynthetic<T>({ response, url, method: "GET" });
     }
 
     /**
@@ -74,19 +60,14 @@ class FetchInstance {
      * @param options - 요청 옵션
      * @returns 응답 데이터
      */
-    public async post(url: string, data: unknown, options?: FetchOptions): Promise<unknown> {
+    public async post<T = unknown>(url: string, data: unknown, options?: FetchOptions): Promise<T> {
         const response = await this.makeRequest({
             url,
             method: "POST",
             data,
             options,
         });
-
-        if (!response.ok) {
-            await this.handleErrorResponse(response, data, url, "POST");
-        }
-
-        return response.json();
+        return parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "POST" });
     }
 
     /**
@@ -96,19 +77,14 @@ class FetchInstance {
      * @param options - 요청 옵션
      * @returns 응답 데이터
      */
-    public async put(url: string, data: unknown, options?: FetchOptions): Promise<unknown> {
+    public async put<T = unknown>(url: string, data: unknown, options?: FetchOptions): Promise<T> {
         const response = await this.makeRequest({
             url,
             method: "PUT",
             data,
             options,
         });
-
-        if (!response.ok) {
-            await this.handleErrorResponse(response, data, url, "PUT");
-        }
-
-        return response.json();
+        return parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "PUT" });
     }
 
     /**
@@ -118,19 +94,14 @@ class FetchInstance {
      * @param options - 요청 옵션
      * @returns 응답 데이터
      */
-    public async patch(url: string, data: unknown, options?: FetchOptions): Promise<unknown> {
+    public async patch<T = unknown>(url: string, data: unknown, options?: FetchOptions): Promise<T> {
         const response = await this.makeRequest({
             url,
             method: "PATCH",
             data,
             options,
         });
-
-        if (!response.ok) {
-            await this.handleErrorResponse(response, data, url, "PATCH");
-        }
-
-        return response.json();
+        return parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "PATCH" });
     }
 
     /**
@@ -139,14 +110,9 @@ class FetchInstance {
      * @param options - 요청 옵션
      * @returns 응답 데이터
      */
-    public async delete(url: string, options?: FetchOptions): Promise<unknown> {
+    public async delete<T = unknown>(url: string, options?: FetchOptions): Promise<T> {
         const response = await this.makeRequest({ url, method: "DELETE", options });
-
-        if (!response.ok) {
-            await this.handleErrorResponse(response, undefined, url, "DELETE");
-        }
-
-        return response.json();
+        return parseJsonOrSynthetic<T>({ response, url, method: "DELETE" });
     }
 }
 

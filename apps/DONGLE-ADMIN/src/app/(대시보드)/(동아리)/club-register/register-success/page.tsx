@@ -25,7 +25,7 @@ export default function RegisterSuccessPage() {
         const encodedData = searchParams.get("data");
         if (encodedData) {
             try {
-                const decodedData = JSON.parse(atob(encodedData)) as SuccessData;
+                const decodedData = JSON.parse(decodeURIComponent(atob(encodedData))) as SuccessData;
                 setSuccessData(decodedData);
             } catch (error) {
                 console.error("데이터 디코딩 실패:", error);

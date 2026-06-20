@@ -17,9 +17,45 @@
 - 검색 결과는 일관된 deterministic 로직으로 계산된다.
 
 관련 테스트:
-- [filterable-club-list.test.ts](../../apps/DONGLE-ADMIN/src/components/organics/filterable-club-list.test.ts)
+- [filterable-club-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/components/filterable-club-list/filterable-club-list.test.ts)
+
+## Client Analytics
+
+### PostHog 이벤트 계약
+
+- 공개 클라이언트 분석 이벤트는 허용된 이벤트 이름과 속성만 전송해야 한다.
+- 브라우저가 아닌 환경에서는 분석 이벤트 전송이 no-op이어야 한다.
+- 이벤트 속성에는 검색어 원문, 전화번호, 사용자 계정 정보 같은 민감 필드를 포함하지 않아야 한다.
+
+관련 테스트:
+- [analytics.test.ts](../../apps/DONGLE-CLIENT/src/lib/analytics.test.ts)
 
 ## Club Form
+
+### 등록 폼 스키마
+
+- 동아리 등록 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
+- 쉼표로 입력한 태그 문자열은 공백과 빈 항목을 제거한 배열로 변환되어야 한다.
+- 동아리 등록 폼에서 선택한 아이콘 파일은 동아리 생성 이후 업로드되고 `icon_url`로 저장되어야 한다.
+
+### 수정 폼 스키마
+
+- 동아리 수정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
+- 수정 폼의 텍스트 입력값은 제출 전에 trim 정규화되어야 한다.
+- 쉼표로 입력한 태그 문자열은 공백과 빈 항목을 제거한 배열로 변환되어야 한다.
+
+### 수정 payload 조합
+
+- 모집마감 상태로 수정하면 모집 시작일과 마감일은 `null`로 제거해야 한다.
+- 모집중 상태로 수정하면 검증된 모집 시작일과 마감일을 payload에 유지해야 한다.
+- 아이콘 삭제 또는 업로드 결과가 있으면 `icon_url`을 명시적으로 payload에 포함해야 한다.
+- 새 아이콘 업로드 성공 후에는 업로드된 URL을 성공 결과로 반환해 다음 수정 기준값의 `iconUrls`가 최신 URL을 유지해야 한다.
+- 기존 아이콘이 있는 replace 업로드에서 새 파일 선택을 취소하면 기존 아이콘 URL이 복구되어야 한다.
+
+### 회장 수정 폼 스키마
+
+- 회장 수정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
+- 회장 이름과 연락처는 제출 전에 trim 정규화되어야 한다.
 
 ### 모집 상태 정규화
 
@@ -33,7 +69,7 @@
 ### 모집 기간 검증
 
 - 모집중이면 모집 시작일과 모집 마감일이 필수다.
-- 모집 마감일은 모집 시작일보다 빠를 수 없다.
+- 모집 마감일은 모집 시작일보다 늦어야 하며 같은 날짜는 허용하지 않는다.
 
 ### 회장 정보 검증 옵션
 
@@ -44,21 +80,79 @@
 - 동아리 설명과 주요 활동은 rich text 마크업만 있는 빈 값으로 저장될 수 없다.
 
 관련 테스트:
+- [club-register.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-register.schema.test.ts)
+- [club-register.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-register.action.test.ts)
+- [club-edit.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit.schema.test.ts)
+- [club-edit-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit-payload.test.ts)
+- [club-edit.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit.action.test.ts)
+- [club-president.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-president.schema.test.ts)
 - [club-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/validation/club-form.validation.test.ts)
+
+## Admin Shared Action
+
+### action result
+
+- typed server action은 성공/실패를 `ok` 기준의 공통 결과 형태로 표현할 수 있어야 한다.
+- 실패 결과는 field error와 form error를 함께 담을 수 있어야 한다.
+- 실패 결과는 필요한 경우 retry 가능 여부와 에러 종류 메타를 함께 담을 수 있어야 한다.
+
+### zod field error 변환
+
+- zod issue 목록은 field별 첫 번째 에러 메시지만 공통 field error map으로 변환해야 한다.
+- field path가 없는 issue는 field error map에 포함하지 않아야 한다.
+
+관련 테스트:
+- [action-result.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/action-result.test.ts)
+- [zod-field-errors.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/zod-field-errors.test.ts)
+
+## Admin Shared Form
+
+### date picker 값 변환
+
+- 날짜 picker에서 선택한 로컬 날짜는 UTC 변환으로 하루 앞당겨지지 않아야 한다.
+- 시간 포함 날짜 picker 값은 UTC 변환 없이 `YYYY-MM-DD HH:mm:ss` 형식으로 유지되어야 한다.
+- 선택한 날짜가 없으면 빈 문자열로 정규화해야 한다.
+- API 응답 ISO 날짜시간은 지정 timezone 기준의 `datetime-local` 입력값으로 변환되어야 한다.
+- `datetime-local` 입력값은 timezone 변환 없이 API 요청 날짜시간 문자열로 변환되어야 한다.
+- API 응답 ISO 날짜 표시는 기본적으로 Seoul 기준 날짜를 사용해야 한다.
+- timezone 없는 서버 datetime 문자열은 브라우저 로컬 timezone이 아니라 Seoul 로컬 날짜시간으로 해석해야 한다.
+- timezone 없는 서버 datetime 문자열은 지정 timezone 로컬 시각의 절대 timestamp로 변환할 수 있어야 한다.
+- 월 상태 key는 지정 timezone 기준 월을 `YYYY-MM`으로 표현하고, timezone 없는 월 첫날 `Date`로 복원할 수 있어야 한다.
+
+### action form submit
+
+- 공통 submit runner는 성공 시 제출값과 action result를 성공 handler에 전달해야 한다.
+- 공통 submit runner는 실패 시 서버 field error를 react-hook-form field error로 반영해야 한다.
+- 공통 submit runner는 일반 form error를 toast로 표시하고, session 만료 실패는 session handler에 위임해야 한다.
+- 공통 invalid handler는 지정한 invalid message를 toast로 표시해야 한다.
+
+관련 테스트:
+- [date-picker-value.test.ts](../../apps/DONGLE-ADMIN/src/shared/form/date-picker-value.test.ts)
+- [use-action-form-submit.test.ts](../../apps/DONGLE-ADMIN/src/shared/form/use-action-form-submit.test.ts)
+- [date.test.ts](../../packages/utils/src/date.test.ts)
 
 ## User Form
 
 ### 계정 입력 검증
 
+- 사용자 생성/수정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
 - 공백 loginId는 거부한다.
 - 비밀번호는 required 여부에 따라 빈 값 허용 규칙이 달라진다.
 - 전화번호는 올바른 휴대폰 형식만 통과한다.
 - 사용자 생성 폼은 역할을 입력받지 않고 관리자 계정으로 생성한다.
 - 사용자 수정 폼은 역할을 변경하지 않는다.
 
+### 수정 payload 조합
+
+- 사용자 수정 payload는 변경된 필드만 포함한다.
+- 수정 폼의 비밀번호는 입력된 경우에만 trim 후 payload에 포함한다.
+- 계정 정보 변경 action은 사용자 수정 service 실패 응답을 성공으로 취급하지 않아야 하며, 실패 시 사용자 cache tag를 초기화하지 않아야 한다.
+
 관련 테스트:
+- [user-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/form/user-form.schema.test.ts)
 - [user-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/validation/user-form.validation.test.ts)
-- [user-create-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/action/user-create-form.action.test.ts)
+- [user-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/form/user-form.action.test.ts)
+- [change-account-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/action/change-account-form.action.test.ts)
 
 ## Admin User Management
 
@@ -68,15 +162,166 @@
 - 이름, 로그인 ID, 전화번호, 역할, 소속 동아리명이 검색 대상이다.
 - 검색 결과는 일관된 deterministic 로직으로 계산된다.
 
+### 사용자 삭제
+
+- 관리자 사용자 삭제 action은 현재 로그인한 본인 계정 삭제 요청을 서비스 호출 전에 거부해야 한다.
+
+### 목록 실패 상태
+
+- 관리자 사용자 목록 조회 실패는 등록된 사용자가 없는 상태와 구분되는 실패 안내로 표시해야 한다.
+
 관련 테스트:
 - [filterable-user-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/components/filterable-user-list.test.ts)
+- [delete-user.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/action/delete-user.action.test.ts)
+
+## Next Cache Policy
+
+### 캐시 태그 중앙화
+
+- 동아리, 사용자, 활동보고서, 메인 배너, 일정 캐시 태그는 중앙 상수와 tag group helper로 생성되어야 한다.
+- 목록/상세/club scope/item scope 태그 조합은 도메인별 helper를 기준으로 일관되게 계산되어야 한다.
+
+### fetch cache 정책
+
+- 사용자 공개 조회는 `force-cache`, 도메인 태그, 도메인별로 독립적으로 정의된 `revalidate` 값을 함께 사용해야 한다. 모든 도메인이 하나의 공통 revalidate 값을 공유하지 않으며, `club`/`club-report`/`club-schedule`/`main-banner` 각각 자신의 TTL 상수(`packages/service/src/cache-tags.ts`)를 따른다.
+- 관리자/회장/사용자 관리 조회는 `no-store`만 사용하고 `next.tags`를 붙이지 않아야 한다.
+- 생성/수정/삭제 service는 fetch cache option을 붙이지 않고, 성공한 server action이 관련 tag group을 초기화해야 한다.
+- `main-banner`/`club-schedule` prefix 태그를 초기화하는 admin server action은 ADMIN 자체 캐시 무효화(`revalidateTag`)에 더해, CLIENT의 `/api/revalidate`로 시크릿 헤더가 포함된 webhook 요청을 보내 cross-app 무효화도 트리거해야 한다. `club`/`club-report`/`user` 태그는 이 webhook 대상이 아니며 TTL 만료로만 갱신된다.
+- cross-app webhook 요청은 `CLIENT_BASE_URL` 또는 시크릿이 설정되지 않았거나 요청이 실패해도 admin server action 자체를 실패시키지 않아야 한다.
+- CLIENT의 `/api/revalidate`는 시크릿 헤더가 없거나 일치하지 않으면 401을, `tags`가 문자열 배열이 아니면 400을 반환해야 하며, 검증을 통과한 요청만 `revalidateTag`를 호출해야 한다.
+- 관리자 일정 수정 action은 응답의 `club_id`를 기준으로 일정 목록, 동아리 범위, 일정 item 태그를 함께 초기화해야 하며 공통 일정은 club-null 태그를 만들지 않아야 한다.
+- 관리자 일정 공개 상태 변경 action은 응답의 `club_id`를 기준으로 일정 목록, 동아리 범위, 일정 item 태그를 함께 초기화해야 한다.
+- 관리자 일정 삭제 action은 삭제 대상 일정의 `club_id`를 기준으로 일정 목록, 동아리 범위, 일정 item 태그를 함께 초기화해야 하며 공통 일정은 club-null 태그를 만들지 않아야 한다.
+- 관리자 일정 삭제 action은 삭제 대상 일정의 `club_id`를 확인하지 못하면 삭제를 진행하지 않아 동아리 범위 캐시 누락을 만들지 않아야 한다.
+
+관련 테스트:
+- [cache-tags.test.ts](../../packages/service/src/cache-tags.test.ts)
+- [club.service.test.ts](../../packages/service/src/club/club.service.test.ts)
+- [user.service.test.ts](../../packages/service/src/user/user.service.test.ts)
+- [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts)
+- [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts)
+- [schedule.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/action/schedule.action.test.ts)
+- [revalidate-tags.test.ts](../../apps/DONGLE-ADMIN/src/lib/server/revalidate-tags.test.ts)
+- [route.test.ts](../../apps/DONGLE-CLIENT/src/app/api/revalidate/route.test.ts)
+
+## Admin Schedule Management
+
+### 캘린더 날짜 계산
+
+- 월간 캘린더는 표시 월의 앞뒤 날짜를 포함해 6주 날짜를 안정적으로 계산해야 한다.
+- 선택한 날짜의 일정은 Seoul 기준 시작일과 종료일 사이에 선택 날짜가 포함되는지로 계산되어야 한다.
+- 여러 날에 걸친 일정은 시작일부터 종료일까지 해당하는 모든 캘린더 날짜 칸에 표시되어야 한다.
+- 관리자 일정 화면의 초기 표시 월은 UTC ISO 문자열이 아니라 timezone 없는 `YYYY-MM` key로 전달되어야 한다.
+- 관리자 월간 일정 조회 query는 표시 월 key에서 Seoul 기준 서버 요청 문자열(`YYYY-MM-DD HH:mm:ss`)로 생성되어야 한다.
+
+### 일정 필터와 정렬
+
+- 검색어는 trim 후 소문자 기준으로 비교된다.
+- 일정 제목, 동아리명, 분과, 장소가 검색 대상이다.
+- 분과, 일정 유형, 공개 상태 필터가 함께 적용되어야 한다.
+- 일정 상태 필터는 시작 전, 진행 중, 종료 후 일정을 구분해야 한다.
+- 일정 상태와 정렬 계산은 timezone 없는 서버 datetime 문자열을 Seoul 로컬 시각으로 해석해야 한다.
+- 회장 일정 필터는 공개 상태와 Date 필터를 함께 적용해야 한다.
+- Date 필터는 전체 기간, 오늘, 이번 주, 이번 달, 직접 선택 범위를 지원해야 한다.
+- Date 필터는 일정의 시작일시와 종료일시 기간이 선택 범위와 겹치면 포함해야 한다.
+- 회장 일정 목록은 진행 중 일정을 월별 목록과 분리된 별도 상단 섹션으로 표시해야 한다.
+- 회장 일정 목록의 진행 중 일정은 종료일시가 가까운 순으로 정렬되어야 한다.
+- 회장 일정 목록의 나머지 일정은 현재 시점과 가까운 순으로 정렬한 뒤 Seoul 기준 시작 월별로 묶어야 한다.
+
+### 일정 응답 변환
+
+- 관리자 일정 응답의 `club` 정보는 화면 일정의 `clubId`, `clubName`, `category`로 변환되어야 한다.
+- 관리자 일정 응답은 동아리 일정이면 `club_id`와 `club.id`, `club.name`, `club.category`를 포함하고 공통 일정이면 `club_id`와 `club`을 `null`로 포함해야 한다.
+- 공통 일정 응답은 화면 일정의 `clubId`를 `null`, `clubName`과 `category`를 shared 상수의 `총동아리연합회` 라벨로 변환해야 한다.
+- 회장 일정 응답은 별도 동아리 상세 조회 없이 응답의 `club_id`를 화면 일정의 `clubId`로 변환해야 한다.
+- 백엔드 일정 응답의 `start_at`, `end_at`, `is_public`, `external_url`은 화면 모델의 날짜/공개/외부 링크 필드로 변환되어야 한다.
+- nullable 문자열 필드는 화면에서 안전하게 렌더링되도록 빈 문자열 또는 `undefined`로 정규화되어야 한다.
+
+### 일정 표시 포맷
+
+- 같은 날 시작/종료 일정은 시작 날짜시간과 종료 시간만 표시해야 한다.
+- 서로 다른 날 시작/종료 일정은 시작 날짜시간과 종료 날짜시간을 모두 표시해야 한다.
+- 잘못된 일정 날짜시간은 fallback 문구로 표시해야 한다.
+
+### 일정 폼 다이얼로그
+
+- 일정 수정 다이얼로그는 닫힘 전환 중 부모 상태가 수정 대상을 비워도 마지막 수정 대상을 기준으로 제목과 제출 버튼 문구를 유지해야 한다.
+- 일정 폼 다이얼로그를 새로 열 때는 현재 전달된 일정 값 기준으로 등록/수정 상태를 판단해야 한다.
+- 빈 장소는 화면에서 `장소 미정`으로 표시해야 한다.
+- 빈 설명은 화면에서 `설명이 없습니다.`로 표시해야 한다.
+- 목록 메타 문자열은 빈 값을 제외하고 구분자를 조합해야 한다.
+- 일정 목록용 날짜 배지는 시작일시의 Seoul 기준 월, 일, 요일을 표시해야 한다.
+- 일정 목록용 기간은 사용자 화면처럼 시작 날짜시간과 종료 날짜시간을 한 문자열로 표시해야 한다.
+- 일정 목록 그룹은 각 화면의 정렬 순서를 유지하며 Seoul 기준 시작 월별로 묶여야 한다.
+- 일정 표시용 날짜 배지, 기간 문자열, 월별 그룹 key는 admin/client가 같은 shared helper 기준을 사용해야 한다.
+- 사용자 동아리 상세 일정은 진행 중 일정, 다가오는 일정, 지난 일정을 서로 분리해 표시해야 한다.
+- 관리자 일정 목록 항목은 날짜 아젠다 없이 동아리명과 분과를 우선 표시해야 한다.
+- 사용자 전체 일정 페이지는 공개 동아리 일정과 공통 일정을 캘린더와 월별 목록으로 표시해야 한다.
+- 사용자 전체 일정 페이지의 공통 일정은 `clubId: null`을 유지하고 shared 상수의 `총동아리연합회` 라벨로 표시해야 한다.
+- 사용자 전체 일정 페이지는 조회 실패 상태를 일정 없음 상태와 구분해 실패 안내로 표시해야 한다.
+- 사용자 앱 헤더는 전체 일정 페이지로 이동하는 전역 진입점을 제공하고, 전체 일정 경로에서 현재 페이지 상태를 표시해야 한다.
+- 회장 일정 외부 링크는 입력값이 있으면 http 또는 https 외부 URL로 검증해야 한다.
+
+### 회장 일정 폼
+
+- 일정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
+- 일정 유형은 모집, 행사, 정기모임만 허용해야 한다.
+- 일정 제목, 시작일시, 종료일시는 필수다.
+- 종료일시는 시작일시보다 빠를 수 없고 같은 시각은 허용한다.
+- 외부 링크는 입력값이 있으면 http 또는 https 외부 URL로 검증해야 한다.
+- 일정 저장 payload는 화면 폼 값을 trim 정규화하고 API 필드명으로 변환해야 한다.
+- 총괄관리자는 관리자 일정 화면에서 `club_id: null`인 공통 일정을 생성할 수 있어야 한다.
+- 총괄관리자는 관리자 일정 화면에서 `club_id: null`인 공통 일정을 수정할 수 있어야 한다.
+
+### 일정 action result
+
+- 일정 생성, 수정, 삭제, 관리자 공개 상태 변경, 관리자 월간 조회 action은 공통 `ActionResult` 형태로 성공/실패를 표현해야 한다.
+- 일정 생성/수정 action은 스키마 검증 실패 시 field error와 form error를 반환해야 한다.
+- 회장 일정 생성/수정 service가 실패하거나 예외를 던지면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+- 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+
+관련 테스트:
+- [schedule.utils.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/schedule.utils.test.ts)
+- [schedule-display.test.ts](../../packages/ui/src/schedules/schedule-display.test.ts)
+- [schedule-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/form/schedule-form.schema.test.ts)
+- [schedule.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/action/schedule.action.test.ts)
+
+## Club Schedule Service
+
+### 사용자/회장 일정 엔드포인트
+
+- 사용자 공개 일정 목록은 `/clubs/:clubId/public-schedules`를 호출해야 한다.
+- 회장 일정 목록은 `/clubs/:clubId/schedules`를 호출하고 status filter가 있으면 query string에 반영해야 한다.
+- 회장 일정 생성/수정/삭제는 `/clubs/:clubId/schedules` 하위 엔드포인트를 호출하고 성공한 action이 schedule tag group을 초기화해야 한다.
+- 회장 일정 생성/수정 service가 실패하거나 예외를 던지면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+- 회장 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+
+### 관리자 일정 엔드포인트
+
+- 관리자 전체 일정 목록은 `/club-schedules`를 호출하고 필터 query string을 보존해야 한다.
+- 관리자 캘린더 목록은 `/club-schedules/calendar`를 호출해야 한다.
+- 관리자 공통 일정 생성은 `/club-schedules`에 `POST` 요청을 보내야 한다.
+- 관리자 단건 조회, 일정 내용 수정, 공개 상태 변경, 삭제는 `/club-schedules/:scheduleId` 하위 엔드포인트를 사용해야 한다.
+- 관리자 일정 내용 수정은 `PATCH /club-schedules/:scheduleId` 요청을 보내야 한다.
+- 관리자 일정 삭제 service가 실패 응답을 반환하면 action은 실패를 반환하고 schedule tag group을 초기화하지 않아야 한다.
+
+### 전체 공개 일정 엔드포인트
+
+- 전체 공개 월별 일정 조회는 `/public/club-schedules`를 호출하고 `from`, `to` query string을 보존해야 한다.
+- 전체 공개 월별 일정 응답은 동아리 일정과 공통 일정을 모두 받을 수 있어야 한다.
+
+관련 테스트:
+- [club.schedule.service.test.ts](../../packages/service/src/club/club.schedule.service.test.ts)
+- [schedule.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/action/schedule.action.test.ts)
 
 ## Report Create / Update
 
 ### 보고서 입력 검증
 
+- 활동보고서 작성/수정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
 - 제목과 내용은 빈 값일 수 없다.
 - 제목 최소 길이와 내용 최소 길이를 만족해야 한다.
+- 기존 썸네일이 있는 replace 업로드에서 새 파일 선택을 취소하면 기존 이미지 URL이 복구되어야 한다.
 
 ### 수정 payload 조합
 
@@ -93,11 +338,12 @@
 - 예외 throw는 공통 exception form error 규약으로 매핑한다.
 
 관련 테스트:
+- [activity-report.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/form/activity-report.schema.test.ts)
 - [activity-report.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/activity-report.validation.test.ts)
 - [report-update-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/validation/report-update-payload.test.ts)
 - [report-action-error-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/report-action-error-policy.test.ts)
-- [activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/activity-report-form.action.test.ts)
-- [update-activity-report-form.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/action/update-activity-report-form.action.test.ts)
+- [activity-report-create.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/form/activity-report-create.action.test.ts)
+- [activity-report-update.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/form/activity-report-update.action.test.ts)
 
 ## Admin URL Generation
 
@@ -149,6 +395,7 @@
 - 검색 결과가 존재하면 empty-state는 `not-empty`와 `null` message를 반환한다.
 - 검색어가 있거나 전체 필터에서 결과가 비면 `no-result`와 기본 안내 문구를 반환한다.
 - 모집중/모집마감 필터에서 해당 상태 데이터가 원천적으로 없으면 각각 `no-open-recruitment`, `no-closed-recruitment` 상태코드를 반환한다.
+- 메인 동아리 목록 조회 실패는 검색 결과 없음 또는 등록된 동아리 없음과 구분되는 실패 안내로 표시해야 한다.
 
 ### 쿼리스트링 연동
 
@@ -161,19 +408,109 @@
 관련 테스트:
 - [use-club-filters.test.ts](../../apps/DONGLE-CLIENT/src/hooks/use-club-filters.test.ts)
 - [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts)
+- [club-list-section.test.tsx](../../apps/DONGLE-CLIENT/src/components/main/club-list-section.test.tsx)
 
-## Client Report Detail API
+## Client Club Schedule
 
-### 상세 조회 상태코드 매핑
+### 동아리 상세 일정
 
-- 활동보고서 상세 조회 성공은 200으로 응답한다.
-- 목록에서 해당 report를 찾지 못한 경우만 404로 응답한다.
-- 목록 조회 자체 실패 등 upstream 실패는 5xx로 응답한다.
+- 사용자 동아리 상세 일정은 해당 동아리의 공개 일정만 포함해야 한다.
+- 비공개 일정은 사용자 동아리 상세 일정에 포함하지 않아야 한다.
+- 일정은 진행 중인 일정, 다가오는 일정, 지난 일정으로 분리되어야 한다.
+- 진행 중인 일정은 시작일시가 현재 시각보다 이전이거나 같고 종료일시가 현재 시각보다 이후이거나 같은 일정이어야 한다.
+- 다가오는 일정은 시작일시가 현재 시각보다 이후인 일정이어야 한다.
+- 지난 일정은 종료일시가 현재 시각보다 이전인 일정이어야 한다.
+- 진행 중 일정은 종료일시가 가까운 순으로 정렬되어야 한다.
+- 다가오는 일정은 시작일시가 가까운 순으로 정렬되어야 한다.
+- 지난 일정은 최근 종료일시 순으로 정렬되어야 한다.
+- 사용자 동아리 상세 일정 목록은 진행 중 일정, 다가오는 일정, 지난 일정 순서로 표시해야 한다.
+- 백엔드 공개 일정 응답은 응답의 `club_id`를 기준으로 화면 일정 모델의 `clubId`로 변환되어야 한다.
+- 사용자 동아리 상세의 공개 일정 기간은 Seoul 기준으로 표시해야 한다.
+- 사용자 동아리 상세의 공개 일정 날짜시간은 `M월 D일 H시 mm분` 형식으로 표시해야 한다.
+- 사용자 동아리 상세의 공개 일정 시간이 `00시 00분`이면 시간은 생략하고 날짜만 표시해야 한다.
+- 같은 날 시작/종료 일정은 시작 날짜시간과 종료 시간만 표시해야 한다.
+- 서로 다른 날 시작/종료 일정은 시작 날짜시간과 종료 날짜시간을 모두 표시해야 한다.
+- 사용자 동아리 상세 일정의 모바일 목록 기간은 시간을 제외하고 `M월 D일` 또는 `M월 D일 - M월 D일` 형식으로 표시해야 한다.
+- 사용자 동아리 상세 일정 목록은 진행 중 일정을 별도 카드 섹션으로 표시하고, 다가오는 일정과 지난 일정은 각각 Seoul 기준 시작 월별 섹션으로 묶어 표시해야 한다.
+- 사용자 동아리 상세 일정의 월별 그룹은 중복 월 섹션을 만들지 않고 shared schedule display helper 기준으로 병합해야 한다.
+- 사용자 동아리 상세 일정 목록은 날짜 아젠다 없이 각 일정 항목 안에 일정 기간을 독립적으로 표시해야 한다.
+- 일정 유형 태그는 모집, 행사, 정기모임을 서로 다른 색상으로 구분해야 한다.
+- 공개 일정 외부 링크가 있으면 사용자 동아리 상세 일정에 링크 CTA로 표시해야 한다.
+- 공개 일정 외부 링크는 화면 모델 변환 시 공통 URL 정규화를 거쳐야 한다.
+- 공개 일정 조회가 실패해도 동아리 상세 페이지는 중단되지 않아야 하며, 일정 탭에는 일정 없음과 구분되는 실패 안내가 표시되어야 한다.
+- 사용자 동아리 상세의 일정 탭은 기본 동아리 상세 조회와 분리된 Suspense 경계에서 조회되어야 한다.
+
+### 동아리 상세 활동보고서
+
+- 활동보고서 목록 조회가 실패해도 동아리 상세 페이지는 중단되지 않아야 하며, 활동보고서 탭에는 활동보고서 없음과 구분되는 실패 안내가 표시되어야 한다.
+- 활동보고서 상세 페이지는 목록 조회 실패와 단건 조회 서버 실패를 404로 처리하지 않고 오류로 전파해야 하며, 실제 not found 응답만 404로 처리해야 한다.
+- 사용자 동아리 상세의 활동보고서 탭은 기본 동아리 상세 조회와 분리된 Suspense 경계에서 조회되어야 한다.
+
+## Admin Accessibility
+
+### Viewport
+
+- 관리자 앱 viewport는 사용자의 pinch zoom을 차단하지 않아야 한다.
+
+## Client Loading UX
+
+### 사용자 페이지 스켈레톤
+
+- 동아리 상세 로딩 UI는 실제 상세 화면의 헤더, 태그, 정보 카드, 탭 콘텐츠 구조를 반영해야 한다.
+- 동아리 상세 소개 탭의 rich text 본문은 sanitizing/rendering 지연 중 스켈레톤이나 높이 placeholder를 렌더링하지 않아야 한다.
+- 활동보고서 상세 로딩 UI는 뒤로가기, 제목/메타, 동아리 요약, 이미지, 본문, 다른 보고서 목록 구조를 반영해야 한다.
+- 동아리 상세와 활동보고서 상세 라우트는 라우트 전환 중 표시할 `loading.tsx`를 제공해야 한다.
 
 관련 테스트:
-- [get-club-report-route-status.test.ts](../../apps/DONGLE-CLIENT/src/lib/get-club-report-route-status.test.ts)
+- [club-schedule.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-schedule.test.ts)
+- [club.schedule.service.test.ts](../../packages/service/src/club/club.schedule.service.test.ts)
+
+## Club Report Detail Service
+
+### 단건 조회
+
+- 활동보고서 단건 조회는 `/clubs/:id/reports/:reportId`를 캐시 없이 호출해야 한다.
+- 활동보고서 단건 조회에서 API 404 문구(`해당 활동보고서가 존재하지 않습니다.`)는 not found 실패 응답으로 정규화되어야 한다.
+
+관련 테스트:
+- [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts)
 
 ## Shared Utilities
+
+### URL 정규화
+
+- 일반 외부 링크는 `http` 또는 `https` URL만 허용해야 한다.
+- 프로토콜 없는 외부 호스트는 `https` URL로 정규화해야 한다.
+- protocol-relative 외부 URL은 `https` URL로 정규화해야 한다.
+- credential 포함 URL, 상대 경로, unsupported scheme, 빈 값은 `null`로 정규화해야 한다.
+
+관련 테스트:
+- [url.test.ts](../../packages/utils/src/url.test.ts)
+
+### Main Banner Display
+
+- 사용자용 배너 목록 조회는 공개 엔드포인트인 `/main-banners`를 사용해야 한다.
+- 관리자용 배너 목록 조회는 관리자 엔드포인트인 `/main-banners/admin`을 사용해야 한다.
+- 관리자용 배너 단건 조회는 `/main-banners/admin/:id`를 캐시 없이 호출해야 한다.
+- 관리자용 배너 단건 조회 예외는 편집 화면에서 오류 UI로 처리할 수 있도록 실패 응답으로 정규화되어야 한다.
+- 관리자 배너 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
+- 관리자 배너 폼은 날짜와 시간을 함께 선택할 수 있어야 한다.
+- 관리자 배너 폼의 시간 포함 제출값은 API가 받는 `YYYY-MM-DD HH:mm:ss` 형식이어야 한다.
+- 관리자 배너 폼은 이미지가 없으면 저장할 수 없다.
+- 관리자 배너 폼은 `http(s)` URL 또는 `/`로 시작하는 내부 경로만 링크로 허용한다.
+- 관리자 배너 payload의 빈 링크 입력값은 `null`로 정규화되어야 한다.
+- 사용자 노출용 배너는 사용 중이고 이미지 URL이 있으며 노출 기간 내인 항목만 포함한다.
+- 배너 클릭 링크는 `http(s)` URL 또는 `/`로 시작하는 내부 경로만 허용한다.
+- 허용되지 않는 링크는 사용자 노출 데이터에서 `null`로 정규화한다.
+- 사용자 배너 클릭 링크는 내부 경로면 같은 탭, 외부 URL이면 새 탭에서 열려야 한다.
+- 관리자 배너 삭제 action은 성공/실패를 공통 `ActionResult`로 반환하고, 성공한 경우 관련 메인 배너 cache tag를 초기화해야 한다.
+
+관련 테스트:
+- [get-display-banner-image-urls.test.ts](../../packages/service/src/main-banner/get-display-banner-image-urls.test.ts)
+- [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts)
+- [main-banner-datetime.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/utils/main-banner-datetime.test.ts)
+- [main-banner-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/form/main-banner-form.schema.test.ts)
+- [delete-main-banner.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/action/delete-main-banner.action.test.ts)
 
 ### API Token Refresh Retry
 
@@ -197,9 +534,11 @@
 - 공백 문자열은 빈 문자열로 정규화한다.
 - 일반 텍스트는 안전한 HTML로 escape한다.
 - 이미 HTML인 값은 유지한다.
+- rich text viewer는 sanitizer 로드 실패 시에도 pending 상태를 종료할 수 있는 fallback HTML을 반환해야 한다.
 
 관련 테스트:
 - [sanitize-rich-text-html.test.ts](../../packages/rich-text/src/sanitize-rich-text-html.test.ts)
+- [rich-text-viewer.test.ts](../../packages/rich-text/src/rich-text-viewer.test.ts)
 
 ### Date Format
 

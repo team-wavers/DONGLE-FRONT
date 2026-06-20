@@ -1,25 +1,22 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dongle/ui/tabs";
+import React from "react";
+import type { ReactNode } from "react";
 import ClubIntroTabContent from "./club-intro-tab-content";
-import ClubReportsTabContent from "./club-reports-tab-content";
+import { trackDongleEvent } from "@/lib/analytics";
 
 type ClubDetailIntroViewModel = {
     description: string;
     main_activities: string;
 };
 
-type ClubDetailReportViewModel = {
-    id: number;
-    title: string;
-    createdAt: string;
-    image_urls: string[];
-};
-
 interface ClubDetailTabsProps {
     club: ClubDetailIntroViewModel;
     clubId: string;
-    reports: ClubDetailReportViewModel[];
+    clubName: string;
+    reportsContent: ReactNode;
+    schedulesContent: ReactNode;
 }
 
 const styles = {
@@ -28,15 +25,35 @@ const styles = {
     tabContent: "pt-8",
 } as const;
 
-export default function ClubDetailTabs({ club, clubId, reports }: ClubDetailTabsProps) {
+export default function ClubDetailTabs({
+    club,
+    clubId,
+    clubName,
+    reportsContent,
+    schedulesContent,
+}: ClubDetailTabsProps) {
     return (
-        <Tabs defaultValue="intro" className="w-full">
-            <TabsList className="w-full grid grid-cols-2 h-11 rounded-none bg-transparent p-0 border-b border-zinc-200">
+        <Tabs
+            defaultValue="intro"
+            className="w-full"
+            onValueChange={(value) =>
+                trackDongleEvent("club_tab_change", {
+                    club_id: Number(clubId),
+                    club_name: clubName,
+                    tab_name: value as "intro" | "reports" | "schedules",
+                })
+            }
+        >
+            <TabsList className="w-full grid grid-cols-3 h-11 rounded-none bg-transparent p-0 border-b border-zinc-200">
                 <TabsTrigger value="intro" className={styles.tabTrigger}>
                     동아리 소개
                 </TabsTrigger>
                 <TabsTrigger value="reports" className={styles.tabTrigger}>
-                    동아리 활동보고서
+                    <span className="sm:hidden">활동보고서</span>
+                    <span className="hidden sm:inline">동아리 활동보고서</span>
+                </TabsTrigger>
+                <TabsTrigger value="schedules" className={styles.tabTrigger}>
+                    일정
                 </TabsTrigger>
             </TabsList>
 
@@ -45,7 +62,11 @@ export default function ClubDetailTabs({ club, clubId, reports }: ClubDetailTabs
             </TabsContent>
 
             <TabsContent value="reports" className={styles.tabContent}>
-                <ClubReportsTabContent clubId={clubId} reports={reports} />
+                {reportsContent}
+            </TabsContent>
+
+            <TabsContent value="schedules" className={styles.tabContent}>
+                {schedulesContent}
             </TabsContent>
         </Tabs>
     );

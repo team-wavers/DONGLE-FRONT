@@ -1,100 +1,90 @@
 import FetchInstance from "@dongle/api/instance";
-import {
-    ClubReportResponse,
-    CreateClubReportRequest,
-    ClubReportImageResponse,
-    UpdateClubReportRequest,
-    ClubReportUpdateResponse,
+import type { FetchOptions } from "@dongle/api/fetch-types";
+import type {
     ClubReportCreateResponse,
+    ClubReportImageResponse,
     ClubReportListResponse,
-    ClubReport,
+    ClubReportResponse,
+    ClubReportUpdateResponse,
+    CreateClubReportRequest,
+    UpdateClubReportRequest,
 } from "@dongle/types/club/club.report";
-import { Response } from "@dongle/types/response";
+import type { Response } from "@dongle/types/response";
+import { CLUB_REPORT_REVALIDATE_SECONDS, reportTagGroups } from "../cache-tags";
 
 const instance = FetchInstance.getInstance();
 
-export const getClubReportListService = async (club_id: number): Promise<ClubReportListResponse> => {
-    const response = await instance.get(`/clubs/${club_id}/reports`, {
-        next: {
-            tags: ["report", `report-${club_id}`],
-        },
-    });
-    return response as ClubReportListResponse;
-};
+const CLUBS_PATH = "/clubs";
 
-// 캐시된 목록에서 특정 보고서 찾기 (더 효율적)
-export const getClubReportFromListService = async (club_id: number, report_id: number): Promise<ClubReportResponse> => {
-    // 목록을 가져옴 (캐시에서 가져올 가능성이 높음)
-    const { result: reportList, isSuccess } = await getClubReportListService(club_id);
+export type ReportFetchPolicy = "public" | "admin";
 
-    if (!isSuccess || !reportList) {
+function getClubReportsPath(clubId: number) {
+    return `${CLUBS_PATH}/${clubId}/reports`;
+}
+
+function getClubReportPath(clubId: number, reportId: number) {
+    return `${getClubReportsPath(clubId)}/${reportId}`;
+}
+
+function getClubReportImagePath(clubId: number) {
+    return `${CLUBS_PATH}/${clubId}/report-images`;
+}
+
+function getReportTags(clubId: number, reportId?: number) {
+    return reportId ? reportTagGroups.item(clubId, reportId) : reportTagGroups.club(clubId);
+}
+
+function getReportListFetchOptions(clubId: number, policy: ReportFetchPolicy = "public"): FetchOptions {
+    if (policy === "admin") {
         return {
-            isSuccess: false,
-            error: {
-                message: "활동 보고서를 가져오는데 실패했습니다.",
-                detail: "목록 API 호출 실패",
-            },
-        };
-    }
-
-    // 특정 보고서 찾기
-    const report = reportList.find((r: ClubReport) => r.id === report_id);
-
-    if (!report) {
-        return {
-            isSuccess: false,
-            error: {
-                message: "해당 활동보고서를 찾을 수 없습니다.",
-                detail: `report_id: ${report_id}`,
-            },
+            cache: "no-store",
         };
     }
 
     return {
-        isSuccess: true,
-        result: report,
+        cache: "force-cache",
+        next: {
+            tags: getReportTags(clubId),
+            revalidate: CLUB_REPORT_REVALIDATE_SECONDS,
+        },
     };
-};
+}
 
-export const createClubReportService = async (
-    club_id: number,
+export async function getClubReportListService(
+    clubId: number,
+    policy: ReportFetchPolicy = "public"
+): Promise<ClubReportListResponse> {
+    return instance.get<ClubReportListResponse>(getClubReportsPath(clubId), getReportListFetchOptions(clubId, policy));
+}
+
+export async function getClubReportService(clubId: number, reportId: number): Promise<ClubReportResponse> {
+    return instance.get<ClubReportResponse>(getClubReportPath(clubId, reportId), {
+        cache: "no-store",
+    });
+}
+
+export async function createClubReportService(
+    clubId: number,
     report: CreateClubReportRequest
-): Promise<ClubReportCreateResponse> => {
-    const response = await instance.post(`/clubs/${club_id}/reports`, report, {
-        next: {
-            tags: ["report", `report-${club_id}`],
-        },
-    });
-    return response as ClubReportCreateResponse;
-};
+): Promise<ClubReportCreateResponse> {
+    return instance.post<ClubReportCreateResponse>(getClubReportsPath(clubId), report);
+}
 
-export const updateClubReportService = async (
-    club_id: number,
-    report_id: number,
+export async function updateClubReportService(
+    clubId: number,
+    reportId: number,
     report: UpdateClubReportRequest
-): Promise<ClubReportUpdateResponse> => {
-    const response = await instance.put(`/clubs/${club_id}/reports/${report_id}`, report, {
-        next: {
-            tags: ["report", `report-${club_id}`],
-        },
-    });
-    return response as ClubReportUpdateResponse;
-};
+): Promise<ClubReportUpdateResponse> {
+    return instance.put<ClubReportUpdateResponse>(getClubReportPath(clubId, reportId), report);
+}
 
-/** 활동 보고서 삭제 */
-export const deleteClubReportService = async (club_id: number, report_id: number): Promise<Response<null>> => {
-    const response = await instance.delete(`/clubs/${club_id}/reports/${report_id}`, {
-        next: {
-            tags: ["report", `report-${club_id}`],
-        },
-    });
-    return response as Response<null>;
-};
+export async function deleteClubReportService(clubId: number, reportId: number): Promise<Response<null>> {
+    return instance.delete<Response<null>>(getClubReportPath(clubId, reportId));
+}
 
-export const uploadClubReportImageService = async (club_id: number, image: File): Promise<ClubReportImageResponse> => {
+export async function uploadClubReportImageService(clubId: number, image: File): Promise<ClubReportImageResponse> {
     const formData = new FormData();
     formData.append("file", image);
 
-    const response = await instance.post(`/clubs/${club_id}/report-images`, formData);
-    return response as ClubReportImageResponse;
-};
+    return instance.post<ClubReportImageResponse>(getClubReportImagePath(clubId), formData);
+}

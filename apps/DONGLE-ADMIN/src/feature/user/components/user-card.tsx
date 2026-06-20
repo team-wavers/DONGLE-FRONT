@@ -4,42 +4,49 @@ import { useState } from "react";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { User } from "@dongle/types/user/user.d";
-import { Card, CardContent, CardHeader, CardTitle } from "@dongle/ui/card";
 import { Badge } from "@dongle/ui/badge";
 import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
-import { User as UserIcon, Phone, Calendar, Edit, Trash2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@dongle/ui/tooltip";
+import { Calendar, Edit, Phone, Trash2, User as UserIcon } from "lucide-react";
 import UserEditForm from "@/feature/user/components/user-edit-form";
-import { deleteUserAction } from "@/feature/user/action/user-form.action";
+import { deleteUserAction } from "@/feature/user/action/delete-user.action";
 import { formatMobilePhoneNumber } from "@dongle/utils";
 import { formatKoreanDate } from "@/lib/format/date";
 import { toast } from "sonner";
 
 interface UserCardProps {
     user: User;
+    currentUserId?: number | null;
 }
 
-export default function UserCard({ user }: UserCardProps) {
+export default function UserCard({ user, currentUserId }: UserCardProps) {
     const router = useRouter();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
+    const isCurrentUser = currentUserId === user.id;
 
     const handleEditSuccess = () => {
         setIsEditModalOpen(false);
     };
 
     const handleDelete = () => {
+        if (isCurrentUser) {
+            toast.error("본인 계정은 삭제할 수 없습니다.");
+            return;
+        }
+
         startTransition(async () => {
             try {
                 const result = await deleteUserAction(user.id);
 
-                if (result.success) {
-                    toast.success("사용자가 성공적으로 삭제되었습니다.");
+                if (result.ok) {
+                    toast.success(result.message ?? "사용자가 성공적으로 삭제되었습니다.");
                     setIsDeleteModalOpen(false);
                     router.refresh();
                 } else {
-                    toast.error(result.error ?? "사용자 삭제에 실패했습니다.");
+                    toast.error(result.formError ?? "사용자 삭제에 실패했습니다.");
                 }
             } catch (error) {
                 console.error("사용자 삭제 중 오류:", error);
@@ -48,70 +55,65 @@ export default function UserCard({ user }: UserCardProps) {
         });
     };
 
+    const handleDeleteOpenChange = (nextOpen: boolean) => {
+        if (!nextOpen && isPending) return;
+        setIsDeleteModalOpen(nextOpen);
+    };
+
     return (
         <>
-            <Card className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <CardTitle className="text-lg flex items-center gap-2 min-w-0">
-                            <UserIcon className="w-5 h-5 shrink-0 text-blue-600" />
-                            <span className="truncate">{user.name}</span>
-                        </CardTitle>
-                        <div className="flex flex-wrap items-center gap-2 shrink-0">
-                            <Badge
-                                variant={user.role === "admin" ? "default" : "secondary"}
-                                className={
-                                    user.role === "admin" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
-                                }>
-                                {user.role === "admin" ? "관리자" : "회장"}
-                            </Badge>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsEditModalOpen(true)}
-                                className="flex items-center gap-1 shrink-0">
-                                <Edit className="w-4 h-4" />
-                                수정
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsDeleteModalOpen(true)}
-                                className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0"
-                                disabled={isPending}>
-                                <Trash2 className="w-4 h-4" />
-                                삭제
-                            </Button>
-                        </div>
+            <div className="grid grid-cols-1 items-center gap-4 border-b px-5 py-4 last:border-b-0 lg:grid-cols-[minmax(0,1.3fr)_100px_minmax(130px,0.75fr)_150px_120px_170px]">
+                <div className="flex min-w-0 items-center gap-3">
+                    <UserIcon className="h-5 w-5 shrink-0 text-blue-600" />
+                    <div className="min-w-0">
+                        <p className="truncate text-base font-semibold text-zinc-900">{user.name}</p>
+                        {user.club && <p className="mt-1 truncate text-xs text-muted-foreground">{user.club.name}</p>}
                     </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <span className="font-medium">로그인 ID:</span>
-                                <span>{user.login_id}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Phone className="w-4 h-4" />
-                                <span>{formatMobilePhoneNumber(user.phone)}</span>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            {user.club && (
-                                <div className="text-sm text-gray-600">
-                                    <span className="font-medium">소속 동아리:</span>
-                                    <span className="ml-2">{user.club.name}</span>
-                                </div>
-                            )}
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Calendar className="w-4 h-4" />
-                                <span>가입일: {formatKoreanDate(user.created_at)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                </div>
+                <Badge
+                    variant={user.role === "admin" ? "default" : "secondary"}
+                    className={user.role === "admin" ? "w-fit bg-red-100 text-red-800" : "w-fit bg-blue-100 text-blue-800"}>
+                    {user.role === "admin" ? "관리자" : "회장"}
+                </Badge>
+                <div className="text-sm text-gray-600">
+                    <span className="lg:hidden">로그인 ID: </span>
+                    {user.login_id}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Phone className="h-4 w-4 shrink-0" />
+                    <span>{formatMobilePhoneNumber(user.phone)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Calendar className="h-4 w-4 shrink-0" />
+                    <span>{formatKoreanDate(user.created_at)}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="h-9 shrink-0 gap-1">
+                        <Edit className="h-4 w-4" />
+                        수정
+                    </Button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setIsDeleteModalOpen(true)}
+                                    className="h-9 shrink-0 gap-1 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                    disabled={isPending || isCurrentUser}>
+                                    <Trash2 className="h-4 w-4" />
+                                    삭제
+                                </Button>
+                            </span>
+                        </TooltipTrigger>
+                        {isCurrentUser ? <TooltipContent>본인 계정은 삭제할 수 없습니다.</TooltipContent> : null}
+                    </Tooltip>
+                </div>
+            </div>
 
             {isEditModalOpen && (
                 <UserEditForm
@@ -122,7 +124,7 @@ export default function UserCard({ user }: UserCardProps) {
                 />
             )}
 
-            <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+            <Dialog open={isDeleteModalOpen} onOpenChange={handleDeleteOpenChange}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>사용자 삭제 확인</DialogTitle>

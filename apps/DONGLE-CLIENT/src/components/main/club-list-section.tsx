@@ -1,10 +1,12 @@
 "use client";
 
+import React from "react";
 import ClubIconAvatar from "@/components/main/club-icon-avatar";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
 import { cn } from "@dongle/ui/utils";
 import Link from "next/link";
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
+import { trackDongleEvent } from "@/lib/analytics";
 
 type ClubListItemViewModel = {
     id: number;
@@ -19,15 +21,25 @@ interface ClubListSectionProps {
     clubs: ClubListItemViewModel[];
     summaryText: string;
     emptyStateMessage: string | null;
+    loadFailed?: boolean;
 }
 
-export default function ClubListSection({ clubs, summaryText, emptyStateMessage }: ClubListSectionProps) {
+export default function ClubListSection({
+    clubs,
+    summaryText,
+    emptyStateMessage,
+    loadFailed = false,
+}: ClubListSectionProps) {
     return (
         <div className="space-y-4">
-            <div className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3">
+            <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3">
                 <p className="text-sm font-bold text-zinc-500">{summaryText}</p>
             </div>
-            {emptyStateMessage ? (
+            {loadFailed ? (
+                <div className="rounded-lg border border-zinc-200 bg-white px-6 py-10 text-center text-zinc-500">
+                    동아리 목록을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.
+                </div>
+            ) : emptyStateMessage ? (
                 <div className="rounded-lg border border-zinc-200 bg-white px-6 py-10 text-center text-zinc-400">
                     {emptyStateMessage}
                 </div>
@@ -41,6 +53,13 @@ export default function ClubListSection({ clubs, summaryText, emptyStateMessage 
                             <Link
                                 key={club.id}
                                 href={`/clubs/${club.id}`}
+                                onClick={() =>
+                                    trackDongleEvent("club_card_click", {
+                                        club_id: club.id,
+                                        club_name: club.name,
+                                        club_category: club.category,
+                                    })
+                                }
                                 className="group flex min-h-24 items-center gap-4 rounded-lg border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-300 hover:bg-zinc-50/50">
                                 <ClubIconAvatar
                                     name={club.name}

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@dongle/ui/button";
 import { Trash2 } from "lucide-react";
-import { deleteClubAction } from "@/feature/club/action/club-form.action";
+import { deleteClubAction } from "@/feature/club/action/delete-club.action";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
 
 interface ClubDeleteButtonProps {
@@ -18,18 +18,23 @@ export default function ClubDeleteButton({ clubId, clubName }: ClubDeleteButtonP
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
+    const handleOpenChange = (nextOpen: boolean) => {
+        if (!nextOpen && isPending) return;
+        setIsDeleteModalOpen(nextOpen);
+    };
+
     const handleDelete = () => {
         startTransition(async () => {
             try {
                 const result = await deleteClubAction(clubId);
-                if (!result.success) {
-                    toast.error(result.error ?? "동아리 삭제에 실패했습니다.");
+                if (!result.ok) {
+                    toast.error(result.formError ?? "동아리 삭제에 실패했습니다.");
                     return;
                 }
 
-                toast.success("동아리가 성공적으로 삭제되었습니다.");
+                toast.success(result.message ?? "동아리가 성공적으로 삭제되었습니다.");
                 setIsDeleteModalOpen(false);
-                router.push("/admin/club");
+                router.push(result.redirectTo ?? "/admin/club");
                 router.refresh();
             } catch {
                 toast.error("동아리 삭제 중 오류가 발생했습니다.");
@@ -38,7 +43,7 @@ export default function ClubDeleteButton({ clubId, clubName }: ClubDeleteButtonP
     };
 
     return (
-        <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <Dialog open={isDeleteModalOpen} onOpenChange={handleOpenChange}>
             <Button type="button" variant="destructive" onClick={() => setIsDeleteModalOpen(true)} disabled={isPending}>
                 <Trash2 className="w-4 h-4 mr-2" />
                 동아리 삭제

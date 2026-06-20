@@ -5,9 +5,11 @@ import { LoginActionState } from "@dongle/types/auth/auth";
 import type { AuthRole } from "@dongle/types/auth/auth-role";
 import { getCookieOptions } from "@dongle/api/utils/cookie/cookie.options";
 import { getTokenExpiresIn, decodeJwtToken } from "@dongle/api/utils/jwt.util";
+import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "@dongle/api/utils/cookie/cookie.contant";
 
 import { cookies } from "next/headers";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { getServiceErrorMessage } from "@/shared/action";
 import { mapLoginActionError, normalizeUsernameInput, preservePasswordInput, toFieldErrorState, validateLoginFields } from "@/feature/auth/utils/login-form-policy";
 
 // 서버 액션 (실제로는 별도 파일에 있을 수 있음)
@@ -32,7 +34,7 @@ export async function loginFormAction(prevState: LoginActionState, formData: For
         if (!response.isSuccess) {
             return {
                 success: false,
-                error: response.error?.detail || "로그인에 실패했습니다.",
+                error: getServiceErrorMessage(response.error, "로그인에 실패했습니다."),
             };
         }
         // JWT 토큰 파싱 (club_id, role 추출용)
@@ -52,11 +54,11 @@ export async function loginFormAction(prevState: LoginActionState, formData: For
         const accessTokenExpiresIn = getTokenExpiresIn(accessTokenPayload, 900); // 기본값 15분
         const refreshTokenExpiresIn = getTokenExpiresIn(refreshTokenPayload, 7 * 24 * 3600); // 기본값 7일
 
-        cookieStore.set("accessToken", response.result.accessToken, {
+        cookieStore.set(ACCESS_TOKEN_COOKIE_NAME, response.result.accessToken, {
             ...getCookieOptions({ maxAge: accessTokenExpiresIn, httpOnly: true }),
         });
 
-        cookieStore.set("refreshToken", response.result.refreshToken, {
+        cookieStore.set(REFRESH_TOKEN_COOKIE_NAME, response.result.refreshToken, {
             ...getCookieOptions({ maxAge: refreshTokenExpiresIn, httpOnly: true }),
         });
 

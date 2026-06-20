@@ -13,47 +13,25 @@ import { filterUsers } from "./utils";
 const instance = FetchInstance.getInstance();
 
 export const getUserService = async (id: number): Promise<GetUserResponse> => {
-    const response = await instance.get(`/users/${id}`, {
-        next: {
-            tags: ["user", `${id}`],
-        },
+    return instance.get<GetUserResponse>(`/users/${id}`, {
+        cache: "no-store",
     });
-    return response as GetUserResponse;
 };
 
 export const createUserService = async (user: CreateUserRequest): Promise<CreateUserResponse> => {
-    const response = await instance.post("/users", user, {
-        next: {
-            tags: ["user"],
-        },
-    });
-    return response as CreateUserResponse;
+    return instance.post<CreateUserResponse>("/users", user);
 };
 
 export const getUserListService = async (): Promise<GetUserListResponse> => {
-    const response = await instance.get("/users", {
-        next: {
-            tags: ["user"],
-        },
+    return instance.get<GetUserListResponse>("/users", {
+        cache: "no-store",
     });
-
-    return response as GetUserListResponse;
 };
 
 export const patchUserService = async (id: number, user: UpdateUserRequest): Promise<UpdateUserResponse> => {
-    const response = await instance.patch(`/users/${id}`, user, {
-        next: {
-            tags: ["user", `${id}`],
-        },
-    });
-    return response as UpdateUserResponse;
+    return instance.patch<UpdateUserResponse>(`/users/${id}`, user);
 };
 
 export const deleteUserService = async (id: number): Promise<Response<null>> => {
-    const response = await instance.delete(`/users/${id}`, {
-        next: {
-            tags: ["user", `${id}`],
-        },
-    });
-    return response as Response<null>;
+    return instance.delete<Response<null>>(`/users/${id}`);
 };

@@ -136,7 +136,7 @@ function SearchInput({ searchQuery, onSearchQueryChange }: SearchInputProps) {
                 onChange={(event) => onSearchQueryChange(event.target.value)}
                 placeholder="동아리명, 분과를 입력해 보세요"
                 className={cn(
-                    "h-11 rounded-md border-zinc-200 bg-zinc-50 pl-11 text-sm font-semibold text-zinc-700 shadow-none",
+                    "h-11 rounded-md border-zinc-200 bg-zinc-50 pl-11 text-base md:text-sm font-semibold text-zinc-700 shadow-none",
                     "placeholder:text-zinc-400 focus-visible:bg-white"
                 )}
             />

@@ -12,6 +12,7 @@
 
 - 이 레포의 기본 진입 명령은 `pnpm verify:fast`다.
 - `pnpm verify:docs`는 문서 계약 확인용 하위 명령이다.
+- `pnpm verify:vitest-alias`는 app 테스트에서 사용하는 `@dongle/*` import와 Vitest alias 계약 확인용 하위 명령이다.
 - `pnpm test`와 `pnpm test:e2e`는 하위 명령이다.
 - 문서에서 기본 검증 경로를 설명할 때는 `pnpm verify:fast`를 기준으로 삼는다.
 

@@ -1,36 +1,21 @@
 import { clsx, type ClassValue } from "clsx"
+import {
+  formatDateByLocale as formatDateByLocaleBase,
+  formatDateRange as formatDateRangeBase,
+  type DateDisplayFormatOptions,
+} from "@dongle/utils"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatDateByLocale(value: string, locale = "ko-KR") {
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
-    return "-"
-  }
-
-  return new Intl.DateTimeFormat(locale, {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-    .format(date)
-    .replace(/\. /g, ".")
-    .replace(/\.$/, "")
+export function formatDateByLocale(value: string | Date, locale = "ko-KR", options?: Omit<DateDisplayFormatOptions, "locale">) {
+  return formatDateByLocaleBase(value, { ...options, locale })
 }
 
-export function formatDateRange(start: string, end: string, locale = "ko-KR") {
-  const startDate = formatDateByLocale(start, locale)
-  const endDate = formatDateByLocale(end, locale)
-
-  if (startDate === "-" || endDate === "-") {
-    return "-"
-  }
-
-  return `${startDate} ~ ${endDate}`
+export function formatDateRange(start: string | Date, end: string | Date, locale = "ko-KR", options?: Omit<DateDisplayFormatOptions, "locale">) {
+  return formatDateRangeBase(start, end, { ...options, locale })
 }
 
 type SocialPlatform = "instagram" | "youtube"

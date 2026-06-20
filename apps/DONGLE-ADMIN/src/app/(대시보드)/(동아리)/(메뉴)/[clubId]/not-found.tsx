@@ -1,11 +1,11 @@
 "use client";
 
 import { Users, LogOut } from "lucide-react";
-import { logoutAction } from "@/feature/auth/action/logout-form.action";
 import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
+import { useRouter } from "next/navigation";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
+import { requestLogout } from "@/feature/auth/utils/request-logout";
 
 export default function NotFound() {
     const router = useRouter();
@@ -13,12 +13,13 @@ export default function NotFound() {
 
     const handleLogout = () => {
         startTransition(async () => {
-            const { success } = await logoutAction();
-            if (!success) {
-                toast.error("로그아웃에 실패했습니다.");
+            const { isSuccess } = await requestLogout();
+            if (!isSuccess) {
+                toast.error("로그아웃에 실패했습니다. 다시 시도해주세요.");
                 return;
             }
-            router.push("/login");
+            router.replace("/login");
+            router.refresh();
         });
     };
 

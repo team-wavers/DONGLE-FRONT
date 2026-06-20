@@ -1,12 +1,14 @@
 "use server";
 
 import { patchUserService, getUserService } from "@dongle/service/user/user.service";
+import { userTagGroups } from "@dongle/service";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
 import { UpdateUserRequest } from "@dongle/types/user/user.d";
 import { getUserIdFromToken } from "@dongle/api/utils/jwt.util";
-import { revalidateTag } from "next/cache";
+import { revalidateTags } from "@/lib/server/revalidate-tags";
 import { loginService } from "@dongle/service/auth/auth.service";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
+import { getServiceErrorMessage } from "@/shared/action";
 
 export interface ChangeAccountActionState {
     fieldErrors?: {
@@ -120,11 +122,17 @@ export async function changeAccountFormAction(
             };
         }
 
-        await patchUserService(Number(userId), updateData);
+        const updateResult = await patchUserService(Number(userId), updateData);
+
+        if (!updateResult.isSuccess) {
+            return {
+                success: false,
+                error: getServiceErrorMessage(updateResult.error, "계정 정보 변경에 실패했습니다. 다시 시도해주세요."),
+            };
+        }
 
         // 사용자 정보 캐시 초기화
-        revalidateTag("user");
-        revalidateTag(`user-${userId}`);
+        revalidateTags(userTagGroups.detail(userId));
 
         return {
             success: true,

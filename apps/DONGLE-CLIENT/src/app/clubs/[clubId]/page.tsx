@@ -1,65 +1,84 @@
-import { Suspense } from "react";
+import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
+import ClubReportsTabContent from "@/components/club-detail/club-reports-tab-content";
+import ClubSchedulesTabContent from "@/components/club-detail/club-schedules-tab-content";
+import ClubSocialLinks from "@/components/club-detail/club-social-links";
+import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
+import ClubIconAvatar from "@/components/main/club-icon-avatar";
+import { getClubScheduleGroups, mapClubScheduleToPublicSchedule } from "@/lib/club-schedule";
+import {
+    getClubPublicScheduleListService,
+    getClubReportListService,
+    getClubService,
+} from "@/lib/server/cached-services";
+import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
+import { Skeleton } from "@dongle/ui/skeleton";
+import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
+import { formatMobilePhoneNumber } from "@dongle/utils";
+import { ArrowLeft, CalendarDays, MapPin, Phone, UserRound } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getClubReportListService, getClubService } from "@/lib/server/cached-services";
-import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
-import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
-import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
-import ClubIconAvatar from "@/components/main/club-icon-avatar";
-import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
-import { ArrowLeft, CalendarDays, Instagram, MapPin, Phone, UserRound, Youtube } from "lucide-react";
-import { Skeleton } from "@dongle/ui/skeleton";
+import { Suspense } from "react";
+import { buildClubFallbackMetadata, buildClubPageMetadata } from "@/lib/club-page-metadata";
 
 interface ClubDetailPageProps {
     params: Promise<{ clubId: string }>;
 }
 
-const siteTitle = "동글";
-const defaultOgImage = "/logo/logo-og.png";
-
-function buildClubDescription(description: string, mainActivities: string) {
-    const rawDescription = description?.trim() || mainActivities?.trim() || "동아리 상세 정보를 확인해보세요.";
-    return rawDescription.length > 140 ? `${rawDescription.slice(0, 137)}...` : rawDescription;
-}
-
-function ClubSocialLinks({
-    instagramUrl,
-    youtubeUrl,
-    className = "",
-}: {
-    instagramUrl: string | null;
-    youtubeUrl: string | null;
-    className?: string;
-}) {
-    if (!instagramUrl && !youtubeUrl) {
-        return null;
-    }
-
+function ClubTabPanelSkeleton() {
     return (
-        <div className={`flex h-fit flex-wrap gap-2 ${className}`}>
-            {instagramUrl && (
-                <Link
-                    href={instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-700 hover:bg-zinc-50">
-                    <Instagram className="size-4 text-zinc-400" />
-                    instagram
-                </Link>
-            )}
-            {youtubeUrl && (
-                <Link
-                    href={youtubeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-700 hover:bg-zinc-50">
-                    <Youtube className="size-4 text-zinc-400" />
-                    youtube
-                </Link>
-            )}
+        <div className="space-y-4">
+            <Skeleton className="h-10 w-32 rounded-md" />
+            <Skeleton className="h-32 w-full rounded-lg" />
+            <Skeleton className="h-32 w-full rounded-lg" />
         </div>
     );
+}
+
+async function ClubReportsTabPanel({ clubId, clubName }: { clubId: string; clubName: string }) {
+    const clubIdNumber = Number(clubId);
+
+    try {
+        const reportsResponse = await getClubReportListService(clubIdNumber);
+
+        if (!reportsResponse.isSuccess) {
+            return <ClubReportsTabContent clubId={clubId} clubName={clubName} reports={[]} loadFailed />;
+        }
+
+        const reports = reportsResponse.result.map((report) => ({
+            id: report.id,
+            title: report.title,
+            createdAt: report.createdAt,
+            image_urls: report.image_urls,
+        }));
+
+        return <ClubReportsTabContent clubId={clubId} clubName={clubName} reports={reports} />;
+    } catch {
+        return <ClubReportsTabContent clubId={clubId} clubName={clubName} reports={[]} loadFailed />;
+    }
+}
+
+async function ClubSchedulesTabPanel({ clubIdNumber, clubName }: { clubIdNumber: number; clubName: string }) {
+    try {
+        const scheduleResponse = await getClubPublicScheduleListService(clubIdNumber);
+        const schedules = getClubScheduleGroups(scheduleResponse.map(mapClubScheduleToPublicSchedule), {
+            clubId: clubIdNumber,
+        });
+
+        return <ClubSchedulesTabContent clubName={clubName} schedules={schedules} />;
+    } catch {
+        return (
+            <ClubSchedulesTabContent
+                clubName={clubName}
+                schedules={{
+                    ongoing: [],
+                    upcoming: [],
+                    past: [],
+                }}
+                loadFailed
+            />
+        );
+    }
 }
 
 export async function generateMetadata({ params }: ClubDetailPageProps): Promise<Metadata> {
@@ -67,59 +86,24 @@ export async function generateMetadata({ params }: ClubDetailPageProps): Promise
     const clubIdNumber = Number(clubId);
 
     if (Number.isNaN(clubIdNumber)) {
-        return {
-            title: "동아리 상세",
-            alternates: {
-                canonical: `/clubs/${clubId}`,
-            },
-        };
+        return buildClubFallbackMetadata(clubId, "invalid");
     }
 
     const clubResponse = await getClubService(clubIdNumber);
 
-    if (!clubResponse.isSuccess || !clubResponse.result) {
-        return {
-            title: "동아리 상세",
-            description: "동아리 상세 정보를 확인해보세요.",
-            alternates: {
-                canonical: `/clubs/${clubId}`,
-            },
-        };
+    if (!clubResponse.isSuccess) {
+        if (clubResponse.error.status === 404) {
+            return buildClubFallbackMetadata(clubId, "not_found");
+        }
+
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
     }
 
-    const club = clubResponse.result;
-    const title = club.name;
-    const description = buildClubDescription(club.description, club.main_activities);
-    const image = club.icon_url || defaultOgImage;
-    const canonicalPath = `/clubs/${club.id}`;
+    if (!clubResponse.result) {
+        return buildClubFallbackMetadata(clubId, "not_found");
+    }
 
-    return {
-        title,
-        description,
-        alternates: {
-            canonical: canonicalPath,
-        },
-        openGraph: {
-            title: `${title} | ${siteTitle}`,
-            description,
-            url: canonicalPath,
-            siteName: siteTitle,
-            locale: "ko_KR",
-            type: "article",
-            images: [
-                {
-                    url: image,
-                    alt: `${title} 대표 이미지`,
-                },
-            ],
-        },
-        twitter: {
-            card: "summary_large_image",
-            title: `${title} | ${siteTitle}`,
-            description,
-            images: [image],
-        },
-    };
+    return buildClubPageMetadata(clubResponse.result);
 }
 
 async function ClubDetailContent({ clubId }: { clubId: string }) {
@@ -128,39 +112,38 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         notFound();
     }
 
-    const [clubResponse, reportsResponse] = await Promise.all([
-        getClubService(clubIdNumber),
-        getClubReportListService(clubIdNumber),
-    ]);
+    const clubResponse = await getClubService(clubIdNumber);
 
-    if (!clubResponse.isSuccess || !clubResponse.result) {
+    if (!clubResponse.isSuccess) {
+        if (clubResponse.error.status === 404) {
+            notFound();
+        }
+
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
+    }
+
+    if (!clubResponse.result) {
         notFound();
     }
 
     const club = clubResponse.result;
-    const reports = reportsResponse.isSuccess
-        ? reportsResponse.result.map((report) => ({
-              id: report.id,
-              title: report.title,
-              createdAt: report.createdAt,
-              image_urls: report.image_urls,
-          }))
-        : [];
     const intro = {
         description: club.description,
         main_activities: club.main_activities,
     };
-    const instagramUrl = normalizeSocialUrl("instagram", club.sns.instagram);
-    const youtubeUrl = normalizeSocialUrl("youtube", club.sns.youtube);
+    const instagramUrl = normalizeSocialUrl("instagram", club.sns?.instagram);
+    const youtubeUrl = normalizeSocialUrl("youtube", club.sns?.youtube);
     const hasSocialLinks = Boolean(instagramUrl || youtubeUrl);
     const categoryPresentation = getClubCategoryPresentation(club.category);
     const recruitPeriod =
         club.recruit_start && club.recruit_end ? formatDateRange(club.recruit_start, club.recruit_end) : "미정";
+    const presidentPhone = club.president?.phone;
+    const formattedPresidentPhone = presidentPhone ? formatMobilePhoneNumber(presidentPhone) : "-";
     const infoItems = [
         { icon: MapPin, label: "동아리방", value: club.location || "-" },
         { icon: CalendarDays, label: "모집기간", value: recruitPeriod },
         { icon: UserRound, label: "회장", value: club.president?.name || "-" },
-        { icon: Phone, label: "연락처", value: club.president?.phone || "-" },
+        { icon: Phone, label: "연락처", value: formattedPresidentPhone },
     ];
 
     return (
@@ -210,41 +193,43 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                         })}
                     </dl>
 
-                    <ClubSocialLinks instagramUrl={instagramUrl} youtubeUrl={youtubeUrl} className="md:hidden" />
+                    <ClubSocialLinks
+                        clubId={clubIdNumber}
+                        clubName={club.name}
+                        instagramUrl={instagramUrl}
+                        youtubeUrl={youtubeUrl}
+                        className="md:hidden"
+                    />
 
-                    <ClubDetailTabs club={intro} clubId={clubId} reports={reports} />
+                    <ClubDetailTabs
+                        club={intro}
+                        clubId={clubId}
+                        clubName={club.name}
+                        reportsContent={
+                            <Suspense fallback={<ClubTabPanelSkeleton />}>
+                                <ClubReportsTabPanel clubId={clubId} clubName={club.name} />
+                            </Suspense>
+                        }
+                        schedulesContent={
+                            <Suspense fallback={<ClubTabPanelSkeleton />}>
+                                <ClubSchedulesTabPanel clubIdNumber={clubIdNumber} clubName={club.name} />
+                            </Suspense>
+                        }
+                    />
                 </div>
 
                 {hasSocialLinks && (
                     <aside>
-                        <ClubSocialLinks instagramUrl={instagramUrl} youtubeUrl={youtubeUrl} className="hidden md:flex" />
+                        <ClubSocialLinks
+                            clubId={clubIdNumber}
+                            clubName={club.name}
+                            instagramUrl={instagramUrl}
+                            youtubeUrl={youtubeUrl}
+                            className="hidden md:flex"
+                        />
                     </aside>
                 )}
             </section>
-        </section>
-    );
-}
-
-function ClubDetailFallback() {
-    return (
-        <section className="py-6 flex flex-col gap-12">
-            <div className="flex flex-col gap-6">
-                <div className="py-4 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-4 min-w-0">
-                        <Skeleton className="h-16 w-16 rounded-full" />
-                        <div className="min-w-0 space-y-2">
-                            <Skeleton className="h-9 w-48" />
-                            <Skeleton className="h-5 w-24" />
-                        </div>
-                    </div>
-                    <Skeleton className="h-9 w-24 rounded-full" />
-                </div>
-                <Skeleton className="h-52 w-full rounded-xl" />
-            </div>
-            <div className="space-y-6">
-                <Skeleton className="h-11 w-full" />
-                <Skeleton className="h-72 w-full rounded-xl" />
-            </div>
         </section>
     );
 }
@@ -263,9 +248,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
                 </Link>
             </div>
 
-            <Suspense fallback={<ClubDetailFallback />}>
-                <ClubDetailContent clubId={clubId} />
-            </Suspense>
+            <ClubDetailContent clubId={clubId} />
         </>
     );
 }

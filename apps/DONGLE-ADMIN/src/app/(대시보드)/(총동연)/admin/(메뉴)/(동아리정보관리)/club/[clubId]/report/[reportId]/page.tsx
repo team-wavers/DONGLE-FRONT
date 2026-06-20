@@ -1,12 +1,16 @@
-import { Suspense } from "react";
-import { getClubReportFromListService } from "@/lib/server/cached-services";
-import ReportView from "@/components/molecules/layout/report-view/report-view";
-import { Skeleton } from "@dongle/ui/skeleton";
+import { getClubReportService } from "@/lib/server/cached-services";
+import ReportView from "@/feature/report/components/report-view/report-view";
+import { notFound } from "next/navigation";
 
 async function AdminClubReportDetailContent({ clubId, reportId }: { clubId: string; reportId: string }) {
-    const { result, isSuccess } = await getClubReportFromListService(Number(clubId), Number(reportId));
+    const reportResponse = await getClubReportService(Number(clubId), Number(reportId));
+    const { result, isSuccess, error } = reportResponse;
 
     if (!isSuccess) {
+        if (error.status === 404) {
+            notFound();
+        }
+
         throw new Error("활동보고서를 가져오는데 실패했습니다.");
     }
 
@@ -30,16 +34,6 @@ async function AdminClubReportDetailContent({ clubId, reportId }: { clubId: stri
     );
 }
 
-function AdminClubReportDetailFallback() {
-    return (
-        <div className="w-full max-w-full space-y-6">
-            <Skeleton className="h-10 w-32" />
-            <Skeleton className="h-72 w-full rounded-2xl" />
-            <Skeleton className="h-64 w-full rounded-2xl" />
-        </div>
-    );
-}
-
 export default async function AdminClubReportDetailPage({
     params,
 }: {
@@ -47,9 +41,5 @@ export default async function AdminClubReportDetailPage({
 }) {
     const { reportId, clubId } = await params;
 
-    return (
-        <Suspense fallback={<AdminClubReportDetailFallback />}>
-            <AdminClubReportDetailContent clubId={clubId} reportId={reportId} />
-        </Suspense>
-    );
+    return <AdminClubReportDetailContent clubId={clubId} reportId={reportId} />;
 }

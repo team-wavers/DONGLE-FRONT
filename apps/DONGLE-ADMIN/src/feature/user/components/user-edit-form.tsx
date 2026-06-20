@@ -1,13 +1,14 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
-import { User } from "@dongle/types/user/user.d";
-import { FormField } from "@/components/atoms/form/form-field/form-field";
-import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@dongle/ui/dialog";
+import type { User } from "@dongle/types/user/user.d";
 import { Button } from "@dongle/ui/button";
-import { toast } from "sonner";
-import { userEditFormAction, UserEditActionState } from "@/feature/user/action/user-edit-form.action";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
+import { AdminFormActions } from "@/shared/layout/form-page/admin-form-layout";
+import { FormRoot } from "@/shared/form/form-root";
+import { RHFTextField } from "@/shared/form/rhf-text-field";
+import type { UserEditFormValues } from "@/feature/user/form/user-form.schema";
+import { useUserEditForm } from "@/feature/user/form/use-user-form";
 
 interface UserEditFormProps {
     user: User;
@@ -17,84 +18,67 @@ interface UserEditFormProps {
 }
 
 export default function UserEditForm({ user, isOpen, onClose, onSuccess }: UserEditFormProps) {
-    const [state, formAction, isPending] = useActionState(userEditFormAction, {
-        success: false,
-        error: undefined,
-        fieldErrors: undefined,
-    } as UserEditActionState);
-
-    // 성공/실패 시 토스트 표시 및 다이얼로그 닫기
-    useEffect(() => {
-        if (state.success) {
-            toast.success("사용자 정보가 성공적으로 수정되었습니다.");
-            onSuccess();
-            onClose();
-        }
-        if (state.error) {
-            toast.error(state.error);
-        }
-    }, [state.success, state.error, onSuccess, onClose]);
+    const { form, isSubmitting, onSubmit, onInvalid } = useUserEditForm({
+        user,
+        isOpen,
+        onClose,
+        onSuccess,
+    });
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
+            <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-lg">
+                <DialogHeader className="border-b px-6 py-5">
                     <DialogTitle>사용자 정보 수정</DialogTitle>
                 </DialogHeader>
-                <form action={formAction} className="space-y-4">
-                    <input type="hidden" name="userId" value={user.id} />
-                    <input type="hidden" name="originalName" value={user.name} />
-                    <input type="hidden" name="originalLoginId" value={user.login_id} />
-                    <input type="hidden" name="originalPhone" value={user.phone} />
+                <FormRoot
+                    form={form}
+                    onSubmit={onSubmit}
+                    onInvalid={onInvalid}
+                    className="flex flex-col">
+                    <div className="flex flex-col gap-4 px-6 py-5">
+                        <RHFTextField<UserEditFormValues>
+                            id="name"
+                            name="name"
+                            label="이름"
+                            type="text"
+                            required
+                        />
 
-                    <FormField
-                        label="이름"
-                        type="text"
-                        name="name"
-                        id="name"
-                        required
-                        error={state.fieldErrors?.name}
-                        defaultValue={user.name}
-                    />
+                        <RHFTextField<UserEditFormValues>
+                            id="login_id"
+                            name="login_id"
+                            label="로그인 ID"
+                            type="text"
+                            required
+                        />
 
-                    <FormField
-                        label="로그인 ID"
-                        type="text"
-                        name="login_id"
-                        id="login_id"
-                        required
-                        error={state.fieldErrors?.login_id}
-                        defaultValue={user.login_id}
-                    />
+                        <RHFTextField<UserEditFormValues>
+                            id="password"
+                            name="password"
+                            label="비밀번호 (변경시에만 입력)"
+                            type="password"
+                            placeholder="새 비밀번호를 입력하세요"
+                        />
 
-                    <FormField
-                        label="비밀번호 (변경시에만 입력)"
-                        type="password"
-                        name="password"
-                        id="password"
-                        placeholder="새 비밀번호를 입력하세요"
-                        error={state.fieldErrors?.password}
-                    />
+                        <RHFTextField<UserEditFormValues>
+                            id="phone"
+                            name="phone"
+                            label="전화번호"
+                            type="tel"
+                            required
+                        />
+                    </div>
 
-                    <FormField
-                        label="전화번호"
-                        type="tel"
-                        name="phone"
-                        id="phone"
-                        required
-                        error={state.fieldErrors?.phone}
-                        defaultValue={user.phone}
-                    />
-
-                    <DialogFooter className="w-full">
+                    <AdminFormActions className="px-6 py-4">
                         <Button type="button" variant="outline" onClick={onClose}>
                             취소
                         </Button>
-                        <LoadingButton type="submit" loading={isPending} loadingText="수정 중...">
+                        <LoadingButton type="submit" loading={isSubmitting} loadingText="수정 중...">
                             수정
                         </LoadingButton>
-                    </DialogFooter>
-                </form>
+                    </AdminFormActions>
+                </FormRoot>
             </DialogContent>
         </Dialog>
     );

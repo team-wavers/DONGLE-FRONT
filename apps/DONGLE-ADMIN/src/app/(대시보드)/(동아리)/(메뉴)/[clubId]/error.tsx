@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { Button } from "@dongle/ui/button";
 import { AlertTriangle, RefreshCw, ArrowLeft } from "lucide-react";
@@ -16,6 +17,7 @@ export default function Error({ error, reset }: ErrorProps) {
   const clubId = params?.clubId;
 
   useEffect(() => {
+    Sentry.captureException(error);
     console.error("동아리 페이지 에러:", error);
   }, [error]);
 

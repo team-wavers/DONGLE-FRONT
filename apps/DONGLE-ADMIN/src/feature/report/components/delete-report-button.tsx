@@ -3,7 +3,7 @@
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useTransition } from "react";
-import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -20,26 +20,33 @@ import { deleteReportAction } from "@/feature/report/action/delete-report-form.a
 export default function DeleteReportButton({
   clubId,
   reportId,
+  redirectHref,
 }: {
   clubId: string;
   reportId: string;
+  redirectHref: string;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && isPending) return;
+    setOpen(nextOpen);
+  };
 
   const handleDelete = () => {
     startTransition(async () => {
       try {
         const result = await deleteReportAction(Number(clubId), Number(reportId));
 
-        if (result.success) {
-          toast.success("활동 보고서가 성공적으로 삭제되었습니다.");
+        if (result.ok) {
+          toast.success(result.message ?? "활동 보고서가 성공적으로 삭제되었습니다.");
           setOpen(false);
-          router.push(`/${clubId}/report`);
+          router.push(result.redirectTo ?? redirectHref);
           router.refresh();
         } else {
-          toast.error(result.error ?? "보고서 삭제에 실패했습니다.");
+          toast.error(result.formError ?? "보고서 삭제에 실패했습니다.");
         }
       } catch (error) {
         console.error("보고서 삭제 실패:", error);
@@ -49,7 +56,7 @@ export default function DeleteReportButton({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="destructive" className="bg-red-500 hover:bg-red-600">
           <Trash2 className="w-4 h-4 mr-2" />

@@ -1,7 +1,7 @@
 "use client";
 
-import { LoadingButton } from "@/components/atoms/button/loading-button/loading-button";
-import { FormField } from "@/components/atoms/form/form-field/form-field";
+import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
+import { FormField } from "@/shared/ui/form/form-field/form-field";
 import { changeAccountFormAction, ChangeAccountActionState } from "@/feature/user/action/change-account-form.action";
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";

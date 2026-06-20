@@ -5,6 +5,14 @@ interface HandleErrorResponseParams {
     method?: string;
 }
 
+export interface SyntheticErrorResponseParams {
+    response: Response;
+    requestPayload?: unknown;
+    url?: string;
+    method?: string;
+    parseError?: unknown;
+}
+
 function summarizeRequestPayload(requestPayload: unknown) {
     if (requestPayload instanceof FormData) {
         return {
@@ -63,6 +71,35 @@ function extractErrorMessage(errorData: unknown, response: Response): string {
     return `HTTP ${response.status}: ${response.statusText}`;
 }
 
+export function createSyntheticErrorResponse({
+    response,
+    requestPayload,
+    url,
+    method,
+    parseError,
+}: SyntheticErrorResponseParams) {
+    const requestSummary = summarizeRequestPayload(requestPayload);
+    const targetUrl = url || response.url || "unknown_url";
+    const safeMethod = method || "UNKNOWN";
+
+    const parseErrorMessage =
+        parseError instanceof Error && parseError.message.trim() ? parseError.message : String(parseError ?? "unknown");
+
+    console.error(`[${safeMethod}] ${targetUrl} - ${response.status} (JSON 파싱 실패):`, {
+        request: requestSummary,
+        parseError: parseErrorMessage,
+    });
+
+    return {
+        isSuccess: false as const,
+        error: {
+            message: `HTTP ${response.status}: ${response.statusText}`,
+            detail: `${response.statusText || "Unknown Error"} (url: ${targetUrl}, method: ${safeMethod})`,
+            status: response.status,
+        },
+    };
+}
+
 export async function handleErrorResponse({
     response,
     requestPayload,
@@ -83,9 +120,8 @@ export async function handleErrorResponse({
         throw new Error(message);
     } catch (error) {
         if (error instanceof Error && error.message.includes("JSON")) {
-            console.error(`[${method || "UNKNOWN"}] ${url || response.url} - ${response.status} (JSON 파싱 실패):`, {
-                request: requestSummary,
-            });
+            // 기존 계약: 여전히 throw하지만, parse 실패 로그/합성 응답 생성은 공용 helper로 위임한다.
+            createSyntheticErrorResponse({ response, requestPayload, url, method, parseError: error });
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         throw error;

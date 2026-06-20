@@ -1,6 +1,8 @@
-import { getClubReportListService, getClubService } from "@/lib/server/cached-services";
-import { RichTextViewer } from "@dongle/rich-text";
-import type { ClubReport } from "@dongle/types/club/club.report";
+import { getClubReportListService, getClubReportService, getClubService } from "@/lib/server/cached-services";
+import {
+    buildReportFallbackMetadata,
+    buildReportPageMetadata,
+} from "@/lib/report-page-metadata";
 import { formatDateByLocale } from "@dongle/ui/utils";
 import { ArrowLeft, CalendarDays, PencilLine } from "lucide-react";
 import type { Metadata } from "next";
@@ -9,21 +11,10 @@ import { notFound } from "next/navigation";
 import ClubSummaryCard from "./_components/club-summary-card";
 import OtherReportList from "./_components/other-report-list";
 import ReportImageGallery from "./_components/report-image-gallery";
+import ClientRichTextViewer from "@/components/rich-text/client-rich-text-viewer";
 
 interface ClubReportDetailPageProps {
     params: Promise<{ clubId: string; reportId: string }>;
-}
-
-function buildReportDescription(report: ClubReport) {
-    const plainText = report.content
-        .replace(/<[^>]*>/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-    if (!plainText) {
-        return "활동보고서 상세 내용을 확인해보세요.";
-    }
-
-    return plainText.length > 140 ? `${plainText.slice(0, 137)}...` : plainText;
 }
 
 function parseRouteParams(clubId: string, reportId: string) {
@@ -42,44 +33,38 @@ export async function generateMetadata({ params }: ClubReportDetailPageProps): P
     const parsedParams = parseRouteParams(clubId, reportId);
 
     if (!parsedParams) {
-        return {
-            title: "활동보고서",
-            alternates: { canonical: `/clubs/${clubId}/reports/${reportId}` },
-        };
+        return buildReportFallbackMetadata(clubId, reportId, "invalid");
     }
 
     const [clubResponse, reportsResponse] = await Promise.all([
         getClubService(parsedParams.clubIdNumber),
-        getClubReportListService(parsedParams.clubIdNumber),
+        getClubReportService(parsedParams.clubIdNumber, parsedParams.reportIdNumber),
     ]);
 
-    const report = reportsResponse.isSuccess
-        ? reportsResponse.result.find((item) => item.id === parsedParams.reportIdNumber)
-        : null;
-    const clubName = clubResponse.isSuccess && clubResponse.result ? clubResponse.result.name : "동아리";
+    if (!clubResponse.isSuccess) {
+        if (clubResponse.error.status === 404) {
+            return buildReportFallbackMetadata(clubId, reportId, "not_found");
+        }
 
-    if (!report) {
-        return {
-            title: "활동보고서",
-            alternates: { canonical: `/clubs/${clubId}/reports/${reportId}` },
-        };
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
     }
 
-    return {
-        title: report.title,
-        description: buildReportDescription(report),
-        alternates: {
-            canonical: `/clubs/${clubId}/reports/${reportId}`,
-        },
-        openGraph: {
-            title: `${report.title} | ${clubName}`,
-            description: buildReportDescription(report),
-            type: "article",
-            images: report.image_urls[0]
-                ? [{ url: report.image_urls[0], alt: `${report.title} 대표 사진` }]
-                : undefined,
-        },
-    };
+    if (!reportsResponse.isSuccess) {
+        if (reportsResponse.error.status === 404) {
+            return buildReportFallbackMetadata(clubId, reportId, "not_found");
+        }
+
+        throw new Error("활동보고서를 불러오지 못했습니다.");
+    }
+
+    const club = clubResponse.result;
+    const report = reportsResponse.result;
+
+    if (!club || !report) {
+        return buildReportFallbackMetadata(clubId, reportId, "not_found");
+    }
+
+    return buildReportPageMetadata(report, club.name, club.id);
 }
 
 export default async function ClubReportDetailPage({ params }: ClubReportDetailPageProps) {
@@ -91,17 +76,38 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
     }
 
     const { clubIdNumber, reportIdNumber } = parsedParams;
-    const [clubResponse, reportsResponse] = await Promise.all([
+    const [clubResponse, reportsResponse, reportResponse] = await Promise.all([
         getClubService(clubIdNumber),
         getClubReportListService(clubIdNumber),
+        getClubReportService(clubIdNumber, reportIdNumber),
     ]);
 
-    if (!clubResponse.isSuccess || !clubResponse.result || !reportsResponse.isSuccess) {
+    if (!clubResponse.isSuccess) {
+        if (clubResponse.error.status === 404) {
+            notFound();
+        }
+
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
+    }
+
+    if (!clubResponse.result) {
         notFound();
     }
 
+    if (!reportsResponse.isSuccess) {
+        throw new Error("활동보고서 목록을 불러오지 못했습니다.");
+    }
+
+    if (!reportResponse.isSuccess) {
+        if (reportResponse.error.status === 404) {
+            notFound();
+        }
+
+        throw new Error("활동보고서를 불러오지 못했습니다.");
+    }
+
     const club = clubResponse.result;
-    const report = reportsResponse.result.find((item) => item.id === reportIdNumber);
+    const report = reportResponse.result;
 
     if (!report) {
         notFound();
@@ -116,6 +122,7 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
             image_urls: item.image_urls,
         }));
     const wasUpdated = report.updatedAt !== report.createdAt;
+    const hasReportImages = Array.isArray(report.image_urls) && report.image_urls.some((url) => url.trim().length > 0);
 
     return (
         <article className="py-6 md:py-10">
@@ -156,8 +163,8 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
                 <main className="min-w-0 space-y-8">
                     <ReportImageGallery report={report} />
 
-                    <section className="border-t border-zinc-200 pt-8">
-                        <RichTextViewer html={report.content} className="max-w-[720px] text-[17px]" />
+                    <section className={hasReportImages ? "border-t border-zinc-200 pt-8" : undefined}>
+                        <ClientRichTextViewer html={report.content} className="max-w-[720px] text-[17px]" />
                     </section>
                 </main>
 

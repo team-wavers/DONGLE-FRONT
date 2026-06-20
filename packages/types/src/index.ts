@@ -5,6 +5,8 @@ export type * from "./auth/auth.response";
 export type * from "./club/club";
 export type * from "./club/club.report";
 export type * from "./club/club.response";
+export type * from "./club/club.schedule";
+export { COMMON_CLUB_SCHEDULE_LABEL } from "./club/club.schedule.constants";
 export type * from "./main-banner/main-banner";
 export type * from "./main-banner/main-banner.response";
 export type * from "./user/user";

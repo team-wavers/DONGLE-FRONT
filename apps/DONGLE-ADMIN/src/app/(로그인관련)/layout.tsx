@@ -1,4 +1,4 @@
-import Logo from "@/components/atoms/logo/logo";
+import Logo from "@/shared/ui/navigation/logo/logo";
 
 export default function LoginLayout({
   children,

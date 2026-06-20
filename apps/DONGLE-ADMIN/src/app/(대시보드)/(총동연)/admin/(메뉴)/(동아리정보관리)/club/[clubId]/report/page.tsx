@@ -1,8 +1,7 @@
-import { Suspense } from "react";
 import ReportCard from "@/feature/report/components/report-card/report-card";
 import { getClubReportListService } from "@/lib/server/cached-services";
 import { ClubReport } from "@dongle/types/club/club.report.d";
-import { Skeleton } from "@dongle/ui/skeleton";
+import { AdminFormShell } from "@/shared/layout/form-page/admin-form-layout";
 
 async function AdminClubReportList({ clubId }: { clubId: string }) {
     const { result, isSuccess } = await getClubReportListService(Number(clubId));
@@ -13,14 +12,14 @@ async function AdminClubReportList({ clubId }: { clubId: string }) {
 
     if (result.length === 0) {
         return (
-            <div className="flex justify-center items-center py-8">
+            <div className="flex min-h-40 items-center justify-center rounded-lg border bg-white py-8">
                 <div className="text-zinc-500">등록된 활동 보고서가 없습니다.</div>
             </div>
         );
     }
 
     return (
-        <div className="flex w-full max-w-full flex-col items-start gap-4">
+        <div className="flex w-full flex-col items-start gap-3">
             {result.map((report: ClubReport) => (
                 <ReportCard
                     key={report.id}
@@ -33,22 +32,12 @@ async function AdminClubReportList({ clubId }: { clubId: string }) {
     );
 }
 
-function AdminClubReportListFallback() {
-    return (
-        <div className="flex w-full max-w-full flex-col gap-4">
-            <Skeleton className="h-28 w-full rounded-xl" />
-            <Skeleton className="h-28 w-full rounded-xl" />
-            <Skeleton className="h-28 w-full rounded-xl" />
-        </div>
-    );
-}
-
 export default async function AdminClubReportPage({ params }: { params: Promise<{ clubId: string }> }) {
     const { clubId } = await params;
 
     return (
-        <Suspense fallback={<AdminClubReportListFallback />}>
+        <AdminFormShell>
             <AdminClubReportList clubId={clubId} />
-        </Suspense>
+        </AdminFormShell>
     );
 }

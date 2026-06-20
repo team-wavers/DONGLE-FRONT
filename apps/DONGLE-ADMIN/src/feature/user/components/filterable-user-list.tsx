@@ -1,15 +1,17 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import React, { useDeferredValue, useMemo, useState } from "react";
 import type { User } from "@dongle/types/user/user.d";
 import { Card, CardContent } from "@dongle/ui/card";
 import { User as UserIcon } from "lucide-react";
-import SearchInput from "@/components/molecules/search-input/search-input";
+import SearchInput from "@/shared/ui/navigation/search-input/search-input";
 import UserCard from "@/feature/user/components/user-card";
 import UserCreateButton from "@/feature/user/components/user-create-button";
 
 interface FilterableUserListProps {
     users: User[];
+    currentUserId?: number | null;
+    loadFailed?: boolean;
 }
 
 export function normalizeUserKeyword(value: string) {
@@ -34,20 +36,30 @@ export function filterUsersByKeyword(users: User[], keyword: string) {
     return users.filter((user) => matchesUser(user, keyword));
 }
 
-export default function FilterableUserList({ users }: FilterableUserListProps) {
+export default function FilterableUserList({ users, currentUserId, loadFailed = false }: FilterableUserListProps) {
     const [inputValue, setInputValue] = useState("");
-    const [searchKeyword, setSearchKeyword] = useState("");
 
-    useEffect(() => {
-        const timer = window.setTimeout(() => {
-            setSearchKeyword(normalizeUserKeyword(inputValue));
-        }, 300);
-
-        return () => window.clearTimeout(timer);
-    }, [inputValue]);
-
-    const deferredKeyword = useDeferredValue(searchKeyword);
+    const deferredKeyword = useDeferredValue(normalizeUserKeyword(inputValue));
     const filteredUsers = useMemo(() => filterUsersByKeyword(users, deferredKeyword), [users, deferredKeyword]);
+
+    if (loadFailed) {
+        return (
+            <>
+                <div className="flex items-center justify-between gap-4 mb-4">
+                    <div className="text-sm text-gray-600">
+                        총 <span className="font-semibold text-blue-600">0</span>
+                        명의 사용자
+                    </div>
+                </div>
+                <Card>
+                    <CardContent className="flex flex-col items-center justify-center py-12">
+                        <UserIcon className="w-12 h-12 text-gray-400 mb-4" />
+                        <p className="text-gray-500 text-lg">사용자 목록을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</p>
+                    </CardContent>
+                </Card>
+            </>
+        );
+    }
 
     if (users.length === 0) {
         return (
@@ -70,7 +82,7 @@ export default function FilterableUserList({ users }: FilterableUserListProps) {
     }
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between gap-4">
                 <div className="text-sm text-gray-600">
                     총 <span className="font-semibold text-blue-600">{users.length}</span>
@@ -91,9 +103,17 @@ export default function FilterableUserList({ users }: FilterableUserListProps) {
                     <p>검색 결과가 없습니다.</p>
                 </div>
             ) : (
-                <div className="grid gap-4">
+                <div className="overflow-hidden rounded-lg border bg-white">
+                    <div className="hidden grid-cols-[minmax(0,1.3fr)_100px_minmax(130px,0.75fr)_150px_120px_170px] gap-4 border-b bg-zinc-50 px-5 py-3 text-xs font-semibold text-muted-foreground lg:grid">
+                        <span>사용자</span>
+                        <span>역할</span>
+                        <span>로그인 ID</span>
+                        <span>연락처</span>
+                        <span>가입일</span>
+                        <span className="text-right">관리</span>
+                    </div>
                     {filteredUsers.map((user) => (
-                        <UserCard key={user.id} user={user} />
+                        <UserCard key={user.id} user={user} currentUserId={currentUserId} />
                     ))}
                 </div>
             )}

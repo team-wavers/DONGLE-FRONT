@@ -1,4 +1,4 @@
-import AdminPageHeader from "@/components/molecules/layout/admin-page-header/admin-page-header";
+import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
 
 export default function BannerLayout({ children }: { children: React.ReactNode }) {
     return (

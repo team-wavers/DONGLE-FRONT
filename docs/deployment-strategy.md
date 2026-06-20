@@ -73,6 +73,8 @@ PM2는 운영에서 직접 릴리스 디렉터리를 보지 않고 `current.clie
 - `LIGHTSAIL_SSH_KEY`
 - `CLIENT_NEXT_PUBLIC_SENTRY_DSN`
 - `ADMIN_NEXT_PUBLIC_SENTRY_DSN`
+- `REVALIDATE_SECRET`
+- `PROD_CLIENT_BASE_URL`
 
 ## 선택 시크릿
 
@@ -102,6 +104,10 @@ PM2는 운영에서 직접 릴리스 디렉터리를 보지 않고 `current.clie
   - client 브라우저 Sentry DSN
 - `ADMIN_NEXT_PUBLIC_SENTRY_DSN`
   - admin 브라우저 Sentry DSN
+- `REVALIDATE_SECRET`
+  - ADMIN이 main-banner/club-schedule 캐시를 무효화할 때 CLIENT의 `/api/revalidate`를 호출하기 위한 공유 시크릿. ADMIN/CLIENT PM2 env에 동일한 값으로 들어가야 함
+- `PROD_CLIENT_BASE_URL`
+  - ADMIN이 cross-app 캐시 무효화 요청을 보낼 CLIENT origin. 예: `https://dongle.example.com`
 
 Sentry sourcemap 업로드용 secret:
 
@@ -148,6 +154,10 @@ Sentry sourcemap 업로드용 secret:
   - PM2가 client standalone `server.js`를 찾을 운영 symlink 경로
 - `DEPLOY_ADMIN_DIR_PROD`
   - PM2가 admin standalone `server.js`를 찾을 운영 symlink 경로
+- `REVALIDATE_SECRET`
+  - ADMIN→CLIENT cross-app 캐시 무효화 webhook 인증용 공유 시크릿 (client/admin 모두 같은 값 사용)
+- `CLIENT_BASE_URL`
+  - ADMIN이 cross-app 캐시 무효화 요청을 보낼 CLIENT origin (`PROD_CLIENT_BASE_URL` secret 값을 그대로 씀)
 
 client/admin 모두 같은 Git SHA를 배포하므로 앱별 `*_SENTRY_ENVIRONMENT`, `*_SENTRY_RELEASE`는 별도로 만들지 않는다.
 

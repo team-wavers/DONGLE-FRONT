@@ -1,6 +1,8 @@
-import { Card, CardHeader, CardTitle } from "@dongle/ui/card";
+import { ArrowRight, CalendarDays } from "lucide-react";
+import { Card } from "@dongle/ui/card";
 import { cn } from "@dongle/ui/utils";
 import Link from "next/link";
+import { formatKoreanDate } from "@/lib/format/date";
 
 export interface ReportCardProps {
     title: string;
@@ -12,20 +14,25 @@ export interface ReportCardProps {
 
 export default function ReportCard({ title, createdDate, className, href }: ReportCardProps) {
     return (
-        <Link href={href} className="w-full">
-            <Card className={cn(className, "w-full  flex flex-row justify-between")}>
-                <CardHeader className="flex flex-col w-full">
-                    <div className="flex items-center gap-3">
-                        <div className="flex-1">
-                            <CardTitle className="text-lg font-semibold text-gray-900">{title}</CardTitle>
-                        </div>
+        <Link href={href} className="group block w-full cursor-pointer">
+            <Card
+                className={cn(
+                    "w-full rounded-lg py-0 shadow-none transition-colors group-hover:bg-zinc-50",
+                    className
+                )}>
+                <div className="grid grid-cols-1 items-center gap-3 px-5 py-4 md:grid-cols-[minmax(0,1fr)_180px_24px]">
+                    <div className="min-w-0">
+                        <p className="truncate text-base font-semibold text-zinc-900">{title}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">활동보고서</p>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
-                        {createdDate && (
-                            <span className="text-xs text-gray-500">작성일 : {createdDate.split("T")[0]}</span>
-                        )}
+
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <CalendarDays className="h-4 w-4 shrink-0" />
+                        <span>{createdDate ? formatKoreanDate(createdDate) : "작성일 없음"}</span>
                     </div>
-                </CardHeader>
+
+                    <ArrowRight className="hidden h-5 w-5 justify-self-end text-muted-foreground transition-transform group-hover:translate-x-0.5 md:block" />
+                </div>
             </Card>
         </Link>
     );
