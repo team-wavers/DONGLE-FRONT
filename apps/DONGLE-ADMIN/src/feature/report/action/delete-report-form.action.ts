@@ -21,7 +21,7 @@ export async function deleteReportAction(clubId: number, reportId: number): Prom
 
         return actionSuccess({
             data: null,
-            message: "활동 보고서가 성공적으로 삭제되었습니다.",
+            message: "활동 보고서가 성공적으로 삭제되었습니다. 공개 화면 반영까지 최대 120초 정도 걸릴 수 있어요.",
             redirectTo: `/${clubId}/report`,
         });
     } catch (error) {

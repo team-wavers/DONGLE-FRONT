@@ -54,7 +54,7 @@ export async function submitClubPresidentAction({
         revalidateTags(clubTagGroups.detail(normalizedClubId));
 
         return actionSuccess({
-            message: "회장 정보가 성공적으로 수정되었습니다!",
+            message: "회장 정보가 성공적으로 수정되었습니다! 공개 화면 반영까지 최대 60초 정도 걸릴 수 있어요.",
         });
     } catch (error) {
         if (error instanceof Error && error.message === "Unauthorized") {

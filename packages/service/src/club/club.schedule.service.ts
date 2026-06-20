@@ -14,7 +14,7 @@ import type {
     UpdateClubScheduleRequest,
 } from "@dongle/types/club/club.schedule";
 import type { Response } from "@dongle/types/response";
-import { clubScheduleTagGroups, PUBLIC_REVALIDATE_SECONDS } from "../cache-tags";
+import { clubScheduleTagGroups, CLUB_SCHEDULE_REVALIDATE_SECONDS } from "../cache-tags";
 
 const instance = FetchInstance.getInstance();
 
@@ -39,7 +39,7 @@ function getPublicScheduleFetchOptions(clubId: number): FetchOptions {
         cache: "force-cache",
         next: {
             tags: getClubScheduleTags(clubId),
-            revalidate: PUBLIC_REVALIDATE_SECONDS,
+            revalidate: CLUB_SCHEDULE_REVALIDATE_SECONDS,
         },
     };
 }
@@ -49,7 +49,7 @@ function getPublicCalendarScheduleFetchOptions(): FetchOptions {
         cache: "force-cache",
         next: {
             tags: getClubScheduleTags(),
-            revalidate: PUBLIC_REVALIDATE_SECONDS,
+            revalidate: CLUB_SCHEDULE_REVALIDATE_SECONDS,
         },
     };
 }

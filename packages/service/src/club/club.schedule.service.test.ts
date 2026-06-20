@@ -81,7 +81,7 @@ describe("club schedule service endpoints", () => {
             cache: "force-cache",
             next: {
                 tags: ["club-schedule", "club-schedule-club-1"],
-                revalidate: 60,
+                revalidate: 300,
             },
         });
         expect(result).toEqual([clubSchedule]);
@@ -101,7 +101,7 @@ describe("club schedule service endpoints", () => {
                 cache: "force-cache",
                 next: {
                     tags: ["club-schedule"],
-                    revalidate: 60,
+                    revalidate: 300,
                 },
             }
         );

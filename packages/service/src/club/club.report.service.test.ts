@@ -31,7 +31,7 @@ describe("club report service endpoints", () => {
             cache: "force-cache",
             next: {
                 tags: ["report", "report-club-1"],
-                revalidate: 60,
+                revalidate: 120,
             },
         });
     });

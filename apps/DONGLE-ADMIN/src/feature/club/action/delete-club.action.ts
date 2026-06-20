@@ -29,7 +29,7 @@ export async function deleteClubAction(clubId: number): Promise<ActionResult<str
 
         return actionSuccess({
             data: null,
-            message: "동아리가 성공적으로 삭제되었습니다.",
+            message: "동아리가 성공적으로 삭제되었습니다. 공개 화면 반영까지 최대 60초 정도 걸릴 수 있어요.",
             redirectTo: "/admin/club",
         });
     } catch (error) {
