@@ -31,7 +31,7 @@ describe("club service cache policy", () => {
             cache: "force-cache",
             next: {
                 tags: ["club"],
-                revalidate: 60,
+                revalidate: 120,
             },
         });
     });
@@ -43,7 +43,7 @@ describe("club service cache policy", () => {
             cache: "force-cache",
             next: {
                 tags: ["club", "club-7"],
-                revalidate: 60,
+                revalidate: 120,
             },
         });
     });
