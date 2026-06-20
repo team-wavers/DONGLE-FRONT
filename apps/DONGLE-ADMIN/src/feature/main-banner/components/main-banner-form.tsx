@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller } from "react-hook-form";
 import type { MainBanner } from "@dongle/types/main-banner/main-banner";
 import { Label } from "@dongle/ui/label";
 import { RadioGroup, RadioGroupItem } from "@dongle/ui/radio-group";
@@ -18,12 +16,8 @@ import { FormRoot } from "@/shared/form/form-root";
 import { RHFDatePicker } from "@/shared/form/rhf-date-picker";
 import { RHFFileUpload } from "@/shared/form/rhf-file-upload";
 import { RHFTextField } from "@/shared/form/rhf-text-field";
-import {
-    createMainBannerDefaultValues,
-    mainBannerSchema,
-    type MainBannerFormValues,
-} from "@/feature/main-banner/form/main-banner-form.schema";
-import { useMainBannerSubmit } from "@/feature/main-banner/form/use-main-banner-submit";
+import type { MainBannerFormValues } from "@/feature/main-banner/form/main-banner-form.schema";
+import { useMainBannerForm } from "@/feature/main-banner/form/use-main-banner-form";
 
 interface MainBannerFormProps {
     initialData?: Partial<MainBanner>;
@@ -45,27 +39,17 @@ export default function MainBannerForm({
     onLoadingChange,
 }: MainBannerFormProps) {
     const router = useRouter();
-    const form = useForm<MainBannerFormValues>({
-        resolver: zodResolver(mainBannerSchema),
-        defaultValues: createMainBannerDefaultValues(initialData),
-        mode: "onSubmit",
-    });
     const {
-        formError,
+        form,
         isSubmitting,
         onSubmit,
         onInvalid,
-    } = useMainBannerSubmit({
-        form,
-        bannerId: initialData?.id,
+    } = useMainBannerForm({
+        initialData,
         successMessage,
         loadingText,
         onLoadingChange,
     });
-
-    useEffect(() => {
-        form.reset(createMainBannerDefaultValues(initialData));
-    }, [form, initialData]);
 
     return (
         <FormRoot
@@ -73,7 +57,6 @@ export default function MainBannerForm({
             form={form}
             onSubmit={onSubmit}
             onInvalid={onInvalid}
-            formError={formError}
             className="w-full">
             <AdminFormShell>
                 <AdminBackAction onClick={() => router.back()} />

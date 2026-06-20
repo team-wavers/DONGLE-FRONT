@@ -1,6 +1,6 @@
 import type { FetchOptions } from "./fetch-types";
 import { makeRequest } from "./make-request";
-import { handleErrorResponse } from "./handle-error-response";
+import { parseJsonOrSynthetic } from "./parse-json";
 import { refreshToken } from "./refresh-token";
 
 class FetchInstance {
@@ -38,15 +38,6 @@ class FetchInstance {
         });
     }
 
-    private async handleErrorResponse(
-        response: Response,
-        requestPayload?: unknown,
-        url?: string,
-        method?: string
-    ): Promise<never> {
-        return handleErrorResponse({ response, requestPayload, url, method });
-    }
-
     private async refreshToken(): Promise<{ success: boolean; accessToken?: string }> {
         return refreshToken({ baseUrl: this.baseUrl });
     }
@@ -59,12 +50,7 @@ class FetchInstance {
      */
     public async get<T = unknown>(url: string, options?: FetchOptions): Promise<T> {
         const response = await this.makeRequest({ url, method: "GET", options });
-
-        if (!response.ok) {
-            await this.handleErrorResponse(response, undefined, url, "GET");
-        }
-
-        return response.json() as Promise<T>;
+        return parseJsonOrSynthetic<T>({ response, url, method: "GET" });
     }
 
     /**
@@ -81,12 +67,7 @@ class FetchInstance {
             data,
             options,
         });
-
-        if (!response.ok) {
-            await this.handleErrorResponse(response, data, url, "POST");
-        }
-
-        return response.json() as Promise<T>;
+        return parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "POST" });
     }
 
     /**
@@ -103,12 +84,7 @@ class FetchInstance {
             data,
             options,
         });
-
-        if (!response.ok) {
-            await this.handleErrorResponse(response, data, url, "PUT");
-        }
-
-        return response.json() as Promise<T>;
+        return parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "PUT" });
     }
 
     /**
@@ -125,12 +101,7 @@ class FetchInstance {
             data,
             options,
         });
-
-        if (!response.ok) {
-            await this.handleErrorResponse(response, data, url, "PATCH");
-        }
-
-        return response.json() as Promise<T>;
+        return parseJsonOrSynthetic<T>({ response, requestPayload: data, url, method: "PATCH" });
     }
 
     /**
@@ -141,12 +112,7 @@ class FetchInstance {
      */
     public async delete<T = unknown>(url: string, options?: FetchOptions): Promise<T> {
         const response = await this.makeRequest({ url, method: "DELETE", options });
-
-        if (!response.ok) {
-            await this.handleErrorResponse(response, undefined, url, "DELETE");
-        }
-
-        return response.json() as Promise<T>;
+        return parseJsonOrSynthetic<T>({ response, url, method: "DELETE" });
     }
 }
 

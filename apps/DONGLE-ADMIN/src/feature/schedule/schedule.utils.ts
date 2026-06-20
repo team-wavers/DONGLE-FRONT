@@ -45,14 +45,11 @@ export function getMonthCalendarDates(year: number, monthIndex: number) {
 }
 
 export function isSameCalendarDate(a: Date, b: Date) {
-    return (
-        formatDateForRequest(a, { timeZone: SCHEDULE_TIME_ZONE }) ===
-        formatDateForRequest(b, { timeZone: SCHEDULE_TIME_ZONE })
-    );
+    return getScheduleCalendarDateKey(a) === getScheduleCalendarDateKey(b);
 }
 
 export function getSchedulesForDate(schedules: ClubSchedule[], date: Date) {
-    const selectedDate = formatDateForRequest(date, { timeZone: SCHEDULE_TIME_ZONE });
+    const selectedDate = getScheduleCalendarDateKey(date);
 
     return schedules.filter((schedule) => {
         const startDate = formatDateForRequest(schedule.startsAt, { timeZone: SCHEDULE_TIME_ZONE });
@@ -62,17 +59,47 @@ export function getSchedulesForDate(schedules: ClubSchedule[], date: Date) {
     });
 }
 
+export function getScheduleCalendarDateKey(date: Date) {
+    return formatDateForRequest(date, { timeZone: SCHEDULE_TIME_ZONE });
+}
+
+// 캘린더 셀(최대 42개)마다 전체 schedules를 다시 필터링하지 않도록, 일정별 시작/종료 키를
+// 한 번씩만 계산해 날짜 키 -> 일정 목록 매핑을 만든다. 렌더 중 호출하지 않고 useMemo로 캐시할 것.
+export function buildScheduleCalendarIndex(schedules: ClubSchedule[], dateKeys: string[]) {
+    const index = new Map<string, ClubSchedule[]>();
+
+    for (const dateKey of dateKeys) {
+        index.set(dateKey, []);
+    }
+
+    for (const schedule of schedules) {
+        const startKey = formatDateForRequest(schedule.startsAt, { timeZone: SCHEDULE_TIME_ZONE });
+        const endKey = formatDateForRequest(schedule.endsAt, { timeZone: SCHEDULE_TIME_ZONE });
+
+        for (const dateKey of dateKeys) {
+            if (startKey <= dateKey && dateKey <= endKey) {
+                index.get(dateKey)?.push(schedule);
+            }
+        }
+    }
+
+    return index;
+}
+
 export function filterSchedules(schedules: ClubSchedule[], filters: ScheduleFilters) {
     const keyword = filters.keyword.trim().toLowerCase();
     const dateRange = normalizeScheduleDateRange(filters.dateRange);
 
     return schedules.filter((schedule) => {
-        const searchableText = [schedule.title, schedule.clubName, schedule.category, schedule.location]
-            .join(" ")
-            .toLowerCase();
+        const matchesKeyword =
+            !keyword ||
+            [schedule.title, schedule.clubName, schedule.category, schedule.location]
+                .join(" ")
+                .toLowerCase()
+                .includes(keyword);
 
         return (
-            (!keyword || searchableText.includes(keyword)) &&
+            matchesKeyword &&
             (filters.category === "all" || schedule.category === filters.category) &&
             (filters.type === "all" || schedule.type === filters.type) &&
             (filters.isPublic === "all" || schedule.isPublic === filters.isPublic) &&

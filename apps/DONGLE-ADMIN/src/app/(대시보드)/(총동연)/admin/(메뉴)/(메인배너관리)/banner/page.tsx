@@ -1,6 +1,5 @@
 import MainBannerList from "@/feature/main-banner/components/main-banner-list";
 import { getAdminMainBannerListService } from "@/lib/server/cached-services";
-import { ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
 import type { MainBanner } from "@dongle/types/main-banner/main-banner";
@@ -35,49 +34,24 @@ function BannerPageActions() {
     );
 }
 
-async function BannerListSection() {
+async function loadBannerListViewModel() {
     try {
-        const { result, isSuccess, error } = await getAdminMainBannerListService();
+        const { result, isSuccess } = await getAdminMainBannerListService();
 
         if (!isSuccess || !result) {
-            return (
-                <>
-                    <div className="text-center py-8 text-muted-foreground">
-                        <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>{error?.message || "배너 목록을 불러오는 중 오류가 발생했습니다."}</p>
-                    </div>
-                </>
-            );
+            return { banners: [] as MainBanner[], loadFailed: true };
         }
 
-        const banners = getDevelopmentFallbackBanners(result);
-
-        if (banners.length === 0) {
-            return (
-                <>
-                    <div className="text-center py-8 text-muted-foreground">
-                        <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>등록된 배너가 없습니다.</p>
-                    </div>
-                </>
-            );
-        }
-
-        return (
-            <>
-                <MainBannerList banners={banners} />
-            </>
-        );
+        return { banners: getDevelopmentFallbackBanners(result), loadFailed: false };
     } catch {
-        return (
-            <>
-                <div className="text-center py-8 text-muted-foreground">
-                    <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>배너 목록을 불러오는 중 예기치 못한 오류가 발생했습니다.</p>
-                </div>
-            </>
-        );
+        return { banners: [] as MainBanner[], loadFailed: true };
     }
+}
+
+async function BannerListSection() {
+    const { banners, loadFailed } = await loadBannerListViewModel();
+
+    return <MainBannerList banners={banners} loadFailed={loadFailed} />;
 }
 
 export default function BannerManagementPage() {

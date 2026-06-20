@@ -6,7 +6,7 @@ import {
     updateClubScheduleAction,
 } from "../action/schedule.action";
 import type { ClubScheduleFormValues } from "./schedule-form.schema";
-import { submitClubScheduleValues } from "./use-club-schedule-submit";
+import { submitClubScheduleValues } from "./use-club-schedule-form";
 
 vi.mock("../action/schedule.action", () => ({
     createAdminCommonClubScheduleAction: vi.fn().mockResolvedValue({ ok: true }),

@@ -48,14 +48,16 @@ function getLocalDateParts(date: Date) {
     };
 }
 
-function getTimeZoneDateParts(value: string | Date, timeZone: string) {
-    const date = typeof value === "string" ? new Date(value) : value;
+const timeZoneDateFormatterCache = new Map<string, Intl.DateTimeFormat>();
 
-    if (Number.isNaN(date.getTime())) {
-        return null;
+function getTimeZoneDateFormatter(timeZone: string) {
+    const cached = timeZoneDateFormatterCache.get(timeZone);
+
+    if (cached) {
+        return cached;
     }
 
-    const parts = new Intl.DateTimeFormat("en-CA", {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
         timeZone,
         year: "numeric",
         month: "2-digit",
@@ -64,7 +66,21 @@ function getTimeZoneDateParts(value: string | Date, timeZone: string) {
         minute: "2-digit",
         second: "2-digit",
         hour12: false,
-    }).formatToParts(date);
+    });
+
+    timeZoneDateFormatterCache.set(timeZone, formatter);
+
+    return formatter;
+}
+
+function getTimeZoneDateParts(value: string | Date, timeZone: string) {
+    const date = typeof value === "string" ? new Date(value) : value;
+
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    const parts = getTimeZoneDateFormatter(timeZone).formatToParts(date);
     const partMap = Object.fromEntries(parts.map((part) => [part.type, part.value]));
 
     return {

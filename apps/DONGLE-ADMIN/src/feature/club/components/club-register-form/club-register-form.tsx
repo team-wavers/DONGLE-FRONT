@@ -18,14 +18,13 @@ export interface ClubRegisterFormProps {
 }
 
 export default function ClubRegisterForm({ registrationKey }: ClubRegisterFormProps) {
-    const { form, onSubmit, onInvalid, formError, isSubmitting } = useClubRegisterForm(registrationKey);
+    const { form, onSubmit, onInvalid, isSubmitting } = useClubRegisterForm(registrationKey);
 
     return (
         <FormRoot
             form={form}
             onSubmit={onSubmit}
             onInvalid={onInvalid}
-            formError={formError}
             className="flex max-w-3xl flex-col gap-4 min-w-2xs w-full">
             <Card>
                 <CardHeader>

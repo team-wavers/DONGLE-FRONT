@@ -91,7 +91,15 @@ export async function generateMetadata({ params }: ClubDetailPageProps): Promise
 
     const clubResponse = await getClubService(clubIdNumber);
 
-    if (!clubResponse.isSuccess || !clubResponse.result) {
+    if (!clubResponse.isSuccess) {
+        if (clubResponse.error.status === 404) {
+            return buildClubFallbackMetadata(clubId, "not_found");
+        }
+
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
+    }
+
+    if (!clubResponse.result) {
         return buildClubFallbackMetadata(clubId, "not_found");
     }
 
@@ -104,13 +112,17 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         notFound();
     }
 
-    const clubResponse = await getClubService(clubIdNumber).catch(() => null);
+    const clubResponse = await getClubService(clubIdNumber);
 
-    if (!clubResponse) {
-        notFound();
+    if (!clubResponse.isSuccess) {
+        if (clubResponse.error.status === 404) {
+            notFound();
+        }
+
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
     }
 
-    if (!clubResponse.isSuccess || !clubResponse.result) {
+    if (!clubResponse.result) {
         notFound();
     }
 
@@ -119,8 +131,8 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         description: club.description,
         main_activities: club.main_activities,
     };
-    const instagramUrl = normalizeSocialUrl("instagram", club.sns.instagram);
-    const youtubeUrl = normalizeSocialUrl("youtube", club.sns.youtube);
+    const instagramUrl = normalizeSocialUrl("instagram", club.sns?.instagram);
+    const youtubeUrl = normalizeSocialUrl("youtube", club.sns?.youtube);
     const hasSocialLinks = Boolean(instagramUrl || youtubeUrl);
     const categoryPresentation = getClubCategoryPresentation(club.category);
     const recruitPeriod =

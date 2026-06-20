@@ -2,7 +2,7 @@
 
 import { patchUserService } from "@dongle/service/user/user.service";
 import { clubTagGroups, userTagGroups } from "@dongle/service";
-import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
+import { actionFailure, actionSuccess, getServiceErrorMessage, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
@@ -46,7 +46,7 @@ export async function submitClubPresidentAction({
 
         if (!isSuccess) {
             return actionFailure({
-                formError: error?.detail || error?.message || "회장 정보 수정에 실패했습니다.",
+                formError: getServiceErrorMessage(error, "회장 정보 수정에 실패했습니다."),
             });
         }
 

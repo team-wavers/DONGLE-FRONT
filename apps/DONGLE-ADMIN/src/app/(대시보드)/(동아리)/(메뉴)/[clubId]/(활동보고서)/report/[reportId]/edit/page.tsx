@@ -1,14 +1,13 @@
 import { getClubReportService } from "@/lib/server/cached-services";
 import ActivityReportForm from "@/feature/report/components/activity-report-form/activity-report-form";
-import { isClubReportNotFoundResponse } from "@dongle/service/club/club.report.service";
 import { notFound } from "next/navigation";
 
 async function EditReportContent({ clubId, reportId }: { clubId: string; reportId: string }) {
     const reportResponse = await getClubReportService(Number(clubId), Number(reportId));
-    const { result, isSuccess } = reportResponse;
+    const { result, isSuccess, error } = reportResponse;
 
     if (!isSuccess) {
-        if (isClubReportNotFoundResponse(reportResponse)) {
+        if (error.status === 404) {
             notFound();
         }
 

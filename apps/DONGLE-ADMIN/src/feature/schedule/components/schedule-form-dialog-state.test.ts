@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getScheduleDialogVisibleSchedule } from "./schedule-form-dialog";
+import { getScheduleDialogVisibleSchedule } from "../form/use-club-schedule-form";
 
 describe("ScheduleFormDialog state", () => {
     it("닫힘 애니메이션 중 부모가 schedule을 비워도 마지막 수정 대상을 유지한다", () => {

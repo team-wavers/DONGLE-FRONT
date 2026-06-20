@@ -7,7 +7,7 @@ import type { CreateClubRequest } from "@dongle/types/club/club.response";
 import { normalizeSocialUrl } from "@dongle/ui/utils";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import { clubRegisterSchema, splitTags, type ClubRegisterField, type ClubRegisterFormValues } from "./club-register.schema";
-import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
+import { actionFailure, actionSuccess, getServiceErrorMessage, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
@@ -87,7 +87,7 @@ export async function submitClubRegisterAction(
 
         if (!user.isSuccess || !user.result?.id) {
             return actionFailure({
-                formError: user.error?.detail || user.error?.message || "사용자 등록에 실패했습니다. 다시 시도해주세요.",
+                formError: getServiceErrorMessage(user.error, "사용자 등록에 실패했습니다. 다시 시도해주세요."),
             });
         }
 
@@ -113,7 +113,7 @@ export async function submitClubRegisterAction(
 
         if (!club.isSuccess) {
             return actionFailure({
-                formError: club.error?.detail || club.error?.message || "동아리 등록에 실패했습니다. 다시 시도해주세요.",
+                formError: getServiceErrorMessage(club.error, "동아리 등록에 실패했습니다. 다시 시도해주세요."),
             });
         }
 

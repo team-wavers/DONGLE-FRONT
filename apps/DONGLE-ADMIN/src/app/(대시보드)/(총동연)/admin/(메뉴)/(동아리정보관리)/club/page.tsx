@@ -1,32 +1,24 @@
 import FilterableClubList from "@/feature/club/components/filterable-club-list/filterable-club-list";
 import { getClubListService } from "@/lib/server/cached-services";
-import { Users } from "lucide-react";
 import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
 
+async function loadClubListViewModel() {
+    try {
+        const { result, isSuccess } = await getClubListService();
+
+        return { clubs: isSuccess && result ? result : [], loadFailed: !isSuccess || !result };
+    } catch {
+        return { clubs: [], loadFailed: true };
+    }
+}
+
 async function ClubListSection() {
-    const { result, isSuccess } = await getClubListService();
-
-    if (!isSuccess || !result) {
-        return (
-            <div className="text-center py-8 text-muted-foreground">
-                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>동아리 목록을 불러오는 중 오류가 발생했습니다.</p>
-            </div>
-        );
-    }
-
-    if (result.length === 0) {
-        return (
-            <div className="text-center py-8 text-muted-foreground">
-                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>등록된 동아리가 없습니다</p>
-            </div>
-        );
-    }
+    const { clubs, loadFailed } = await loadClubListViewModel();
 
     return (
         <FilterableClubList
-            clubs={result}
+            clubs={clubs}
+            loadFailed={loadFailed}
             searchPlaceholder="동아리명, 분과 검색"
             emptyMessage="등록된 동아리가 없습니다."
             emptySearchMessage="검색 조건에 맞는 동아리가 없습니다."

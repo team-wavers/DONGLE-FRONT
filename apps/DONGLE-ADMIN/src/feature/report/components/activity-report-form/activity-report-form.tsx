@@ -1,10 +1,5 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 import {
     AdminBackAction,
@@ -16,15 +11,8 @@ import { FormRoot } from "@/shared/form/form-root";
 import { RHFFileUpload } from "@/shared/form/rhf-file-upload";
 import { RHFRichTextEditor } from "@/shared/form/rhf-rich-text-editor";
 import { RHFTextField } from "@/shared/form/rhf-text-field";
-import { useSessionStorageDraft } from "@/hooks/use-session-storage-draft";
-import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
-import {
-    activityReportSchema,
-    createActivityReportDefaultValues,
-    createActivityReportDraftValues,
-    type ActivityReportFormValues,
-} from "@/feature/report/form/activity-report.schema";
-import { useActivityReportSubmit } from "@/feature/report/form/use-activity-report-submit";
+import type { ActivityReportFormValues } from "@/feature/report/form/activity-report.schema";
+import { useActivityReportForm } from "@/feature/report/form/use-activity-report-form";
 
 export interface ActivityReportFormProps {
     title?: string;
@@ -39,16 +27,6 @@ export interface ActivityReportFormProps {
     headingDescription?: string;
 }
 
-const UNSAVED_CHANGES_MESSAGE = "작성 중인 내용이 저장되지 않았습니다. 정말 페이지를 떠날까요?";
-
-function areEqual<T>(left: T, right: T) {
-    return JSON.stringify(left) === JSON.stringify(right);
-}
-
-function getDraftStorageKey(clubId: string, reportId?: string) {
-    return `activity-report-draft:${clubId}:${reportId ?? "create"}`;
-}
-
 export default function ActivityReportForm({
     title,
     content,
@@ -61,90 +39,24 @@ export default function ActivityReportForm({
     headingTitle,
     headingDescription,
 }: ActivityReportFormProps) {
-    const pathname = usePathname();
-    const initialValues = useMemo(
-        () => createActivityReportDefaultValues({ title, content, images }),
-        [content, images, title]
-    );
-    const draftStorageKey = useMemo(() => getDraftStorageKey(clubId, reportId), [clubId, reportId]);
-    const [baseline, setBaseline] = useState<ActivityReportFormValues>(initialValues);
-    const [didRestoreDraft, setDidRestoreDraft] = useState(false);
-    const form = useForm<ActivityReportFormValues>({
-        resolver: zodResolver(activityReportSchema),
-        defaultValues: initialValues,
-        mode: "onSubmit",
-    });
-    const watchedValues = useWatch({ control: form.control }) as ActivityReportFormValues;
-    const currentDraft = createActivityReportDraftValues({
-        ...initialValues,
-        ...watchedValues,
-    });
-    const isDirty = form.formState.isDirty || !areEqual(currentDraft, baseline);
-
-    useEffect(() => {
-        setBaseline(initialValues);
-        form.reset(initialValues);
-    }, [form, initialValues]);
-
-    const { saveNow, clear } = useSessionStorageDraft<ActivityReportFormValues>({
-        key: draftStorageKey,
-        currentValue: currentDraft,
-        baselineValue: baseline,
-        isDirty,
-        success: false,
-        shouldRestore: (savedDraft, baseDraft) => !areEqual(savedDraft, baseDraft),
-        onRestore: (savedDraft) => {
-            const draft = createActivityReportDraftValues(savedDraft);
-            form.reset(draft);
-            setDidRestoreDraft(true);
-            toast.success("임시 저장된 활동보고서 내용을 복구했습니다.");
-        },
-    });
-
-    const saveDraftNow = useCallback(() => {
-        if (isDirty) {
-            saveNow(createActivityReportDraftValues(form.getValues()));
-        }
-    }, [form, isDirty, saveNow]);
-
     const {
-        formError,
+        form,
+        didRestoreDraft,
         isSubmitting,
         onSubmit,
         onInvalid,
-        submitSucceeded,
-    } = useActivityReportSubmit({
-        form,
+    } = useActivityReportForm({
+        title,
+        content,
+        images,
         clubId,
         reportId,
-        originalReport:
-            reportId && title !== undefined && content !== undefined
-                ? {
-                      title,
-                      content,
-                      image_urls: images ?? [],
-                  }
-                : undefined,
         successRedirectHref,
         successMessage,
-        returnTo: pathname,
-        onSessionExpired: saveDraftNow,
     });
-
-    useUnsavedChangesGuard({
-        isDirty,
-        message: UNSAVED_CHANGES_MESSAGE,
-    });
-
-    useEffect(() => {
-        if (submitSucceeded) {
-            clear();
-            setDidRestoreDraft(false);
-        }
-    }, [clear, submitSucceeded]);
 
     return (
-        <FormRoot form={form} onSubmit={onSubmit} onInvalid={onInvalid} formError={formError} className="w-full">
+        <FormRoot form={form} onSubmit={onSubmit} onInvalid={onInvalid} className="w-full">
             <AdminFormShell>
                 {backHref ? <AdminBackAction href={backHref} /> : null}
 

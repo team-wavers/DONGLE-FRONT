@@ -12,7 +12,6 @@ interface ClubPresidentEditFormProps {
     form: UseFormReturn<ClubPresidentFormValues>;
     onSubmit: SubmitHandler<ClubPresidentFormValues>;
     onInvalid: SubmitErrorHandler<ClubPresidentFormValues>;
-    formError?: string;
     isPending: boolean;
     didRestoreDraft: boolean;
 }
@@ -21,12 +20,15 @@ export function ClubPresidentEditForm({
     form,
     onSubmit,
     onInvalid,
-    formError,
     isPending,
     didRestoreDraft,
 }: ClubPresidentEditFormProps) {
     return (
-        <FormRoot form={form} onSubmit={onSubmit} onInvalid={onInvalid} formError={formError} className="flex flex-col gap-4">
+        <FormRoot
+            form={form}
+            onSubmit={onSubmit}
+            onInvalid={onInvalid}
+            className="flex flex-col gap-4">
             {didRestoreDraft ? (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                     임시 저장된 회장 정보를 복구했습니다.

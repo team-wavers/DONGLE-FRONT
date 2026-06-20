@@ -119,8 +119,16 @@
 - timezone 없는 서버 datetime 문자열은 지정 timezone 로컬 시각의 절대 timestamp로 변환할 수 있어야 한다.
 - 월 상태 key는 지정 timezone 기준 월을 `YYYY-MM`으로 표현하고, timezone 없는 월 첫날 `Date`로 복원할 수 있어야 한다.
 
+### action form submit
+
+- 공통 submit runner는 성공 시 제출값과 action result를 성공 handler에 전달해야 한다.
+- 공통 submit runner는 실패 시 서버 field error를 react-hook-form field error로 반영해야 한다.
+- 공통 submit runner는 일반 form error를 toast로 표시하고, session 만료 실패는 session handler에 위임해야 한다.
+- 공통 invalid handler는 지정한 invalid message를 toast로 표시해야 한다.
+
 관련 테스트:
 - [date-picker-value.test.ts](../../apps/DONGLE-ADMIN/src/shared/form/date-picker-value.test.ts)
+- [use-action-form-submit.test.ts](../../apps/DONGLE-ADMIN/src/shared/form/use-action-form-submit.test.ts)
 - [date.test.ts](../../packages/utils/src/date.test.ts)
 
 ## User Form

@@ -19,7 +19,7 @@ import type {
 } from "@dongle/types/club/club.schedule";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
-import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
+import { actionFailure, actionSuccess, getActionErrorMessage, getServiceErrorMessage, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import {
     buildClubSchedulePayload,
@@ -30,14 +30,6 @@ import {
 
 type ScheduleActionResult<TData = unknown> = ActionResult<ClubScheduleField, TData>;
 type ScheduleMetaActionResult<TData = unknown> = ActionResult<string, TData>;
-
-function getActionErrorMessage(error: unknown, fallback: string): string {
-    return error instanceof Error && error.message ? error.message : fallback;
-}
-
-function getServiceErrorMessage(error: { message?: string; detail?: string } | undefined, fallback: string) {
-    return error?.detail || error?.message || fallback;
-}
 
 function revalidateScheduleTags(clubId?: number | null, scheduleId?: number) {
     if (typeof clubId === "number" && typeof scheduleId === "number") {

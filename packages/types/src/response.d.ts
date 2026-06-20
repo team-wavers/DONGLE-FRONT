@@ -10,6 +10,7 @@ export interface ErrorResponse {
   error: {
     message: string;
     detail: string;
+    status?: number;
   };
 }
 

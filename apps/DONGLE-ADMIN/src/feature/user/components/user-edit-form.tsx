@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import type { User } from "@dongle/types/user/user.d";
 import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
@@ -10,12 +7,8 @@ import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loadin
 import { AdminFormActions } from "@/shared/layout/form-page/admin-form-layout";
 import { FormRoot } from "@/shared/form/form-root";
 import { RHFTextField } from "@/shared/form/rhf-text-field";
-import {
-    createUserEditDefaultValues,
-    userEditSchema,
-    type UserEditFormValues,
-} from "@/feature/user/form/user-form.schema";
-import { useUserEditSubmit } from "@/feature/user/form/use-user-form-submit";
+import type { UserEditFormValues } from "@/feature/user/form/user-form.schema";
+import { useUserEditForm } from "@/feature/user/form/use-user-form";
 
 interface UserEditFormProps {
     user: User;
@@ -25,35 +18,12 @@ interface UserEditFormProps {
 }
 
 export default function UserEditForm({ user, isOpen, onClose, onSuccess }: UserEditFormProps) {
-    const initialValues = useMemo(() => createUserEditDefaultValues(user), [user]);
-    const [originalValues, setOriginalValues] = useState<UserEditFormValues>(initialValues);
-    const form = useForm<UserEditFormValues>({
-        resolver: zodResolver(userEditSchema),
-        defaultValues: initialValues,
-        mode: "onSubmit",
+    const { form, isSubmitting, onSubmit, onInvalid } = useUserEditForm({
+        user,
+        isOpen,
+        onClose,
+        onSuccess,
     });
-    const { formError, isSubmitting, onSubmit, onInvalid } = useUserEditSubmit({
-        form,
-        userId: user.id,
-        originalValues,
-        onSuccess: (values) => {
-            const nextOriginal = {
-                ...values,
-                password: "",
-            };
-            setOriginalValues(nextOriginal);
-            form.reset(nextOriginal);
-            onSuccess();
-            onClose();
-        },
-    });
-
-    useEffect(() => {
-        if (isOpen) {
-            setOriginalValues(initialValues);
-            form.reset(initialValues);
-        }
-    }, [form, initialValues, isOpen]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -65,7 +35,6 @@ export default function UserEditForm({ user, isOpen, onClose, onSuccess }: UserE
                     form={form}
                     onSubmit={onSubmit}
                     onInvalid={onInvalid}
-                    formError={formError}
                     className="flex flex-col">
                     <div className="flex flex-col gap-4 px-6 py-5">
                         <RHFTextField<UserEditFormValues>

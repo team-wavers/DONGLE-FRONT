@@ -1,10 +1,20 @@
 import ClubForm from "@/feature/club/components/club-form/club-form";
 import { getClubService } from "@/lib/server/cached-services";
+import { notFound } from "next/navigation";
 import NotFound from "./not-found";
 
 async function ClubFormContent({ clubId }: { clubId: string }) {
-    const { result, isSuccess } = await getClubService(Number(clubId));
-    if (!result || !isSuccess || !result.president?.id) {
+    const { result, isSuccess, error } = await getClubService(Number(clubId));
+
+    if (!isSuccess) {
+        if (error.status === 404) {
+            notFound();
+        }
+
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
+    }
+
+    if (!result || !result.president?.id) {
         return <NotFound />;
     }
 

@@ -5,7 +5,7 @@ import { mainBannerTagGroups } from "@dongle/service";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
-import { actionFailure, actionSuccess, type ActionResult } from "@/shared/action";
+import { actionFailure, actionSuccess, getActionErrorMessage, getServiceErrorMessage, type ActionResult } from "@/shared/action";
 
 export async function deleteMainBannerAction(id: number): Promise<ActionResult<string, null>> {
     if (!Number.isFinite(id)) {
@@ -21,7 +21,7 @@ export async function deleteMainBannerAction(id: number): Promise<ActionResult<s
 
         if (!response.isSuccess) {
             return actionFailure({
-                formError: response.error?.message || "배너 삭제에 실패했습니다.",
+                formError: getServiceErrorMessage(response.error, "배너 삭제에 실패했습니다."),
             });
         }
 
@@ -39,7 +39,7 @@ export async function deleteMainBannerAction(id: number): Promise<ActionResult<s
         });
 
         return actionFailure({
-            formError: error instanceof Error && error.message ? error.message : "배너 삭제 중 오류가 발생했습니다.",
+            formError: getActionErrorMessage(error, "배너 삭제 중 오류가 발생했습니다."),
         });
     }
 }

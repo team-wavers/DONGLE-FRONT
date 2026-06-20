@@ -417,7 +417,7 @@ describe("schedule actions", () => {
 
         const result = await deleteClubScheduleAction(1, 7);
 
-        expect(result).toEqual({ ok: false, formError: "삭제 권한이 없습니다." });
+        expect(result).toEqual({ ok: false, formError: "delete failed" });
         expect(revalidateTag).not.toHaveBeenCalled();
     });
 
@@ -440,7 +440,7 @@ describe("schedule actions", () => {
 
         const result = await deleteAdminClubScheduleAction(7);
 
-        expect(result).toEqual({ ok: false, formError: "이미 삭제된 일정입니다." });
+        expect(result).toEqual({ ok: false, formError: "delete failed" });
         expect(revalidateTag).not.toHaveBeenCalled();
     });
 

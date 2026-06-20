@@ -35,8 +35,8 @@ describe("deleteUserAction", () => {
         const result = await deleteUserAction(7);
 
         expect(result).toEqual({
-            success: false,
-            error: "본인 계정은 삭제할 수 없습니다.",
+            ok: false,
+            formError: "본인 계정은 삭제할 수 없습니다.",
         });
         expect(deleteUserService).not.toHaveBeenCalled();
         expect(revalidateTag).not.toHaveBeenCalled();
@@ -48,8 +48,8 @@ describe("deleteUserAction", () => {
         const result = await deleteUserAction(7);
 
         expect(result).toEqual({
-            success: false,
-            error: "사용자 정보를 가져올 수 없습니다.",
+            ok: false,
+            formError: "사용자 정보를 가져올 수 없습니다.",
         });
         expect(deleteUserService).not.toHaveBeenCalled();
         expect(revalidateTag).not.toHaveBeenCalled();
@@ -64,7 +64,7 @@ describe("deleteUserAction", () => {
 
         const result = await deleteUserAction(7);
 
-        expect(result).toEqual({ success: true });
+        expect(result).toEqual({ ok: true, data: null, message: "사용자가 성공적으로 삭제되었습니다." });
         expect(deleteUserService).toHaveBeenCalledWith(7);
         expect(revalidateTag).toHaveBeenCalledWith("user");
         expect(revalidateTag).toHaveBeenCalledWith("user-7");

@@ -6,7 +6,7 @@ import {
     uploadMainBannerImageService,
 } from "@dongle/service/main-banner/main-banner.service";
 import { mainBannerTagGroups } from "@dongle/service";
-import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
+import { actionFailure, actionSuccess, getActionErrorMessage, getServiceErrorMessage, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
@@ -28,7 +28,7 @@ async function resolveMainBannerImageUrl(values: MainBannerFormValues): Promise<
 
         if (!response.isSuccess || !response.result?.image_url) {
             return {
-                fieldError: response.error?.message || "배너 이미지 업로드에 실패했습니다.",
+                fieldError: getServiceErrorMessage(response.error, "배너 이미지 업로드에 실패했습니다."),
             };
         }
 
@@ -46,10 +46,6 @@ async function resolveMainBannerImageUrl(values: MainBannerFormValues): Promise<
     return {
         fieldError: "배너 이미지를 업로드해주세요.",
     };
-}
-
-function getActionErrorMessage(error: unknown, fallback: string): string {
-    return error instanceof Error && error.message ? error.message : fallback;
 }
 
 export async function submitMainBannerCreateAction(values: MainBannerFormValues): Promise<MainBannerActionResult> {
@@ -79,7 +75,7 @@ export async function submitMainBannerCreateAction(values: MainBannerFormValues)
 
         if (!response.isSuccess) {
             return actionFailure({
-                formError: response.error?.message || "배너 등록에 실패했습니다.",
+                formError: getServiceErrorMessage(response.error, "배너 등록에 실패했습니다."),
             });
         }
 
@@ -137,7 +133,7 @@ export async function submitMainBannerUpdateAction({
 
         if (!response.isSuccess) {
             return actionFailure({
-                formError: response.error?.message || "배너 수정에 실패했습니다.",
+                formError: getServiceErrorMessage(response.error, "배너 수정에 실패했습니다."),
             });
         }
 

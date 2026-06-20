@@ -1,20 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { Button } from "@dongle/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@dongle/ui/dialog";
 import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 import { AdminFormActions } from "@/shared/layout/form-page/admin-form-layout";
 import { FormRoot } from "@/shared/form/form-root";
 import { RHFTextField } from "@/shared/form/rhf-text-field";
-import {
-    USER_CREATE_DEFAULT_VALUES,
-    userCreateSchema,
-    type UserCreateFormValues,
-} from "@/feature/user/form/user-form.schema";
-import { useUserCreateSubmit } from "@/feature/user/form/use-user-form-submit";
+import type { UserCreateFormValues } from "@/feature/user/form/user-form.schema";
+import { useUserCreateForm } from "@/feature/user/form/use-user-form";
 
 interface UserCreateFormProps {
     isOpen: boolean;
@@ -23,24 +16,11 @@ interface UserCreateFormProps {
 }
 
 export default function UserCreateForm({ isOpen, onClose, onSuccess }: UserCreateFormProps) {
-    const form = useForm<UserCreateFormValues>({
-        resolver: zodResolver(userCreateSchema),
-        defaultValues: USER_CREATE_DEFAULT_VALUES,
-        mode: "onSubmit",
+    const { form, isSubmitting, onSubmit, onInvalid } = useUserCreateForm({
+        isOpen,
+        onClose,
+        onSuccess,
     });
-    const { formError, isSubmitting, onSubmit, onInvalid } = useUserCreateSubmit({
-        form,
-        onSuccess: () => {
-            onSuccess();
-            onClose();
-        },
-    });
-
-    useEffect(() => {
-        if (isOpen) {
-            form.reset(USER_CREATE_DEFAULT_VALUES);
-        }
-    }, [form, isOpen]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -52,7 +32,6 @@ export default function UserCreateForm({ isOpen, onClose, onSuccess }: UserCreat
                     form={form}
                     onSubmit={onSubmit}
                     onInvalid={onInvalid}
-                    formError={formError}
                     className="flex flex-col">
                     <div className="flex flex-col gap-4 px-6 py-5">
                         <RHFTextField<UserCreateFormValues>

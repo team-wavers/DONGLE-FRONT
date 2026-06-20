@@ -3,7 +3,6 @@ import {
     buildReportFallbackMetadata,
     buildReportPageMetadata,
 } from "@/lib/report-page-metadata";
-import { isClubReportNotFoundResponse } from "@dongle/service/club/club.report.service";
 import { formatDateByLocale } from "@dongle/ui/utils";
 import { ArrowLeft, CalendarDays, PencilLine } from "lucide-react";
 import type { Metadata } from "next";
@@ -42,10 +41,26 @@ export async function generateMetadata({ params }: ClubReportDetailPageProps): P
         getClubReportService(parsedParams.clubIdNumber, parsedParams.reportIdNumber),
     ]);
 
-    const report = reportsResponse.isSuccess ? reportsResponse.result : null;
-    const club = clubResponse.isSuccess ? clubResponse.result : null;
+    if (!clubResponse.isSuccess) {
+        if (clubResponse.error.status === 404) {
+            return buildReportFallbackMetadata(clubId, reportId, "not_found");
+        }
 
-    if (!report || !club) {
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
+    }
+
+    if (!reportsResponse.isSuccess) {
+        if (reportsResponse.error.status === 404) {
+            return buildReportFallbackMetadata(clubId, reportId, "not_found");
+        }
+
+        throw new Error("활동보고서를 불러오지 못했습니다.");
+    }
+
+    const club = clubResponse.result;
+    const report = reportsResponse.result;
+
+    if (!club || !report) {
         return buildReportFallbackMetadata(clubId, reportId, "not_found");
     }
 
@@ -67,7 +82,15 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
         getClubReportService(clubIdNumber, reportIdNumber),
     ]);
 
-    if (!clubResponse.isSuccess || !clubResponse.result) {
+    if (!clubResponse.isSuccess) {
+        if (clubResponse.error.status === 404) {
+            notFound();
+        }
+
+        throw new Error("동아리 정보를 불러오는데 실패했습니다.");
+    }
+
+    if (!clubResponse.result) {
         notFound();
     }
 
@@ -76,7 +99,7 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
     }
 
     if (!reportResponse.isSuccess) {
-        if (isClubReportNotFoundResponse(reportResponse)) {
+        if (reportResponse.error.status === 404) {
             notFound();
         }
 
@@ -99,7 +122,7 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
             image_urls: item.image_urls,
         }));
     const wasUpdated = report.updatedAt !== report.createdAt;
-    const hasReportImages = report.image_urls.some((url) => url.trim().length > 0);
+    const hasReportImages = Array.isArray(report.image_urls) && report.image_urls.some((url) => url.trim().length > 0);
 
     return (
         <article className="py-6 md:py-10">

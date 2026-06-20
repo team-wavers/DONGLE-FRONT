@@ -18,9 +18,12 @@ export function parseJsonStringArray(value: string | null | undefined) {
         return [] as string[];
     }
 
-    const parsed = JSON.parse(value);
-
-    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
+    try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
+    } catch {
+        return [];
+    }
 }
 
 export function mergeReportImageUrls(existingUrls: string[], removedUrls: string[], uploadedUrls: string[]) {
