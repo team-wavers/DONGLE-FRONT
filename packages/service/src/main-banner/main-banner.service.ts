@@ -10,7 +10,7 @@ import {
     type MainBannerUpdateResponse,
     type UpdateMainBannerRequest,
 } from "@dongle/types/main-banner/main-banner.response";
-import { mainBannerTagGroups, PUBLIC_REVALIDATE_SECONDS } from "../cache-tags";
+import { mainBannerTagGroups, MAIN_BANNER_REVALIDATE_SECONDS } from "../cache-tags";
 export { getDisplayMainBannerItems, normalizeDisplayBannerLinkUrl } from "./get-display-banner-image-urls";
 
 const instance = FetchInstance.getInstance();
@@ -43,7 +43,7 @@ function getPublicMainBannerFetchOptions(isCache: boolean): FetchOptions {
         cache: "force-cache",
         next: {
             tags: getMainBannerTags(),
-            revalidate: PUBLIC_REVALIDATE_SECONDS,
+            revalidate: MAIN_BANNER_REVALIDATE_SECONDS,
         },
     };
 }

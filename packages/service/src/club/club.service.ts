@@ -12,7 +12,7 @@ import FetchInstance from "@dongle/api/instance";
 import BrowserInstance from "@dongle/api/browser-instance";
 import { Response } from "@dongle/types/response";
 import type { FetchOptions } from "@dongle/api/fetch-types";
-import { clubTagGroups, PUBLIC_REVALIDATE_SECONDS } from "../cache-tags";
+import { clubTagGroups, CLUB_REVALIDATE_SECONDS } from "../cache-tags";
 
 const instance = FetchInstance.getInstance();
 const browserInstance = BrowserInstance.getInstance();
@@ -30,7 +30,7 @@ function getFetchOptions(tags: string[], policy: ServiceFetchPolicy = "public"):
         cache: "force-cache",
         next: {
             tags,
-            revalidate: PUBLIC_REVALIDATE_SECONDS,
+            revalidate: CLUB_REVALIDATE_SECONDS,
         },
     };
 }

@@ -35,7 +35,7 @@ describe("main banner service endpoints", () => {
             cache: "force-cache",
             next: {
                 tags: ["main-banner"],
-                revalidate: 60,
+                revalidate: 180,
             },
         });
     });

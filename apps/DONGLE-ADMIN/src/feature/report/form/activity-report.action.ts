@@ -71,7 +71,9 @@ export async function submitActivityReportCreateAction({
         }
 
         revalidateTags(reportTagGroups.club(clubId));
-        return actionSuccess({ message: "활동 보고서가 성공적으로 등록되었습니다!" });
+        return actionSuccess({
+            message: "활동 보고서가 성공적으로 등록되었습니다! 공개 화면 반영까지 최대 120초 정도 걸릴 수 있어요.",
+        });
     } catch (error) {
         if (isUnauthorizedError(error)) {
             return toActionFailure(buildReportActionError({ branch: "auth", actionLabel: "create" }));
@@ -144,7 +146,9 @@ export async function submitActivityReportUpdateAction({
         }
 
         revalidateTags(reportTagGroups.item(clubId, reportId));
-        return actionSuccess({ message: "활동 보고서가 성공적으로 수정되었습니다!" });
+        return actionSuccess({
+            message: "활동 보고서가 성공적으로 수정되었습니다! 공개 화면 반영까지 최대 120초 정도 걸릴 수 있어요.",
+        });
     } catch (error) {
         if (isUnauthorizedError(error)) {
             return toActionFailure(buildReportActionError({ branch: "auth", actionLabel: "update" }));

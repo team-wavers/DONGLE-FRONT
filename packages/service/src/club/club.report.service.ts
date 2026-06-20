@@ -10,7 +10,7 @@ import type {
     UpdateClubReportRequest,
 } from "@dongle/types/club/club.report";
 import type { Response } from "@dongle/types/response";
-import { PUBLIC_REVALIDATE_SECONDS, reportTagGroups } from "../cache-tags";
+import { CLUB_REPORT_REVALIDATE_SECONDS, reportTagGroups } from "../cache-tags";
 
 const instance = FetchInstance.getInstance();
 
@@ -45,7 +45,7 @@ function getReportListFetchOptions(clubId: number, policy: ReportFetchPolicy = "
         cache: "force-cache",
         next: {
             tags: getReportTags(clubId),
-            revalidate: PUBLIC_REVALIDATE_SECONDS,
+            revalidate: CLUB_REPORT_REVALIDATE_SECONDS,
         },
     };
 }

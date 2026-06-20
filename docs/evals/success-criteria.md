@@ -183,9 +183,12 @@
 
 ### fetch cache 정책
 
-- 사용자 공개 조회는 `force-cache`, 도메인 태그, 공통 `revalidate` 값을 함께 사용해야 한다.
+- 사용자 공개 조회는 `force-cache`, 도메인 태그, 도메인별로 독립적으로 정의된 `revalidate` 값을 함께 사용해야 한다. 모든 도메인이 하나의 공통 revalidate 값을 공유하지 않으며, `club`/`club-report`/`club-schedule`/`main-banner` 각각 자신의 TTL 상수(`packages/service/src/cache-tags.ts`)를 따른다.
 - 관리자/회장/사용자 관리 조회는 `no-store`만 사용하고 `next.tags`를 붙이지 않아야 한다.
 - 생성/수정/삭제 service는 fetch cache option을 붙이지 않고, 성공한 server action이 관련 tag group을 초기화해야 한다.
+- `main-banner`/`club-schedule` prefix 태그를 초기화하는 admin server action은 ADMIN 자체 캐시 무효화(`revalidateTag`)에 더해, CLIENT의 `/api/revalidate`로 시크릿 헤더가 포함된 webhook 요청을 보내 cross-app 무효화도 트리거해야 한다. `club`/`club-report`/`user` 태그는 이 webhook 대상이 아니며 TTL 만료로만 갱신된다.
+- cross-app webhook 요청은 `CLIENT_BASE_URL` 또는 시크릿이 설정되지 않았거나 요청이 실패해도 admin server action 자체를 실패시키지 않아야 한다.
+- CLIENT의 `/api/revalidate`는 시크릿 헤더가 없거나 일치하지 않으면 401을, `tags`가 문자열 배열이 아니면 400을 반환해야 하며, 검증을 통과한 요청만 `revalidateTag`를 호출해야 한다.
 - 관리자 일정 수정 action은 응답의 `club_id`를 기준으로 일정 목록, 동아리 범위, 일정 item 태그를 함께 초기화해야 하며 공통 일정은 club-null 태그를 만들지 않아야 한다.
 - 관리자 일정 공개 상태 변경 action은 응답의 `club_id`를 기준으로 일정 목록, 동아리 범위, 일정 item 태그를 함께 초기화해야 한다.
 - 관리자 일정 삭제 action은 삭제 대상 일정의 `club_id`를 기준으로 일정 목록, 동아리 범위, 일정 item 태그를 함께 초기화해야 하며 공통 일정은 club-null 태그를 만들지 않아야 한다.
@@ -198,6 +201,8 @@
 - [club.report.service.test.ts](../../packages/service/src/club/club.report.service.test.ts)
 - [main-banner.service.test.ts](../../packages/service/src/main-banner/main-banner.service.test.ts)
 - [schedule.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/schedule/action/schedule.action.test.ts)
+- [revalidate-tags.test.ts](../../apps/DONGLE-ADMIN/src/lib/server/revalidate-tags.test.ts)
+- [route.test.ts](../../apps/DONGLE-CLIENT/src/app/api/revalidate/route.test.ts)
 
 ## Admin Schedule Management
 
