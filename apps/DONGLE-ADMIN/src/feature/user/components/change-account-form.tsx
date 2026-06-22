@@ -6,7 +6,7 @@ import { changeAccountFormAction, ChangeAccountActionState } from "@/feature/use
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@dongle/ui/card";
+import { AdminFormActions, AdminFormSection, AdminFormShell } from "@/shared/layout/form-page/admin-form-layout";
 import { Key } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,18 +25,12 @@ export default function ChangeAccountForm() {
     }, [state, router]);
 
     return (
-        <Card className="max-w-2xl w-full">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Key className="w-5 h-5 text-primary" />
-                    계정 정보 관리
-                </CardTitle>
-                <CardDescription>
-                    아이디와 비밀번호를 변경할 수 있습니다. 변경하고 싶은 항목만 입력하세요.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <form action={formAction} className="space-y-4">
+        <form action={formAction}>
+            <AdminFormShell>
+                <AdminFormSection
+                    icon={<Key className="w-5 h-5 text-primary" />}
+                    title="계정 정보 관리"
+                    description="아이디와 비밀번호를 변경할 수 있습니다. 변경하고 싶은 항목만 입력하세요.">
                     <FormField
                         id="currentPassword"
                         name="currentPassword"
@@ -80,14 +74,14 @@ export default function ChangeAccountForm() {
                             />
                         </div>
                     </div>
+                </AdminFormSection>
 
-                    <div className="flex gap-2 w-full pt-4">
-                        <LoadingButton className="flex-1" type="submit" disabled={isPending}>
-                            {isPending ? "변경 중..." : "변경하기"}
-                        </LoadingButton>
-                    </div>
-                </form>
-            </CardContent>
-        </Card>
+                <AdminFormActions>
+                    <LoadingButton type="submit" disabled={isPending}>
+                        {isPending ? "변경 중..." : "변경하기"}
+                    </LoadingButton>
+                </AdminFormActions>
+            </AdminFormShell>
+        </form>
     );
 }

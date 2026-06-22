@@ -76,14 +76,16 @@ export function AdminBannerListPageSkeleton() {
 
 export function AdminReportListPageSkeleton({ className }: AdminPageSkeletonProps) {
     return (
-        <div className={cn("mx-auto flex w-full max-w-4xl flex-col gap-6", className)}>
-            <div className="flex justify-end">
+        <div className={cn("flex w-full flex-col gap-5", className)}>
+            <div className="flex items-center justify-between gap-4">
+                <Skeleton className="h-5 w-28 rounded-lg" />
                 <Skeleton className="h-10 w-24 rounded-lg" />
             </div>
-            <div className="flex w-full flex-col gap-3">
-                <Skeleton className="h-24 w-full rounded-lg" />
-                <Skeleton className="h-24 w-full rounded-lg" />
-                <Skeleton className="h-24 w-full rounded-lg" />
+            <Skeleton className="h-11 w-full rounded-lg" />
+            <div className="space-y-3">
+                <Skeleton className="h-20 w-full rounded-xl" />
+                <Skeleton className="h-20 w-full rounded-xl" />
+                <Skeleton className="h-20 w-full rounded-xl" />
             </div>
         </div>
     );
