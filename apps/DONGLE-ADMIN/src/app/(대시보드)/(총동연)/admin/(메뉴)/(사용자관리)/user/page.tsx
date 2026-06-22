@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import FilterableUserList from "@/feature/user/components/filterable-user-list";
 import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
 import { loadUserListViewModel } from "./user-list-view-model";
@@ -5,7 +6,11 @@ import { loadUserListViewModel } from "./user-list-view-model";
 async function UserListSection() {
     const { users, currentUserId, loadFailed } = await loadUserListViewModel();
 
-    return <FilterableUserList users={users} currentUserId={currentUserId} loadFailed={loadFailed} />;
+    return (
+        <Suspense fallback={null}>
+            <FilterableUserList users={users} currentUserId={currentUserId} loadFailed={loadFailed} />
+        </Suspense>
+    );
 }
 
 export default function UserManagementPage() {

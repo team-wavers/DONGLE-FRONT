@@ -24,8 +24,10 @@ interface ClubMainClientProps {
 
 export default function ClubMainClient({ clubs, banners, clubsLoadFailed = false }: ClubMainClientProps) {
     const {
-        searchQuery,
-        setSearchQuery,
+        searchInputValue,
+        onSearchInputChange,
+        onSearchInputCompositionStart,
+        onSearchInputCompositionEnd,
         activeStatus,
         setActiveStatus,
         activeCategory,
@@ -42,8 +44,10 @@ export default function ClubMainClient({ clubs, banners, clubsLoadFailed = false
             <ClubMainHeroBannerCarousel banners={banners} />
             <section className="grid gap-4 md:grid-cols-[280px_minmax(0,1fr)]">
                 <ClubSearchSection
-                    searchQuery={searchQuery}
-                    onSearchQueryChange={setSearchQuery}
+                    searchInputValue={searchInputValue}
+                    onSearchInputChange={onSearchInputChange}
+                    onSearchInputCompositionStart={onSearchInputCompositionStart}
+                    onSearchInputCompositionEnd={onSearchInputCompositionEnd}
                     activeStatus={activeStatus}
                     onStatusChange={setActiveStatus}
                     activeCategory={activeCategory}

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import FilterableClubList from "@/feature/club/components/filterable-club-list/filterable-club-list";
 import { getClubListService } from "@/lib/server/cached-services";
 import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
@@ -16,13 +17,15 @@ async function ClubListSection() {
     const { clubs, loadFailed } = await loadClubListViewModel();
 
     return (
-        <FilterableClubList
-            clubs={clubs}
-            loadFailed={loadFailed}
-            searchPlaceholder="동아리명, 분과 검색"
-            emptyMessage="등록된 동아리가 없습니다."
-            emptySearchMessage="검색 조건에 맞는 동아리가 없습니다."
-        />
+        <Suspense fallback={null}>
+            <FilterableClubList
+                clubs={clubs}
+                loadFailed={loadFailed}
+                searchPlaceholder="동아리명, 분과 검색"
+                emptyMessage="등록된 동아리가 없습니다."
+                emptySearchMessage="검색 조건에 맞는 동아리가 없습니다."
+            />
+        </Suspense>
     );
 }
 

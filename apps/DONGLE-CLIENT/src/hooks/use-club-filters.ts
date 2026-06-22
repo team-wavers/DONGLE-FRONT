@@ -2,7 +2,9 @@
 
 import { getClubSearchEmptyState } from "@/lib/club-search-empty-state";
 import type { RecruitmentStatus } from "@dongle/ui/badges/recruitment-status-badge";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useDebouncedComposingValue } from "@dongle/ui/hooks/use-debounced-composing-value";
+import { filterByKeyword, normalizeSearchQuery } from "@dongle/utils";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 type ClubFilterItem = {
@@ -38,7 +40,7 @@ type ClubFilterSearchParams = {
 export type { ClubFilterItem };
 
 export function normalizeClubSearchQuery(searchQuery: string) {
-    return searchQuery.trim().toLowerCase();
+    return normalizeSearchQuery(searchQuery);
 }
 
 function toClubFilterStatus(value: string | null): ClubFilterStatus {
@@ -54,29 +56,37 @@ export function parseClubFilterSearchParams(searchParams: SearchParamReader): Cl
 }
 
 export function buildClubFilterSearchParams(
-    filters: ClubFilterSearchParams,
+    filters: Partial<ClubFilterSearchParams>,
     baseSearchParams: URLSearchParams = new URLSearchParams()
 ) {
     const nextSearchParams = new URLSearchParams(baseSearchParams);
-    const searchQuery = filters.searchQuery.trim();
-    const activeCategory = filters.activeCategory.trim();
 
-    if (searchQuery.length > 0) {
-        nextSearchParams.set(clubFilterSearchParamKeys.searchQuery, searchQuery);
-    } else {
-        nextSearchParams.delete(clubFilterSearchParamKeys.searchQuery);
+    if (filters.searchQuery !== undefined) {
+        const searchQuery = filters.searchQuery.trim();
+
+        if (searchQuery.length > 0) {
+            nextSearchParams.set(clubFilterSearchParamKeys.searchQuery, searchQuery);
+        } else {
+            nextSearchParams.delete(clubFilterSearchParamKeys.searchQuery);
+        }
     }
 
-    if (filters.activeStatus !== "all") {
-        nextSearchParams.set(clubFilterSearchParamKeys.activeStatus, filters.activeStatus);
-    } else {
-        nextSearchParams.delete(clubFilterSearchParamKeys.activeStatus);
+    if (filters.activeStatus !== undefined) {
+        if (filters.activeStatus !== "all") {
+            nextSearchParams.set(clubFilterSearchParamKeys.activeStatus, filters.activeStatus);
+        } else {
+            nextSearchParams.delete(clubFilterSearchParamKeys.activeStatus);
+        }
     }
 
-    if (activeCategory.length > 0 && activeCategory !== "all") {
-        nextSearchParams.set(clubFilterSearchParamKeys.activeCategory, activeCategory);
-    } else {
-        nextSearchParams.delete(clubFilterSearchParamKeys.activeCategory);
+    if (filters.activeCategory !== undefined) {
+        const activeCategory = filters.activeCategory.trim();
+
+        if (activeCategory.length > 0 && activeCategory !== "all") {
+            nextSearchParams.set(clubFilterSearchParamKeys.activeCategory, activeCategory);
+        } else {
+            nextSearchParams.delete(clubFilterSearchParamKeys.activeCategory);
+        }
     }
 
     return nextSearchParams;
@@ -116,19 +126,14 @@ export function filterClubs(
     activeStatus: ClubFilterStatus,
     activeCategory: ClubCategoryFilter
 ) {
-    const normalizedQuery = normalizeClubSearchQuery(searchQuery);
-
-    return clubs.filter((club) => {
+    const byStatusAndCategory = clubs.filter((club) => {
         const byStatus = activeStatus === "all" || toRecruitmentStatus(club.is_recruiting) === activeStatus;
         const byCategory = activeCategory === "all" || club.category === activeCategory;
 
-        const bySearch =
-            normalizedQuery.length === 0 ||
-            club.name.toLowerCase().includes(normalizedQuery) ||
-            club.category.toLowerCase().includes(normalizedQuery);
-
-        return byStatus && byCategory && bySearch;
+        return byStatus && byCategory;
     });
+
+    return filterByKeyword(byStatusAndCategory, searchQuery, (club) => [club.name, club.category].join(" "));
 }
 
 type ClubSummaryParams = {
@@ -178,7 +183,6 @@ export function getClubSummaryText({
 }
 
 export function useClubFilters(clubs: ClubFilterItem[]) {
-    const pathname = usePathname();
     const searchParams = useSearchParams();
     const { searchQuery, activeStatus, activeCategory } = useMemo(
         () => parseClubFilterSearchParams(searchParams),
@@ -186,20 +190,23 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
     );
     const updateFilterSearchParams = useCallback(
         (nextFilters: Partial<ClubFilterSearchParams>) => {
-            const nextSearchParams = buildClubFilterSearchParams(
-                { searchQuery, activeStatus, activeCategory, ...nextFilters },
-                new URLSearchParams(searchParams.toString())
-            );
-            const queryString = nextSearchParams.toString();
+            const url = new URL(window.location.href);
+            url.search = buildClubFilterSearchParams(nextFilters, url.searchParams).toString();
 
-            window.history.replaceState(null, "", queryString ? `${pathname}?${queryString}` : pathname);
+            window.history.replaceState(null, "", url);
         },
-        [activeCategory, activeStatus, pathname, searchParams, searchQuery]
+        []
     );
-    const setSearchQuery = useCallback(
+    const commitSearchQuery = useCallback(
         (query: string) => updateFilterSearchParams({ searchQuery: query }),
         [updateFilterSearchParams]
     );
+    const {
+        value: searchInputValue,
+        onChange: onSearchInputChange,
+        onCompositionStart: onSearchInputCompositionStart,
+        onCompositionEnd: onSearchInputCompositionEnd,
+    } = useDebouncedComposingValue(searchQuery, commitSearchQuery);
     const setActiveStatus = useCallback(
         (status: ClubFilterStatus) => updateFilterSearchParams({ activeStatus: status }),
         [updateFilterSearchParams]
@@ -254,7 +261,10 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
 
     return {
         searchQuery,
-        setSearchQuery,
+        searchInputValue,
+        onSearchInputChange,
+        onSearchInputCompositionStart,
+        onSearchInputCompositionEnd,
         activeStatus,
         setActiveStatus,
         activeCategory,
