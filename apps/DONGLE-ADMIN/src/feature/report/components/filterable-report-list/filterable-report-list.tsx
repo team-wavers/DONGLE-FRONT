@@ -38,21 +38,17 @@ export default function FilterableReportList({ reports, clubId, loadFailed = fal
     const deferredKeyword = useDeferredValue(normalizeReportKeyword(inputValue));
     const filteredReports = useMemo(() => filterReportsByKeyword(reports, deferredKeyword), [reports, deferredKeyword]);
 
-    if (loadFailed) {
-        return (
-            <div className="flex min-h-40 items-center justify-center rounded-lg border bg-white py-16">
-                <div className="text-red-500">활동보고서를 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</div>
-            </div>
-        );
-    }
-
     return (
         <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between gap-4">
-                <div className="text-sm text-gray-600">
-                    총 <span className="font-semibold text-blue-600">{reports.length}</span>
-                    개의 활동보고서
-                </div>
+                {loadFailed ? (
+                    <div />
+                ) : (
+                    <div className="text-sm text-gray-600">
+                        총 <span className="font-semibold text-blue-600">{reports.length}</span>
+                        개의 활동보고서
+                    </div>
+                )}
                 <Button asChild className="font-semibold">
                     <Link href="./create">
                         <Pencil className="h-4 w-4" />
@@ -61,26 +57,36 @@ export default function FilterableReportList({ reports, clubId, loadFailed = fal
                 </Button>
             </div>
 
-            {reports.length > 0 ? <SearchInput value={inputValue} onChange={setInputValue} placeholder="제목, 내용 검색" /> : null}
-
-            {reports.length === 0 ? (
+            {loadFailed ? (
                 <div className="flex min-h-40 items-center justify-center rounded-lg border bg-white py-16">
-                    <div className="text-gray-500">활동보고서가 없습니다.</div>
+                    <div className="text-red-500">활동보고서를 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</div>
                 </div>
-            ) : filteredReports.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">검색 결과가 없습니다.</div>
             ) : (
-                <div className="overflow-hidden rounded-lg border bg-white">
-                    {filteredReports.map((report) => (
-                        <ReportCard
-                            key={report.id}
-                            title={report.title}
-                            createdDate={report.createdAt}
-                            content={report.content}
-                            href={`/${clubId}/report/${report.id}`}
-                        />
-                    ))}
-                </div>
+                <>
+                    {reports.length > 0 ? (
+                        <SearchInput value={inputValue} onChange={setInputValue} placeholder="제목, 내용 검색" />
+                    ) : null}
+
+                    {reports.length === 0 ? (
+                        <div className="flex min-h-40 items-center justify-center rounded-lg border bg-white py-16">
+                            <div className="text-gray-500">활동보고서가 없습니다.</div>
+                        </div>
+                    ) : filteredReports.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">검색 결과가 없습니다.</div>
+                    ) : (
+                        <div className="overflow-hidden rounded-lg border bg-white">
+                            {filteredReports.map((report) => (
+                                <ReportCard
+                                    key={report.id}
+                                    title={report.title}
+                                    createdDate={report.createdAt}
+                                    content={report.content}
+                                    href={`/${clubId}/report/${report.id}`}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );
