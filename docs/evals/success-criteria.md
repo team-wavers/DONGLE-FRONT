@@ -345,6 +345,23 @@
 - [activity-report-create.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/form/activity-report-create.action.test.ts)
 - [activity-report-update.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/form/activity-report-update.action.test.ts)
 
+## Admin Report Management
+
+### 검색 필터
+
+- 검색어는 trim 후 소문자 기준으로 비교된다.
+- 제목과 content 모두 검색 대상이다.
+- content는 rich text HTML 원본 문자열을 기준으로 substring 매치하며, 태그를 벗기지 않는다.
+- 검색 결과는 일관된 deterministic 로직으로 계산된다.
+
+### 목록 실패 상태
+
+- 활동보고서 목록 조회 실패는 목록이 0건인 상태와 구분되는 실패 안내로 표시해야 한다.
+- 목록 조회 실패 시에도 작성하기(새 활동보고서 작성) 진입점은 항상 노출되어야 한다.
+
+관련 테스트:
+- [filterable-report-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/components/filterable-report-list/filterable-report-list.test.ts)
+
 ## Admin URL Generation
 
 ### 등록 URL 변환
