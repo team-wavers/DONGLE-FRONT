@@ -4,7 +4,7 @@ import { getClubSearchEmptyState } from "@/lib/club-search-empty-state";
 import type { RecruitmentStatus } from "@dongle/ui/badges/recruitment-status-badge";
 import { useDebouncedComposingValue } from "@dongle/ui/hooks/use-debounced-composing-value";
 import { filterByKeyword, normalizeSearchQuery } from "@dongle/utils";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 type ClubFilterItem = {
@@ -56,29 +56,37 @@ export function parseClubFilterSearchParams(searchParams: SearchParamReader): Cl
 }
 
 export function buildClubFilterSearchParams(
-    filters: ClubFilterSearchParams,
+    filters: Partial<ClubFilterSearchParams>,
     baseSearchParams: URLSearchParams = new URLSearchParams()
 ) {
     const nextSearchParams = new URLSearchParams(baseSearchParams);
-    const searchQuery = filters.searchQuery.trim();
-    const activeCategory = filters.activeCategory.trim();
 
-    if (searchQuery.length > 0) {
-        nextSearchParams.set(clubFilterSearchParamKeys.searchQuery, searchQuery);
-    } else {
-        nextSearchParams.delete(clubFilterSearchParamKeys.searchQuery);
+    if (filters.searchQuery !== undefined) {
+        const searchQuery = filters.searchQuery.trim();
+
+        if (searchQuery.length > 0) {
+            nextSearchParams.set(clubFilterSearchParamKeys.searchQuery, searchQuery);
+        } else {
+            nextSearchParams.delete(clubFilterSearchParamKeys.searchQuery);
+        }
     }
 
-    if (filters.activeStatus !== "all") {
-        nextSearchParams.set(clubFilterSearchParamKeys.activeStatus, filters.activeStatus);
-    } else {
-        nextSearchParams.delete(clubFilterSearchParamKeys.activeStatus);
+    if (filters.activeStatus !== undefined) {
+        if (filters.activeStatus !== "all") {
+            nextSearchParams.set(clubFilterSearchParamKeys.activeStatus, filters.activeStatus);
+        } else {
+            nextSearchParams.delete(clubFilterSearchParamKeys.activeStatus);
+        }
     }
 
-    if (activeCategory.length > 0 && activeCategory !== "all") {
-        nextSearchParams.set(clubFilterSearchParamKeys.activeCategory, activeCategory);
-    } else {
-        nextSearchParams.delete(clubFilterSearchParamKeys.activeCategory);
+    if (filters.activeCategory !== undefined) {
+        const activeCategory = filters.activeCategory.trim();
+
+        if (activeCategory.length > 0 && activeCategory !== "all") {
+            nextSearchParams.set(clubFilterSearchParamKeys.activeCategory, activeCategory);
+        } else {
+            nextSearchParams.delete(clubFilterSearchParamKeys.activeCategory);
+        }
     }
 
     return nextSearchParams;
@@ -175,8 +183,6 @@ export function getClubSummaryText({
 }
 
 export function useClubFilters(clubs: ClubFilterItem[]) {
-    const router = useRouter();
-    const pathname = usePathname();
     const searchParams = useSearchParams();
     const { searchQuery, activeStatus, activeCategory } = useMemo(
         () => parseClubFilterSearchParams(searchParams),
@@ -184,15 +190,12 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
     );
     const updateFilterSearchParams = useCallback(
         (nextFilters: Partial<ClubFilterSearchParams>) => {
-            const nextSearchParams = buildClubFilterSearchParams(
-                { searchQuery, activeStatus, activeCategory, ...nextFilters },
-                new URLSearchParams(searchParams.toString())
-            );
-            const queryString = nextSearchParams.toString();
+            const url = new URL(window.location.href);
+            url.search = buildClubFilterSearchParams(nextFilters, url.searchParams).toString();
 
-            router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+            window.history.replaceState(null, "", url);
         },
-        [activeCategory, activeStatus, pathname, router, searchParams, searchQuery]
+        []
     );
     const commitSearchQuery = useCallback(
         (query: string) => updateFilterSearchParams({ searchQuery: query }),
