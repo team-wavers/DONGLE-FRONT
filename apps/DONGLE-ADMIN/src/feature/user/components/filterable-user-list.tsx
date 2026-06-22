@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useDeferredValue, useMemo, useState } from "react";
+import React, { useDeferredValue, useMemo } from "react";
 import type { User } from "@dongle/types/user/user.d";
 import { Card, CardContent } from "@dongle/ui/card";
 import { User as UserIcon } from "lucide-react";
-import SearchInput from "@/shared/ui/navigation/search-input/search-input";
+import { SearchInput } from "@dongle/ui";
+import { filterByKeyword, matchesKeyword, normalizeSearchQuery } from "@dongle/utils";
+import { useUrlKeywordSearch } from "@/shared/hooks/use-url-keyword-search";
 import UserCard from "@/feature/user/components/user-card";
 import UserCreateButton from "@/feature/user/components/user-create-button";
 
@@ -14,33 +16,65 @@ interface FilterableUserListProps {
     loadFailed?: boolean;
 }
 
+function getUserSearchableText(user: User) {
+    const roleLabel = user.role === "admin" ? "관리자" : "회장";
+    return [user.name, user.login_id, user.phone, roleLabel, user.role, user.club?.name].filter(Boolean).join(" ");
+}
+
 export function normalizeUserKeyword(value: string) {
-    return value.trim().toLowerCase();
+    return normalizeSearchQuery(value);
 }
 
 export function matchesUser(user: User, keyword: string) {
-    if (!keyword) {
-        return true;
-    }
-
-    const roleLabel = user.role === "admin" ? "관리자" : "회장";
-    const searchableText = [user.name, user.login_id, user.phone, roleLabel, user.role, user.club?.name]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-    return searchableText.includes(keyword);
+    return matchesKeyword(getUserSearchableText(user), keyword);
 }
 
 export function filterUsersByKeyword(users: User[], keyword: string) {
-    return users.filter((user) => matchesUser(user, keyword));
+    return filterByKeyword(users, keyword, getUserSearchableText);
 }
 
-export default function FilterableUserList({ users, currentUserId, loadFailed = false }: FilterableUserListProps) {
-    const [inputValue, setInputValue] = useState("");
+interface UserListResultsProps {
+    users: User[];
+    currentUserId?: number | null;
+    keyword: string;
+}
 
-    const deferredKeyword = useDeferredValue(normalizeUserKeyword(inputValue));
-    const filteredUsers = useMemo(() => filterUsersByKeyword(users, deferredKeyword), [users, deferredKeyword]);
+// keyword(useDeferredValue 결과)가 바뀔 때만 무거운 리스트를 다시 그린다.
+// 이걸 memo로 분리해야 입력창 타이핑은 항상 즉시 반영되고, 한글 IME 조합 중에
+// 리스트 리렌더링이 끼어들어 자모가 분리되는 문제가 생기지 않는다.
+const UserListResults = React.memo(function UserListResults({ users, currentUserId, keyword }: UserListResultsProps) {
+    const filteredUsers = useMemo(() => filterUsersByKeyword(users, keyword), [users, keyword]);
+
+    if (filteredUsers.length === 0) {
+        return (
+            <div className="text-center py-8 text-muted-foreground">
+                <UserIcon className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                <p>검색 결과가 없습니다.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="overflow-hidden rounded-lg border bg-white">
+            <div className="hidden grid-cols-[minmax(0,1.3fr)_100px_minmax(130px,0.75fr)_150px_120px_170px] gap-4 border-b bg-zinc-50 px-5 py-3 text-xs font-semibold text-muted-foreground lg:grid">
+                <span>사용자</span>
+                <span>역할</span>
+                <span>로그인 ID</span>
+                <span>연락처</span>
+                <span>가입일</span>
+                <span className="text-right">관리</span>
+            </div>
+            {filteredUsers.map((user) => (
+                <UserCard key={user.id} user={user} currentUserId={currentUserId} />
+            ))}
+        </div>
+    );
+});
+
+export default function FilterableUserList({ users, currentUserId, loadFailed = false }: FilterableUserListProps) {
+    const { inputValue, keyword, onChange, onCompositionStart, onCompositionEnd } = useUrlKeywordSearch();
+
+    const deferredKeyword = useDeferredValue(keyword);
 
     if (loadFailed) {
         return (
@@ -93,30 +127,13 @@ export default function FilterableUserList({ users, currentUserId, loadFailed = 
 
             <SearchInput
                 value={inputValue}
-                onChange={setInputValue}
+                onChange={onChange}
+                onCompositionStart={onCompositionStart}
+                onCompositionEnd={onCompositionEnd}
                 placeholder="이름, 로그인 ID, 전화번호, 역할, 동아리명 검색"
             />
 
-            {filteredUsers.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                    <UserIcon className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                    <p>검색 결과가 없습니다.</p>
-                </div>
-            ) : (
-                <div className="overflow-hidden rounded-lg border bg-white">
-                    <div className="hidden grid-cols-[minmax(0,1.3fr)_100px_minmax(130px,0.75fr)_150px_120px_170px] gap-4 border-b bg-zinc-50 px-5 py-3 text-xs font-semibold text-muted-foreground lg:grid">
-                        <span>사용자</span>
-                        <span>역할</span>
-                        <span>로그인 ID</span>
-                        <span>연락처</span>
-                        <span>가입일</span>
-                        <span className="text-right">관리</span>
-                    </div>
-                    {filteredUsers.map((user) => (
-                        <UserCard key={user.id} user={user} currentUserId={currentUserId} />
-                    ))}
-                </div>
-            )}
+            <UserListResults users={users} currentUserId={currentUserId} keyword={deferredKeyword} />
         </div>
     );
 }

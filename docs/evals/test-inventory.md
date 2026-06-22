@@ -53,6 +53,7 @@
 | client club reports | [club-reports-tab-content.test.tsx](../../apps/DONGLE-CLIENT/src/components/club-detail/club-reports-tab-content.test.tsx), `apps/DONGLE-ADMIN/src/app/(대시보드)/(동아리)/(메뉴)/[clubId]/(활동보고서)/report/page.test.ts` | code-graded | 활동보고서 조회 실패 안내 / 회장 활동보고서 목록 service 예외 정규화 |
 | club fixture | [club.fixture.test.ts](../../e2e/fixtures/club.fixture.test.ts) | code-graded | fixture util |
 | rich text | [sanitize-rich-text-html.test.ts](../../packages/rich-text/src/sanitize-rich-text-html.test.ts), [rich-text-viewer.test.ts](../../packages/rich-text/src/rich-text-viewer.test.ts) | code-graded | normalization / viewer sanitizer failure fallback |
+| shared debounced input | [use-debounced-composing-value.test.ts](../../packages/ui/src/hooks/use-debounced-composing-value.test.ts) | code-graded | 외부 값 동기화 시 pending commit 취소 / IME 조합 중 외부 값 우선 |
 | date util | [date.test.ts](../../apps/DONGLE-ADMIN/src/lib/format/date.test.ts) | code-graded | formatter |
 
 ## 잔존 E2E

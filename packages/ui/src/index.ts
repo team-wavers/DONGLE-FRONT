@@ -25,3 +25,5 @@ export * from "./toaster";
 export * from "./tooltip";
 export * from "./utils";
 export * from "./hooks/use-mobile";
+export * from "./hooks/use-debounced-composing-value";
+export * from "./search-input";

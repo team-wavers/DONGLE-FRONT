@@ -137,6 +137,17 @@ test("buildClubFilterSearchParams는 활성 필터 값을 쿼리스트링에 반
     expect(result.get("category")).toBe("학술");
 });
 
+test("buildClubFilterSearchParams는 검색어만 변경할 때 기존 모집 상태와 분과를 보존한다", () => {
+    const result = buildClubFilterSearchParams(
+        { searchQuery: "디" },
+        new URLSearchParams("status=recruiting&category=%ED%95%99%EC%88%A0")
+    );
+
+    expect(result.get("q")).toBe("디");
+    expect(result.get("status")).toBe("recruiting");
+    expect(result.get("category")).toBe("학술");
+});
+
 test("buildClubFilterSearchParams는 모집 상태와 분과를 한 번에 초기화할 수 있다", () => {
     const result = buildClubFilterSearchParams(
         {

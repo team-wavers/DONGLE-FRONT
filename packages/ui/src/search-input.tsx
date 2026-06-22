@@ -1,21 +1,28 @@
-"use client";
-
 import { Search, X } from "lucide-react";
-import { Input } from "@dongle/ui/input";
-import { Button } from "@dongle/ui/button";
+import { Input } from "./input";
+import { Button } from "./button";
+import { cn } from "./utils";
 
-interface SearchInputProps {
+export interface SearchInputProps {
     value: string;
     onChange: (value: string) => void;
+    onCompositionStart?: () => void;
+    onCompositionEnd?: (value: string) => void;
     placeholder?: string;
     disabled?: boolean;
+    className?: string;
+    showClearButton?: boolean;
 }
 
-export default function SearchInput({
+export function SearchInput({
     value,
     onChange,
+    onCompositionStart,
+    onCompositionEnd,
     placeholder = "검색어를 입력하세요",
     disabled = false,
+    className,
+    showClearButton = true,
 }: SearchInputProps) {
     const hasValue = value.length > 0;
 
@@ -25,11 +32,13 @@ export default function SearchInput({
             <Input
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
+                onCompositionStart={onCompositionStart}
+                onCompositionEnd={(event) => onCompositionEnd?.(event.currentTarget.value)}
                 placeholder={placeholder}
                 disabled={disabled}
-                className="h-11 rounded-xl border-zinc-200 bg-white pl-10 pr-11"
+                className={cn("h-11 rounded-xl border-zinc-200 bg-white pl-10 pr-11", className)}
             />
-            {hasValue && (
+            {showClearButton && hasValue && (
                 <Button
                     type="button"
                     variant="ghost"

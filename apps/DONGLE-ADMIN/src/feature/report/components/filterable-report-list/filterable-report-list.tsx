@@ -1,12 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { useDeferredValue, useMemo, useState } from "react";
+import { memo, useDeferredValue, useMemo } from "react";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { Button } from "@dongle/ui/button";
 import type { ClubReport } from "@dongle/types/club/club.report.d";
-import SearchInput from "@/shared/ui/navigation/search-input/search-input";
+import { SearchInput } from "@dongle/ui";
+import { filterByKeyword, matchesKeyword, normalizeSearchQuery } from "@dongle/utils";
+import { useUrlKeywordSearch } from "@/shared/hooks/use-url-keyword-search";
 import ReportCard from "@/feature/report/components/report-card/report-card";
 
 interface FilterableReportListProps {
@@ -15,29 +17,57 @@ interface FilterableReportListProps {
     loadFailed?: boolean;
 }
 
+function getReportSearchableText(report: ClubReport) {
+    return [report.title, report.content].filter(Boolean).join(" ");
+}
+
 export function normalizeReportKeyword(value: string) {
-    return value.trim().toLowerCase();
+    return normalizeSearchQuery(value);
 }
 
 export function matchesReport(report: ClubReport, keyword: string) {
-    if (!keyword) {
-        return true;
-    }
-
-    const searchableText = [report.title, report.content].filter(Boolean).join(" ").toLowerCase();
-
-    return searchableText.includes(keyword);
+    return matchesKeyword(getReportSearchableText(report), keyword);
 }
 
 export function filterReportsByKeyword(reports: ClubReport[], keyword: string) {
-    return reports.filter((report) => matchesReport(report, keyword));
+    return filterByKeyword(reports, keyword, getReportSearchableText);
 }
 
-export default function FilterableReportList({ reports, clubId, loadFailed = false }: FilterableReportListProps) {
-    const [inputValue, setInputValue] = useState("");
+interface ReportListResultsProps {
+    reports: ClubReport[];
+    clubId: string;
+    keyword: string;
+}
 
-    const deferredKeyword = useDeferredValue(normalizeReportKeyword(inputValue));
-    const filteredReports = useMemo(() => filterReportsByKeyword(reports, deferredKeyword), [reports, deferredKeyword]);
+// keyword(useDeferredValue 결과)가 바뀔 때만 무거운 리스트를 다시 그린다.
+// 이걸 memo로 분리해야 입력창 타이핑은 항상 즉시 반영되고, 한글 IME 조합 중에
+// 리스트 리렌더링이 끼어들어 자모가 분리되는 문제가 생기지 않는다.
+const ReportListResults = memo(function ReportListResults({ reports, clubId, keyword }: ReportListResultsProps) {
+    const filteredReports = useMemo(() => filterReportsByKeyword(reports, keyword), [reports, keyword]);
+
+    if (filteredReports.length === 0) {
+        return <div className="text-center py-8 text-muted-foreground">검색 결과가 없습니다.</div>;
+    }
+
+    return (
+        <div className="overflow-hidden rounded-lg border bg-white">
+            {filteredReports.map((report) => (
+                <ReportCard
+                    key={report.id}
+                    title={report.title}
+                    createdDate={report.createdAt}
+                    content={report.content}
+                    href={`/${clubId}/report/${report.id}`}
+                />
+            ))}
+        </div>
+    );
+});
+
+export default function FilterableReportList({ reports, clubId, loadFailed = false }: FilterableReportListProps) {
+    const { inputValue, keyword, onChange, onCompositionStart, onCompositionEnd } = useUrlKeywordSearch();
+
+    const deferredKeyword = useDeferredValue(keyword);
 
     return (
         <div className="flex flex-col gap-5">
@@ -65,27 +95,21 @@ export default function FilterableReportList({ reports, clubId, loadFailed = fal
             ) : (
                 <>
                     {reports.length > 0 ? (
-                        <SearchInput value={inputValue} onChange={setInputValue} placeholder="제목, 내용 검색" />
+                        <SearchInput
+                            value={inputValue}
+                            onChange={onChange}
+                            onCompositionStart={onCompositionStart}
+                            onCompositionEnd={onCompositionEnd}
+                            placeholder="제목, 내용 검색"
+                        />
                     ) : null}
 
                     {reports.length === 0 ? (
                         <div className="flex min-h-40 items-center justify-center rounded-lg border bg-white py-16">
                             <div className="text-gray-500">활동보고서가 없습니다.</div>
                         </div>
-                    ) : filteredReports.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">검색 결과가 없습니다.</div>
                     ) : (
-                        <div className="overflow-hidden rounded-lg border bg-white">
-                            {filteredReports.map((report) => (
-                                <ReportCard
-                                    key={report.id}
-                                    title={report.title}
-                                    createdDate={report.createdAt}
-                                    content={report.content}
-                                    href={`/${clubId}/report/${report.id}`}
-                                />
-                            ))}
-                        </div>
+                        <ReportListResults reports={reports} clubId={clubId} keyword={deferredKeyword} />
                     )}
                 </>
             )}

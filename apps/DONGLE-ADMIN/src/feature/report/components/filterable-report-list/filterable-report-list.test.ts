@@ -1,11 +1,17 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { ClubReport } from "@dongle/types/club/club.report.d";
 import FilterableReportList, {
     filterReportsByKeyword,
     normalizeReportKeyword,
 } from "./filterable-report-list";
+
+vi.mock("next/navigation", () => ({
+    useRouter: () => ({ replace: () => {} }),
+    usePathname: () => "/10/report",
+    useSearchParams: () => new URLSearchParams(),
+}));
 
 const reports = [
     {

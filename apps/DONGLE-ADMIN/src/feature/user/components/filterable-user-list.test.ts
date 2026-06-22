@@ -1,8 +1,14 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { User } from "@dongle/types/user/user.d";
 import FilterableUserList, { filterUsersByKeyword, normalizeUserKeyword } from "./filterable-user-list";
+
+vi.mock("next/navigation", () => ({
+    useRouter: () => ({ replace: () => {} }),
+    usePathname: () => "/admin/user",
+    useSearchParams: () => new URLSearchParams(),
+}));
 
 const users = [
     {
