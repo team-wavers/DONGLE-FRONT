@@ -1,10 +1,15 @@
+import { Suspense } from "react";
 import FilterableReportList from "@/feature/report/components/filterable-report-list/filterable-report-list";
 import { loadClubReportListViewModel } from "./club-report-list-view-model";
 
 async function ClubReportListSection({ clubId }: { clubId: string }) {
     const { reports, loadFailed } = await loadClubReportListViewModel(clubId);
 
-    return <FilterableReportList reports={reports} clubId={clubId} loadFailed={loadFailed} />;
+    return (
+        <Suspense fallback={null}>
+            <FilterableReportList reports={reports} clubId={clubId} loadFailed={loadFailed} />
+        </Suspense>
+    );
 }
 
 export default async function Page({ params }: { params: Promise<{ clubId: string }> }) {

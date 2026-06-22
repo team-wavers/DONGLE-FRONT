@@ -6,6 +6,7 @@ import {
     formatMonthKey,
     getDateTimeTimestamp,
     getMonthDateTimeRange,
+    matchesKeyword,
     parseMonthKey,
 } from "@dongle/utils";
 import type { ClubSchedule, ScheduleType } from "./schedule.types";
@@ -87,19 +88,16 @@ export function buildScheduleCalendarIndex(schedules: ClubSchedule[], dateKeys: 
 }
 
 export function filterSchedules(schedules: ClubSchedule[], filters: ScheduleFilters) {
-    const keyword = filters.keyword.trim().toLowerCase();
     const dateRange = normalizeScheduleDateRange(filters.dateRange);
 
     return schedules.filter((schedule) => {
-        const matchesKeyword =
-            !keyword ||
-            [schedule.title, schedule.clubName, schedule.category, schedule.location]
-                .join(" ")
-                .toLowerCase()
-                .includes(keyword);
+        const matchesScheduleKeyword = matchesKeyword(
+            [schedule.title, schedule.clubName, schedule.category, schedule.location].join(" "),
+            filters.keyword
+        );
 
         return (
-            matchesKeyword &&
+            matchesScheduleKeyword &&
             (filters.category === "all" || schedule.category === filters.category) &&
             (filters.type === "all" || schedule.type === filters.type) &&
             (filters.isPublic === "all" || schedule.isPublic === filters.isPublic) &&

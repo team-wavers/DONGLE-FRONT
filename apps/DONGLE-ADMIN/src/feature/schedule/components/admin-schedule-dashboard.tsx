@@ -1,7 +1,8 @@
 "use client";
 
 import { useCurrentTime } from "@/hooks/use-current-time";
-import SearchInput from "@/shared/ui/navigation/search-input/search-input";
+import { useUrlKeywordSearch } from "@/shared/hooks/use-url-keyword-search";
+import { SearchInput } from "@dongle/ui";
 import { Button } from "@dongle/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@dongle/ui/card";
 import {
@@ -101,7 +102,13 @@ export default function AdminScheduleDashboard({
     );
     const visibleMonthRef = useRef(visibleMonth);
     const [selectedDate, setSelectedDate] = useState(initialMonthDate);
-    const [keyword, setKeyword] = useState("");
+    const {
+        inputValue: keywordInputValue,
+        keyword,
+        onChange: onKeywordChange,
+        onCompositionStart: onKeywordCompositionStart,
+        onCompositionEnd: onKeywordCompositionEnd,
+    } = useUrlKeywordSearch();
     const [category, setCategory] = useState("all");
     const [type, setType] = useState<"all" | ScheduleType>("all");
     const [isPublic, setIsPublic] = useState<"all" | boolean>("all");
@@ -277,7 +284,13 @@ export default function AdminScheduleDashboard({
         <div className="flex w-full flex-col gap-6">
             <Card className="rounded-lg border-zinc-200 shadow-xs">
                 <CardContent className="flex flex-col gap-3">
-                    <SearchInput value={keyword} onChange={setKeyword} placeholder="동아리명, 일정명, 장소 검색" />
+                    <SearchInput
+                        value={keywordInputValue}
+                        onChange={onKeywordChange}
+                        onCompositionStart={onKeywordCompositionStart}
+                        onCompositionEnd={onKeywordCompositionEnd}
+                        placeholder="동아리명, 일정명, 장소 검색"
+                    />
                     <div className="grid gap-3 md:grid-cols-4">
                         <Select value={category} onValueChange={setCategory}>
                             <SelectTrigger className="h-11 w-full rounded-xl bg-white">

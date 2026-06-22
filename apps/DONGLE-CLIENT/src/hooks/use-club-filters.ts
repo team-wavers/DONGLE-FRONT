@@ -2,7 +2,9 @@
 
 import { getClubSearchEmptyState } from "@/lib/club-search-empty-state";
 import type { RecruitmentStatus } from "@dongle/ui/badges/recruitment-status-badge";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useDebouncedComposingValue } from "@dongle/ui/hooks/use-debounced-composing-value";
+import { filterByKeyword, normalizeSearchQuery } from "@dongle/utils";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 type ClubFilterItem = {
@@ -38,7 +40,7 @@ type ClubFilterSearchParams = {
 export type { ClubFilterItem };
 
 export function normalizeClubSearchQuery(searchQuery: string) {
-    return searchQuery.trim().toLowerCase();
+    return normalizeSearchQuery(searchQuery);
 }
 
 function toClubFilterStatus(value: string | null): ClubFilterStatus {
@@ -116,19 +118,14 @@ export function filterClubs(
     activeStatus: ClubFilterStatus,
     activeCategory: ClubCategoryFilter
 ) {
-    const normalizedQuery = normalizeClubSearchQuery(searchQuery);
-
-    return clubs.filter((club) => {
+    const byStatusAndCategory = clubs.filter((club) => {
         const byStatus = activeStatus === "all" || toRecruitmentStatus(club.is_recruiting) === activeStatus;
         const byCategory = activeCategory === "all" || club.category === activeCategory;
 
-        const bySearch =
-            normalizedQuery.length === 0 ||
-            club.name.toLowerCase().includes(normalizedQuery) ||
-            club.category.toLowerCase().includes(normalizedQuery);
-
-        return byStatus && byCategory && bySearch;
+        return byStatus && byCategory;
     });
+
+    return filterByKeyword(byStatusAndCategory, searchQuery, (club) => [club.name, club.category].join(" "));
 }
 
 type ClubSummaryParams = {
@@ -178,6 +175,7 @@ export function getClubSummaryText({
 }
 
 export function useClubFilters(clubs: ClubFilterItem[]) {
+    const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const { searchQuery, activeStatus, activeCategory } = useMemo(
@@ -192,14 +190,20 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
             );
             const queryString = nextSearchParams.toString();
 
-            window.history.replaceState(null, "", queryString ? `${pathname}?${queryString}` : pathname);
+            router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
         },
-        [activeCategory, activeStatus, pathname, searchParams, searchQuery]
+        [activeCategory, activeStatus, pathname, router, searchParams, searchQuery]
     );
-    const setSearchQuery = useCallback(
+    const commitSearchQuery = useCallback(
         (query: string) => updateFilterSearchParams({ searchQuery: query }),
         [updateFilterSearchParams]
     );
+    const {
+        value: searchInputValue,
+        onChange: onSearchInputChange,
+        onCompositionStart: onSearchInputCompositionStart,
+        onCompositionEnd: onSearchInputCompositionEnd,
+    } = useDebouncedComposingValue(searchQuery, commitSearchQuery);
     const setActiveStatus = useCallback(
         (status: ClubFilterStatus) => updateFilterSearchParams({ activeStatus: status }),
         [updateFilterSearchParams]
@@ -254,7 +258,10 @@ export function useClubFilters(clubs: ClubFilterItem[]) {
 
     return {
         searchQuery,
-        setSearchQuery,
+        searchInputValue,
+        onSearchInputChange,
+        onSearchInputCompositionStart,
+        onSearchInputCompositionEnd,
         activeStatus,
         setActiveStatus,
         activeCategory,

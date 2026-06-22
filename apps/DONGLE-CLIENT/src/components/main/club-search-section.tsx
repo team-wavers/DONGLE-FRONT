@@ -3,7 +3,7 @@
 import ClubFilterChips from "@/components/main/club-filter-chips";
 import type { ClubCategoryFilter, ClubFilterStatus } from "@/hooks/use-club-filters";
 import { Button } from "@dongle/ui/button";
-import { Input } from "@dongle/ui/input";
+import { SearchInput } from "@dongle/ui";
 import {
     Sheet,
     SheetClose,
@@ -15,11 +15,13 @@ import {
     SheetTrigger,
 } from "@dongle/ui/sheet";
 import { cn } from "@dongle/ui/utils";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal, X } from "lucide-react";
 
 interface ClubSearchSectionProps {
-    searchQuery: string;
-    onSearchQueryChange: (query: string) => void;
+    searchInputValue: string;
+    onSearchInputChange: (value: string) => void;
+    onSearchInputCompositionStart: () => void;
+    onSearchInputCompositionEnd: (value: string) => void;
     activeStatus: ClubFilterStatus;
     onStatusChange: (status: ClubFilterStatus) => void;
     activeCategory: ClubCategoryFilter;
@@ -29,8 +31,10 @@ interface ClubSearchSectionProps {
 }
 
 export default function ClubSearchSection({
-    searchQuery,
-    onSearchQueryChange,
+    searchInputValue,
+    onSearchInputChange,
+    onSearchInputCompositionStart,
+    onSearchInputCompositionEnd,
     activeStatus,
     onStatusChange,
     activeCategory,
@@ -46,7 +50,17 @@ export default function ClubSearchSection({
             <div className="space-y-3 md:sticky md:top-20 md:z-[5] md:max-h-[calc(100dvh-5rem)] md:self-start md:overflow-y-auto md:rounded-lg md:border md:border-zinc-200 md:bg-white md:p-4">
                 <div className="hidden text-sm font-bold text-zinc-400 md:mb-2 md:block">검색</div>
                 <div className="flex min-w-0 gap-2">
-                    <SearchInput searchQuery={searchQuery} onSearchQueryChange={onSearchQueryChange} />
+                    <div className="min-w-0 flex-1">
+                        <SearchInput
+                            value={searchInputValue}
+                            onChange={onSearchInputChange}
+                            onCompositionStart={onSearchInputCompositionStart}
+                            onCompositionEnd={onSearchInputCompositionEnd}
+                            placeholder="동아리명, 분과를 입력해 보세요"
+                            showClearButton={false}
+                            className="rounded-md border-zinc-200 bg-zinc-50 pl-11 text-base font-semibold text-zinc-700 shadow-none placeholder:text-zinc-400 focus-visible:bg-white md:text-sm"
+                        />
+                    </div>
                     <Sheet>
                         <SheetTrigger asChild>
                             <Button
@@ -119,28 +133,6 @@ export default function ClubSearchSection({
                 </div>
             </div>
         </aside>
-    );
-}
-
-interface SearchInputProps {
-    searchQuery: string;
-    onSearchQueryChange: (query: string) => void;
-}
-
-function SearchInput({ searchQuery, onSearchQueryChange }: SearchInputProps) {
-    return (
-        <div className="group relative min-w-0 flex-1">
-            <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-zinc-400 transition-colors group-focus-within:text-zinc-500" />
-            <Input
-                value={searchQuery}
-                onChange={(event) => onSearchQueryChange(event.target.value)}
-                placeholder="동아리명, 분과를 입력해 보세요"
-                className={cn(
-                    "h-11 rounded-md border-zinc-200 bg-zinc-50 pl-11 text-base md:text-sm font-semibold text-zinc-700 shadow-none",
-                    "placeholder:text-zinc-400 focus-visible:bg-white"
-                )}
-            />
-        </div>
     );
 }
 
