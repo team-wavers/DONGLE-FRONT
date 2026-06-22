@@ -36,15 +36,12 @@ export const LongContent: Story = {
     },
 };
 
-export const Grid: Story = {
+export const List: Story = {
     render: () => (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 max-w-6xl">
+        <div className="w-full max-w-3xl overflow-hidden rounded-lg border bg-white p-4">
             <ReportCard title="2024년 1월 활동 보고서" createdDate="2024-01-31" href="/1" />
             <ReportCard href="/2" title="2024년 2월 활동 보고서" createdDate="2024-02-29" />
             <ReportCard href="/3" title="2024년 3월 활동 보고서" createdDate="2024-03-31" />
-            <ReportCard href="/4" title="2024년 4월 활동 보고서" createdDate="2024-04-30" />
-            <ReportCard href="/5" title="2024년 5월 활동 보고서" createdDate="2024-05-31" />
-            <ReportCard href="/6" title="2024년 6월 활동 보고서" createdDate="2024-06-30" />
         </div>
     ),
     parameters: {
