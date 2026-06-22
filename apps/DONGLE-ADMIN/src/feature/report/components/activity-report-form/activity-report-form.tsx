@@ -57,7 +57,7 @@ export default function ActivityReportForm({
 
     return (
         <FormRoot form={form} onSubmit={onSubmit} onInvalid={onInvalid} className="w-full">
-            <AdminFormShell>
+            <AdminFormShell className="mx-0 max-w-none">
                 {backHref ? <AdminBackAction href={backHref} /> : null}
 
                 {headingTitle ? (
