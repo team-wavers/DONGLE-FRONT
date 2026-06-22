@@ -391,6 +391,16 @@
 - [normalize-internal-return-to.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/normalize-internal-return-to.test.ts)
 - [login-form-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/login-form-policy.test.ts)
 
+## Shared Debounced Input
+
+### 외부 값 동기화
+
+- debounce 대기 중 외부 입력값이 변경되면 이전 입력의 pending commit을 취소해야 한다.
+- IME 조합 중 외부 입력값이 변경되면 해당 조합 종료 시 이전 입력을 commit하지 않아야 한다.
+
+관련 테스트:
+- [use-debounced-composing-value.test.ts](../../packages/ui/src/hooks/use-debounced-composing-value.test.ts)
+
 ## Client Club Search
 
 ### 검색 로직

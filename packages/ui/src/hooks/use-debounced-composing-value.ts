@@ -21,11 +21,23 @@ export function useDebouncedComposingValue(
     const isComposingRef = useRef(false);
     const lastCommittedRef = useRef(initialValue);
     const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const pendingExternalValueRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = undefined;
+        }
+
+        if (isComposingRef.current) {
+            pendingExternalValueRef.current = initialValue;
+            lastCommittedRef.current = initialValue;
+            return;
+        }
+
         // 외부에서 initialValue가 바뀐 경우(뒤로가기 등)에만 동기화한다.
         // 자기 자신이 막 커밋한 값과 같으면(echo) 무시해서 무한 루프를 막는다.
-        if (isComposingRef.current || initialValue === lastCommittedRef.current) {
+        if (initialValue === lastCommittedRef.current) {
             return;
         }
 
@@ -69,11 +81,19 @@ export function useDebouncedComposingValue(
 
     const onCompositionStart = useCallback(() => {
         isComposingRef.current = true;
+        pendingExternalValueRef.current = undefined;
     }, []);
 
     const onCompositionEnd = useCallback(
         (nextValue: string) => {
             isComposingRef.current = false;
+
+            if (pendingExternalValueRef.current !== undefined) {
+                setValue(pendingExternalValueRef.current);
+                pendingExternalValueRef.current = undefined;
+                return;
+            }
+
             setValue(nextValue);
             scheduleCommit(nextValue);
         },
