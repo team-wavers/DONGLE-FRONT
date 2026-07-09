@@ -18,9 +18,52 @@ env:
   CURRENT_ADMIN_DIR: /home/ec2-user/dongle.front.prod/current.admin
 
 jobs:
+  e2e-full:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      API_URL: ${{ secrets.E2E_API_URL }}
+      E2E_CLUB_USERNAME: ${{ secrets.E2E_CLUB_USERNAME }}
+      E2E_CLUB_PASSWORD: ${{ secrets.E2E_CLUB_PASSWORD }}
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run full E2E suite
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-full
+          path: playwright-report
+          retention-days: 7
+
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    needs: e2e-full
 
     steps:
       - name: Checkout

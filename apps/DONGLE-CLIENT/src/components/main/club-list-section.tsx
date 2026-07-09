@@ -44,7 +44,7 @@ export default function ClubListSection({
                     {emptyStateMessage}
                 </div>
             ) : (
-                <div className="grid gap-3">
+                <div data-testid="club-list" className="grid gap-3">
                     {clubs.map((club) => {
                         const presentation = getClubCategoryPresentation(club.category);
                         const displayTags = club.tags.length > 0 ? club.tags.slice(0, 3) : [club.category];

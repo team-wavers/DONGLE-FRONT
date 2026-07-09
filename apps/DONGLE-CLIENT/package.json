@@ -21,8 +21,8 @@
         "storybook": "storybook dev -p 6006",
         "storybook:build": "storybook build",
         "type": "tsc --noEmit",
-        "mock": "tsx src/mocks/server.ts",
-        "mock:dev": "tsx watch src/mocks/server.ts"
+        "mock": "tsx ../../packages/api/src/mocks/server.ts",
+        "mock:dev": "tsx watch ../../packages/api/src/mocks/server.ts"
     },
     "dependencies": {
         "@dongle/api": "workspace:*",

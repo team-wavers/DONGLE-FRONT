@@ -34,6 +34,13 @@ function loadLocalEnv() {
     }
 }
 
+const useMockApi = process.env.E2E_USE_MOCK_API === "1";
+
+if (useMockApi) {
+    // mock 모드에서는 .env.local의 API_URL보다 mock 서버가 우선한다.
+    process.env.API_URL = "http://127.0.0.1:9090";
+}
+
 loadLocalEnv();
 
 const isCI = Boolean(process.env.CI);
@@ -99,6 +106,18 @@ export default defineConfig({
         },
     ],
     webServer: [
+        ...(useMockApi
+            ? [
+                  {
+                      command: "pnpm --filter dongle-client mock",
+                      url: "http://127.0.0.1:9090/clubs",
+                      reuseExistingServer: !isCI,
+                      stdout: "pipe" as const,
+                      stderr: "pipe" as const,
+                      timeout: 30_000,
+                  },
+              ]
+            : []),
         ...(needsClientServer
             ? [
                   {
