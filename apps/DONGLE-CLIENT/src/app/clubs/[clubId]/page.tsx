@@ -1,10 +1,12 @@
+import ClubApplyButton from "@/components/club-detail/club-apply-button";
 import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
 import ClubReportsTabContent from "@/components/club-detail/club-reports-tab-content";
 import ClubSchedulesTabContent from "@/components/club-detail/club-schedules-tab-content";
-import ClubSocialLinks from "@/components/club-detail/club-social-links";
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
 import ClubIconAvatar from "@/components/main/club-icon-avatar";
 import { getClubScheduleGroups, mapClubScheduleToPublicSchedule } from "@/lib/club-schedule";
+import { formatRecruitDdayLabel, getRecruitDday } from "@/lib/recruitment";
+import { resolveReportThumbnailUrl } from "@/lib/report-thumbnail";
 import {
     getClubPublicScheduleListService,
     getClubReportListService,
@@ -13,8 +15,8 @@ import {
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
 import { Skeleton } from "@dongle/ui/skeleton";
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
-import { formatMobilePhoneNumber } from "@dongle/utils";
-import { ArrowLeft, CalendarDays, MapPin, Phone, UserRound } from "lucide-react";
+import { formatMobilePhoneNumber, normalizeExternalUrl } from "@dongle/utils";
+import { ArrowLeft, CalendarDays, Instagram, MapPin, Phone, UserRound, Youtube } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -49,7 +51,7 @@ async function ClubReportsTabPanel({ clubId, clubName }: { clubId: string; clubN
             id: report.id,
             title: report.title,
             createdAt: report.createdAt,
-            image_urls: report.image_urls,
+            thumbnailUrl: resolveReportThumbnailUrl(report.image_urls, report.content),
         }));
 
         return <ClubReportsTabContent clubId={clubId} clubName={clubName} reports={reports} />;
@@ -133,21 +135,35 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
     };
     const instagramUrl = normalizeSocialUrl("instagram", club.sns?.instagram);
     const youtubeUrl = normalizeSocialUrl("youtube", club.sns?.youtube);
-    const hasSocialLinks = Boolean(instagramUrl || youtubeUrl);
     const categoryPresentation = getClubCategoryPresentation(club.category);
     const recruitPeriod =
         club.recruit_start && club.recruit_end ? formatDateRange(club.recruit_start, club.recruit_end) : "미정";
+    const recruitDday = club.is_recruiting ? getRecruitDday(club.recruit_end) : null;
+    const applyUrl = club.is_recruiting ? normalizeExternalUrl(club.apply_url) : null;
     const presidentPhone = club.president?.phone;
     const formattedPresidentPhone = presidentPhone ? formatMobilePhoneNumber(presidentPhone) : "-";
-    const infoItems = [
-        { icon: MapPin, label: "동아리방", value: club.location || "-" },
-        { icon: CalendarDays, label: "모집기간", value: recruitPeriod },
-        { icon: UserRound, label: "회장", value: club.president?.name || "-" },
-        { icon: Phone, label: "연락처", value: formattedPresidentPhone },
+    type InfoItem = {
+        icon: React.ComponentType<{ className?: string }>;
+        label: string;
+        value: string;
+        mono: boolean;
+        href?: string;
+    };
+    const infoItems: InfoItem[] = [
+        { icon: MapPin, label: "동아리방", value: club.location || "-", mono: false },
+        { icon: CalendarDays, label: "모집기간", value: recruitPeriod, mono: true },
+        { icon: UserRound, label: "회장", value: club.president?.name || "-", mono: false },
+        { icon: Phone, label: "연락처", value: formattedPresidentPhone, mono: true },
     ];
+    if (instagramUrl) {
+        infoItems.push({ icon: Instagram, label: "instagram", value: "instagram", mono: false, href: instagramUrl });
+    }
+    if (youtubeUrl) {
+        infoItems.push({ icon: Youtube, label: "youtube", value: "youtube", mono: false, href: youtubeUrl });
+    }
 
     return (
-        <section className="flex flex-col gap-8 py-6">
+        <section className="flex flex-col gap-5 py-6 md:gap-8">
             <header className="flex flex-col gap-6">
                 <div className="flex flex-col gap-5 py-4 md:flex-row md:items-end md:justify-between">
                     <div className="flex min-w-0 items-center gap-4">
@@ -161,7 +177,17 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                         </div>
                     </div>
 
-                    <RecruitmentStatusBadge isRecruiting={club.is_recruiting} size="lg" />
+                    <div className="flex flex-col items-start gap-3 md:items-end">
+                        <div className="flex items-center gap-2">
+                            {recruitDday !== null && recruitDday >= 0 && (
+                                <span className="rounded-md bg-red-50 px-2.5 py-1.5 text-sm font-bold text-red-600">
+                                    {formatRecruitDdayLabel(recruitDday)}
+                                </span>
+                            )}
+                            <RecruitmentStatusBadge isRecruiting={club.is_recruiting} size="lg" />
+                        </div>
+                        {applyUrl && <ClubApplyButton clubId={clubIdNumber} clubName={club.name} applyUrl={applyUrl} />}
+                    </div>
                 </div>
 
                 {club.tags.length > 0 && (
@@ -177,29 +203,44 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                 )}
             </header>
 
-            <section className={hasSocialLinks ? "grid gap-5 md:grid-cols-[minmax(0,1fr)_280px]" : "grid gap-5"}>
-                <div className="space-y-5">
-                    <dl className="grid gap-3 sm:grid-cols-2">
+            <section className="grid grid-cols-1 gap-5">
+                <div className="min-w-0 space-y-5">
+                    <dl className="divide-y divide-zinc-100 rounded-lg border border-zinc-200 bg-white">
                         {infoItems.map((item) => {
                             const Icon = item.icon;
+                            const content = (
+                                <>
+                                    <Icon className="size-4 shrink-0 text-zinc-400" aria-hidden="true" />
+                                    <dt className="w-20 shrink-0 text-sm font-bold text-zinc-400">{item.label}</dt>
+                                    <dd
+                                        className={`min-w-0 flex-1 truncate text-sm font-medium text-zinc-950 ${
+                                            item.mono ? "font-mono" : ""
+                                        }`}>
+                                        {item.value}
+                                    </dd>
+                                </>
+                            );
+
+                            if (item.href) {
+                                return (
+                                    <Link
+                                        key={item.label}
+                                        href={item.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50">
+                                        {content}
+                                    </Link>
+                                );
+                            }
 
                             return (
-                                <div key={item.label} className="rounded-lg border border-zinc-200 bg-white p-4">
-                                    <Icon className="mb-3 size-5 text-zinc-400" />
-                                    <dt className="text-sm font-bold text-zinc-400">{item.label}</dt>
-                                    <dd className="mt-1 break-words font-bold text-zinc-950">{item.value}</dd>
+                                <div key={item.label} className="flex items-center gap-3 px-4 py-3">
+                                    {content}
                                 </div>
                             );
                         })}
                     </dl>
-
-                    <ClubSocialLinks
-                        clubId={clubIdNumber}
-                        clubName={club.name}
-                        instagramUrl={instagramUrl}
-                        youtubeUrl={youtubeUrl}
-                        className="md:hidden"
-                    />
 
                     <ClubDetailTabs
                         club={intro}
@@ -217,18 +258,6 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                         }
                     />
                 </div>
-
-                {hasSocialLinks && (
-                    <aside>
-                        <ClubSocialLinks
-                            clubId={clubIdNumber}
-                            clubName={club.name}
-                            instagramUrl={instagramUrl}
-                            youtubeUrl={youtubeUrl}
-                            className="hidden md:flex"
-                        />
-                    </aside>
-                )}
             </section>
         </section>
     );

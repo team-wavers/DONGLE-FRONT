@@ -50,7 +50,8 @@
 | client search empty-state | [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts) | code-graded | filter/query/data 조합별 empty-state code/message |
 | client club schedule | [club-schedule.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-schedule.test.ts), [public-schedule-calendar.test.ts](../../apps/DONGLE-CLIENT/src/lib/public-schedule-calendar.test.ts), [club-schedules-tab-content.test.tsx](../../apps/DONGLE-CLIENT/src/components/club-detail/club-schedules-tab-content.test.tsx), [public-schedule-calendar.test.tsx](../../apps/DONGLE-CLIENT/src/components/schedules/public-schedule-calendar.test.tsx), [header-schedule-link.test.tsx](../../apps/DONGLE-CLIENT/src/components/navigation/header-schedule-link.test.tsx) | code-graded | 동아리 상세 공개 일정 필터 / 진행 중·다가오는 일정·지난 일정 분리 / 진행 중·예정·지난 일정 정렬 / 진행 중 별도 섹션 / 예정·지난 일정 월별 섹션 / 백엔드 응답 매핑 / 공통 일정 clubId null 유지와 총동연 라벨 / 사용자 전체 일정 캘린더와 월별 목록 표시 / 헤더 전체 일정 전역 진입점과 현재 페이지 상태 / 날짜 아젠다 없는 일정 기간·월별 그룹 표시 / 일정 유형별 태그 색상 / 외부 링크 정규화 / 외부 링크 CTA 렌더링 / 일정 조회 실패 안내 |
 | client loading ux | [page-skeletons.test.tsx](../../apps/DONGLE-CLIENT/src/components/loading/page-skeletons.test.tsx), [club-intro-tab-content.test.tsx](../../apps/DONGLE-CLIENT/src/components/club-detail/club-intro-tab-content.test.tsx), [club-detail-tabs.test.tsx](../../apps/DONGLE-CLIENT/src/components/club-detail/club-detail-tabs.test.tsx) | code-graded | 동아리 상세 / 활동보고서 상세 스켈레톤 주요 구조 / 소개 탭 rich text 지연 중 빈 렌더링 / 상세 탭 content slot |
-| client club reports | [club-reports-tab-content.test.tsx](../../apps/DONGLE-CLIENT/src/components/club-detail/club-reports-tab-content.test.tsx), `apps/DONGLE-ADMIN/src/app/(대시보드)/(동아리)/(메뉴)/[clubId]/(활동보고서)/report/page.test.ts` | code-graded | 활동보고서 조회 실패 안내 / 회장 활동보고서 목록 service 예외 정규화 |
+| client club reports | [club-reports-tab-content.test.tsx](../../apps/DONGLE-CLIENT/src/components/club-detail/club-reports-tab-content.test.tsx), `apps/DONGLE-ADMIN/src/app/(대시보드)/(동아리)/(메뉴)/[clubId]/(활동보고서)/report/page.test.ts`, [report-thumbnail.test.ts](../../apps/DONGLE-CLIENT/src/lib/report-thumbnail.test.ts) | code-graded | 활동보고서 조회 실패 안내 / 회장 활동보고서 목록 service 예외 정규화 / 보고서 썸네일 URL 계산 helper |
+| client recruitment | [recruitment.test.ts](../../apps/DONGLE-CLIENT/src/lib/recruitment.test.ts) | code-graded | 모집 마감 D-day 계산·라벨 포맷 / 마감임박 동아리 정렬·필터 helper |
 | club fixture | [club.fixture.test.ts](../../e2e/fixtures/club.fixture.test.ts) | code-graded | fixture util |
 | rich text | [sanitize-rich-text-html.test.ts](../../packages/rich-text/src/sanitize-rich-text-html.test.ts), [rich-text-viewer.test.ts](../../packages/rich-text/src/rich-text-viewer.test.ts) | code-graded | normalization / viewer sanitizer failure fallback |
 | shared debounced input | [use-debounced-composing-value.test.ts](../../packages/ui/src/hooks/use-debounced-composing-value.test.ts) | code-graded | 외부 값 동기화 시 pending commit 취소 / IME 조합 중 외부 값 우선 |
@@ -66,6 +67,7 @@
 | club | [club-form.spec.ts](../../e2e/club/club-form.spec.ts) | 동아리 정보 수정 1건 | 유지 |
 | club | [report.spec.ts](../../e2e/club/report.spec.ts) | 활동보고서 작성/삭제 1건 | 유지 |
 | client | [smoke.spec.ts](../../e2e/client/smoke.spec.ts) | 메인 진입 | 유지 |
+| client | [search.spec.ts](../../e2e/client/search.spec.ts) | 검색어·필터 URL 동기화 검증 | 유지 |
 
 ## 최근 정리된 E2E
 

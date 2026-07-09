@@ -19,6 +19,7 @@ export interface Club {
   recruit_end: string; // ISO 8601 날짜 문자열
   description: string;
   main_activities: string;
+  apply_url?: string | null; // 외부 지원 링크 (구글폼, 오픈채팅 등)
   created_at: string; // ISO 8601 날짜 문자열
   updated_at: string; // ISO 8601 날짜 문자열
   deleted_at: string | null;

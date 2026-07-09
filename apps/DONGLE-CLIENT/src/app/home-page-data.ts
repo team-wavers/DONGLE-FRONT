@@ -22,6 +22,7 @@ export async function loadHomePageViewData() {
                   category: club.category,
                   tags: club.tags,
                   is_recruiting: club.is_recruiting,
+                  recruit_end: club.recruit_end ?? null,
               }))
             : [];
     const banners =
