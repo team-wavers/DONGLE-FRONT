@@ -294,6 +294,7 @@ Authorization: Bearer {accessToken}
     "recruit_end": "2024-01-01T00:00:00Z", // 선택
     "description": "string", // 선택
     "main_activities": "string", // 선택
+    "apply_url": "string", // 선택, 외부 지원 링크
     "president_id": 1 // 선택
 }
 ```
@@ -358,6 +359,7 @@ Authorization: Bearer {accessToken}
     "recruit_end": "2024-01-01T00:00:00Z", // 선택
     "description": "string", // 선택
     "main_activities": "string", // 선택
+    "apply_url": "string", // 선택, 외부 지원 링크 (null이면 제거)
     "president_id": 1 // 선택
 }
 ```

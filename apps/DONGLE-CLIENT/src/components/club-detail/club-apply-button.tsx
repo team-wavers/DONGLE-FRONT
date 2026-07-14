@@ -22,7 +22,7 @@ export default function ClubApplyButton({ clubId, clubName, applyUrl }: ClubAppl
                     club_name: clubName,
                 })
             }
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-6 py-3.5 text-base font-bold text-white shadow-sm transition-colors hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/40 md:w-auto">
             지원하기
             <ExternalLink className="size-4" aria-hidden="true" />
         </a>
