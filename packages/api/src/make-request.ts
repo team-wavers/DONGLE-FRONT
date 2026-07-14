@@ -23,6 +23,15 @@ export function shouldAttemptTokenRefresh({
     return status === 401 && !skipAuthRefresh && !hasRetried;
 }
 
+async function ensureServerMsw(): Promise<void> {
+    if (typeof window !== "undefined") {
+        return;
+    }
+
+    const { enableServerMocking } = await import("./mocks/enable-server");
+    await enableServerMocking();
+}
+
 export async function makeRequest({
     url,
     method,
@@ -33,6 +42,8 @@ export async function makeRequest({
     accessTokenOverride,
 }: MakeRequestParams): Promise<Response> {
     const isClient = typeof window !== "undefined";
+
+    await ensureServerMsw();
 
     // 서버 컴포넌트/서버 액션일 때만 accessToken 가져오기
     const accessToken = accessTokenOverride ?? (!isClient ? await getAccessTokenFromServerCookie() : undefined);

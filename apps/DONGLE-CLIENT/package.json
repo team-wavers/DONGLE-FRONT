@@ -20,9 +20,7 @@
         "lint": "next lint",
         "storybook": "storybook dev -p 6006",
         "storybook:build": "storybook build",
-        "type": "tsc --noEmit",
-        "mock": "tsx ../../packages/api/src/mocks/server.ts",
-        "mock:dev": "tsx watch ../../packages/api/src/mocks/server.ts"
+        "type": "tsc --noEmit"
     },
     "dependencies": {
         "@dongle/api": "workspace:*",
@@ -63,23 +61,16 @@
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3",
-        "@mswjs/http-middleware": "^0.10.3",
         "@storybook/nextjs": "^9.0.16",
         "@tailwindcss/postcss": "^4",
-        "@types/cors": "^2.8.19",
-        "@types/express": "^5.0.3",
         "@types/js-cookie": "^3.0.6",
         "@types/node": "^20",
         "@types/react": "^19",
         "@types/react-dom": "^19",
-        "cors": "^2.8.5",
         "env-cmd": "^11.0.0",
         "eslint": "^9",
         "eslint-config-next": "15.5.9",
-        "express": "^4.18.0",
-        "msw": "^2.11.1",
         "tailwindcss": "^4",
-        "tsx": "^4.20.5",
         "tw-animate-css": "^1.3.5",
         "typescript": "^5"
     }
