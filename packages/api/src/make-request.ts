@@ -28,6 +28,12 @@ async function ensureServerMsw(): Promise<void> {
         return;
     }
 
+    // msw/node는 Node 전용이라 Edge Middleware 번들에 포함되면 안 된다.
+    // NEXT_RUNTIME은 Next가 빌드타임에 리터럴로 치환하므로 edge 번들에서는 이 분기 자체가 제거된다.
+    if (process.env.NEXT_RUNTIME !== "nodejs") {
+        return;
+    }
+
     const { enableServerMocking } = await import("./mocks/enable-server");
     await enableServerMocking();
 }

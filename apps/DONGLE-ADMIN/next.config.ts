@@ -11,6 +11,17 @@ const nextConfig: NextConfig = {
     "@dongle/service",
     "@dongle/types",
   ],
+  webpack: (config, { isServer, nextRuntime }) => {
+    // msw/node는 Node 전용(async_hooks 등)이라 Edge Middleware/브라우저 번들에서 리졸브가 안 된다.
+    // 두 번들에서 make-request의 MSW 훅은 애초에 실행되지 않으므로 안전하게 비운다.
+    if (nextRuntime === "edge" || !isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        "msw/node": false,
+      };
+    }
+    return config;
+  },
   experimental: {
     optimizePackageImports: [
       "lucide-react",
