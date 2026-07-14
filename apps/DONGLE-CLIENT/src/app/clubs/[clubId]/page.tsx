@@ -1,4 +1,5 @@
 import ClubApplyButton from "@/components/club-detail/club-apply-button";
+import ClubDetailSocialInfoLink from "@/components/club-detail/club-detail-social-info-link";
 import ClubDetailTabs from "@/components/club-detail/club-detail-tabs";
 import ClubReportsTabContent from "@/components/club-detail/club-reports-tab-content";
 import ClubSchedulesTabContent from "@/components/club-detail/club-schedules-tab-content";
@@ -147,6 +148,7 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         label: string;
         value: string;
         mono: boolean;
+        socialPlatform?: "instagram" | "youtube";
         href?: string;
     };
     const infoItems: InfoItem[] = [
@@ -156,10 +158,24 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         { icon: Phone, label: "연락처", value: formattedPresidentPhone, mono: true },
     ];
     if (instagramUrl) {
-        infoItems.push({ icon: Instagram, label: "instagram", value: "instagram", mono: false, href: instagramUrl });
+        infoItems.push({
+            icon: Instagram,
+            label: "instagram",
+            value: "instagram",
+            mono: false,
+            href: instagramUrl,
+            socialPlatform: "instagram",
+        });
     }
     if (youtubeUrl) {
-        infoItems.push({ icon: Youtube, label: "youtube", value: "youtube", mono: false, href: youtubeUrl });
+        infoItems.push({
+            icon: Youtube,
+            label: "youtube",
+            value: "youtube",
+            mono: false,
+            href: youtubeUrl,
+            socialPlatform: "youtube",
+        });
     }
 
     return (
@@ -177,14 +193,14 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                         </div>
                     </div>
 
-                    <div className="flex flex-col items-start gap-3 md:items-end">
-                        <div className="flex items-center gap-2">
+                    <div className="flex flex-col items-stretch gap-4 md:items-end">
+                        <div className="flex items-center gap-2 md:justify-end">
                             {recruitDday !== null && recruitDday >= 0 && (
                                 <span className="rounded-md bg-red-50 px-2.5 py-1.5 text-sm font-bold text-red-600">
                                     {formatRecruitDdayLabel(recruitDday)}
                                 </span>
                             )}
-                            <RecruitmentStatusBadge isRecruiting={club.is_recruiting} size="lg" />
+                            {!applyUrl && <RecruitmentStatusBadge isRecruiting={club.is_recruiting} size="lg" />}
                         </div>
                         {applyUrl && <ClubApplyButton clubId={clubIdNumber} clubName={club.name} applyUrl={applyUrl} />}
                     </div>
@@ -221,16 +237,17 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                                 </>
                             );
 
-                            if (item.href) {
+                            if (item.href && item.socialPlatform) {
                                 return (
-                                    <Link
+                                    <ClubDetailSocialInfoLink
                                         key={item.label}
+                                        clubId={clubIdNumber}
+                                        clubName={club.name}
+                                        platform={item.socialPlatform}
                                         href={item.href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50">
-                                        {content}
-                                    </Link>
+                                        label={item.label}
+                                        value={item.value}
+                                    />
                                 );
                             }
 

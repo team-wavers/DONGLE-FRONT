@@ -1,12 +1,11 @@
 "use client";
 
-import React from "react";
+import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
 import ClubIconAvatar from "@/components/main/club-icon-avatar";
+import { trackDongleEvent } from "@/lib/analytics";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
 import { cn } from "@dongle/ui/utils";
 import Link from "next/link";
-import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
-import { trackDongleEvent } from "@/lib/analytics";
 
 type ClubListItemViewModel = {
     id: number;
@@ -88,7 +87,7 @@ export default function ClubListSection({
                                         ))}
                                     </div>
                                 </div>
-                                <RecruitmentStatusBadge isRecruiting={club.is_recruiting} size="sm" />
+                                <RecruitmentStatusBadge isRecruiting={club.is_recruiting} size="md" />
                             </Link>
                         );
                     })}
