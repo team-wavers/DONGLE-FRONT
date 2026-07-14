@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
+import { ADMIN_AUTH_FILE, CLUB_AUTH_FILE } from "./e2e/utils/auth-files";
 
 function loadLocalEnv() {
     const envPath = path.resolve(process.cwd(), ".env.local");
@@ -95,8 +96,28 @@ export default defineConfig({
             },
         },
         {
+            name: "admin-setup",
+            testDir: "./e2e/admin",
+            testMatch: /admin\.setup\.ts/,
+            use: {
+                ...devices["Desktop Chrome"],
+                baseURL: "http://127.0.0.1:4001",
+            },
+        },
+        {
             name: "admin",
             testDir: "./e2e/admin",
+            dependencies: ["admin-setup"],
+            use: {
+                ...devices["Desktop Chrome"],
+                baseURL: "http://127.0.0.1:4001",
+                storageState: ADMIN_AUTH_FILE,
+            },
+        },
+        {
+            name: "club-setup",
+            testDir: "./e2e/club",
+            testMatch: /club\.setup\.ts/,
             use: {
                 ...devices["Desktop Chrome"],
                 baseURL: "http://127.0.0.1:4001",
@@ -105,9 +126,11 @@ export default defineConfig({
         {
             name: "club",
             testDir: "./e2e/club",
+            dependencies: ["club-setup"],
             use: {
                 ...devices["Desktop Chrome"],
                 baseURL: "http://127.0.0.1:4001",
+                storageState: CLUB_AUTH_FILE,
             },
         },
     ],

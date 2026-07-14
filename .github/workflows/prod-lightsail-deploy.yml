@@ -26,6 +26,8 @@ jobs:
       API_URL: ${{ secrets.E2E_API_URL }}
       E2E_CLUB_USERNAME: ${{ secrets.E2E_CLUB_USERNAME }}
       E2E_CLUB_PASSWORD: ${{ secrets.E2E_CLUB_PASSWORD }}
+      E2E_ADMIN_USERNAME: ${{ secrets.E2E_ADMIN_USERNAME }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
       NEXT_TELEMETRY_DISABLED: "1"
 
     steps:

@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
 import ClubIconAvatar from "@/components/main/club-icon-avatar";
 import { trackDongleEvent } from "@/lib/analytics";

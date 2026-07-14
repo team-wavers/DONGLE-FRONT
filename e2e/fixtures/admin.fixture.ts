@@ -28,14 +28,13 @@ export async function loginAsAdmin(page: Page) {
     await page.waitForURL(`**${adminRoutes.home}`);
 }
 
+/** admin project는 storageState로 이미 로그인된 상태로 시작한다 */
 export async function gotoAdminClubManagement(page: Page) {
-    await loginAsAdmin(page);
     await page.goto(adminRoutes.clubManagement, { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "동아리 관리" })).toBeVisible();
 }
 
 export async function gotoAdminClubRegister(page: Page) {
-    await loginAsAdmin(page);
     await page.goto(adminRoutes.clubRegister, { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "동아리 등록" })).toBeVisible();
 }
