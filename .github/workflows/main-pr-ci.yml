@@ -12,6 +12,7 @@ concurrency:
 env:
   PNPM_VERSION: 10.28.2
   API_URL: https://api.example.com/v1
+  NEXT_PUBLIC_USE_MSW: "1"
   NEXT_TELEMETRY_DISABLED: "1"
 
 jobs:
@@ -43,12 +44,20 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Upload dongle-client build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dongle-client-next
+          path: apps/DONGLE-CLIENT/.next
+          retention-days: 1
+
   e2e-smoke:
+    needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     env:
-      E2E_USE_MOCK_API: "1"
+      E2E_SKIP_CLIENT_BUILD: "1"
 
     steps:
       - name: Checkout
@@ -67,6 +76,12 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Download dongle-client build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dongle-client-next
+          path: apps/DONGLE-CLIENT/.next
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
