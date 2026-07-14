@@ -44,12 +44,22 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Verify dongle-client build output
+        run: |
+          if [ ! -d apps/DONGLE-CLIENT/.next ]; then
+            echo "::error::apps/DONGLE-CLIENT/.next does not exist after pnpm build"
+            find apps/DONGLE-CLIENT -maxdepth 1
+            exit 1
+          fi
+          ls -la apps/DONGLE-CLIENT/.next
+
       - name: Upload dongle-client build artifact
         uses: actions/upload-artifact@v4
         with:
           name: dongle-client-next
           path: apps/DONGLE-CLIENT/.next
           retention-days: 1
+          if-no-files-found: error
 
   e2e-smoke:
     needs: validate
