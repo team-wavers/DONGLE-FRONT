@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { Toaster } from "@dongle/ui/toaster";
 import Footer from "@/shared/layout/footer/footer";
 import { GlobalErrorHandler } from "@/shared/providers/global-error-handler";
+import { MswProvider } from "@dongle/api/mocks/msw-provider";
 
 const pretendard = localFont({
     src: "../assets/fonts/PretendardVariable.woff2",
@@ -32,12 +33,14 @@ export default function RootLayout({
     return (
         <html lang="ko">
             <body className={`${pretendard.variable} antialiased`}>
-                <GlobalErrorHandler />
-                <div className="flex flex-col min-h-screen h-full w-full justify-between items-center">
-                    <div className="flex justify-center items-center w-full h-full flex-1 mb-32">{children}</div>
-                    <Footer />
-                </div>
-                <Toaster />
+                <MswProvider>
+                    <GlobalErrorHandler />
+                    <div className="flex flex-col min-h-screen h-full w-full justify-between items-center">
+                        <div className="flex justify-center items-center w-full h-full flex-1 mb-32">{children}</div>
+                        <Footer />
+                    </div>
+                    <Toaster />
+                </MswProvider>
             </body>
         </html>
     );
