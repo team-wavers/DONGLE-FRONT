@@ -4,6 +4,7 @@ import SidebarItem from "./sidebar-item";
 import LogoutButton from "@/feature/auth/components/logout-button";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
 import SidebarLayout from "./sidebar-layout";
+import SidebarAnnouncements from "./sidebar-announcements";
 
 export default async function AdminSidebar() {
     const accessToken = await getAccessTokenFromServerCookie();
@@ -28,7 +29,12 @@ export default async function AdminSidebar() {
         </SidebarMenuItem>
     ));
 
-    const footer = <LogoutButton accessToken={accessToken ?? null} />;
+    const footer = (
+        <div className="flex flex-col gap-3">
+            <SidebarAnnouncements />
+            <LogoutButton accessToken={accessToken ?? null} />
+        </div>
+    );
 
     return <SidebarLayout header={header} menu={menu} footer={footer} />;
 }

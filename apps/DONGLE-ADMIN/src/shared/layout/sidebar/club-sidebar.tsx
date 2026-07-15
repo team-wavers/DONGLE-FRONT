@@ -4,6 +4,7 @@ import LogoutButton from "@/feature/auth/components/logout-button";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
 import SidebarLayout from "./sidebar-layout";
 import { createClubMenuConfig } from "./club-sidebar.config";
+import SidebarAnnouncements from "./sidebar-announcements";
 
 interface ClubSidebarProps {
     clubId: string;
@@ -34,7 +35,12 @@ export default async function ClubSidebar({ clubId, clubName }: ClubSidebarProps
         </SidebarMenuItem>
     ));
 
-    const footer = <LogoutButton accessToken={accessToken ?? null} />;
+    const footer = (
+        <div className="flex flex-col gap-3">
+            <SidebarAnnouncements />
+            <LogoutButton accessToken={accessToken ?? null} />
+        </div>
+    );
 
     return <SidebarLayout header={header} menu={menu} footer={footer} />;
 }
