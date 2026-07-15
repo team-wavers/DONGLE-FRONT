@@ -6,7 +6,7 @@ import Link from "next/link";
 
 interface OtherReportListProps {
     clubId: number;
-    reports: Pick<ClubReport, "id" | "title" | "createdAt" | "image_urls">[];
+    reports: Array<Pick<ClubReport, "id" | "title" | "createdAt"> & { thumbnailUrl: string | null }>;
 }
 
 export default function OtherReportList({ clubId, reports }: OtherReportListProps) {
@@ -24,7 +24,7 @@ export default function OtherReportList({ clubId, reports }: OtherReportListProp
             ) : (
                 <div className="grid gap-2">
                     {reports.map((report) => {
-                        const thumbnailUrl = report.image_urls.find((url) => url.trim().length > 0);
+                        const thumbnailUrl = report.thumbnailUrl;
 
                         return (
                             <Link

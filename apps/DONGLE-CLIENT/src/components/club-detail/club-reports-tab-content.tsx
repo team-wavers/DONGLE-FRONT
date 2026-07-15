@@ -10,7 +10,7 @@ type ClubReportCardViewModel = {
     id: number;
     title: string;
     createdAt: string;
-    image_urls: string[];
+    thumbnailUrl: string | null;
 };
 
 interface ClubReportsTabContentProps {
@@ -56,9 +56,9 @@ export default function ClubReportsTabContent({
                     }
                     className="w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
                     <div className="relative aspect-[16/10] bg-zinc-100">
-                        {report.image_urls[0] ? (
+                        {report.thumbnailUrl ? (
                             <Image
-                                src={report.image_urls[0]}
+                                src={report.thumbnailUrl}
                                 alt={`${report.title} 썸네일`}
                                 fill
                                 sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { gotoClientHome } from "../fixtures/client.fixture";
 
-test.describe("client smoke", () => {
+test.describe("client smoke", { tag: "@smoke" }, () => {
     test("메인 페이지가 렌더링된다", async ({ page }) => {
         await gotoClientHome(page);
 

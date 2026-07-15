@@ -1,153 +1,84 @@
 import { http, HttpResponse } from "msw";
 import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
+import type {
+    CreateUserRequest,
+    CreateUserResponse,
+    GetUserListResponse,
+    GetUserResponse,
+    UpdateUserRequest,
+    UpdateUserResponse,
+    User,
+} from "@dongle/types/user/user";
+import type { SuccessResponse } from "@dongle/types/response";
+import { apiPath } from "../api-path";
+import { findMockUser, mockUsers } from "../fixtures";
+
+function success<T>(result: T): SuccessResponse<T> {
+    return { isSuccess: true, result };
+}
 
 const userHandlers = [
-    // 사용자 목록 조회
-    http.get(`/users`, () => {
-        return HttpResponse.json({
-            isSuccess: true,
-            result: [
-                {
-                    id: 1,
-                    name: "홍길동",
-                    login_id: "2020123456",
-                    password: "hashed_password",
-                    role: AUTH_ROLE.PRESIDENT,
-                    phone: "010-1234-5678",
-                    refresh_token: "mock-refresh-token",
-                    created_at: "2023-01-01T00:00:00Z",
-                    updated_at: "2024-07-29T10:00:00Z",
-                    deleted_at: null,
-                    club: {
-                        id: 1,
-                        name: "D-Maker",
-                    },
-                },
-                {
-                    id: 2,
-                    name: "김철수",
-                    login_id: "admin",
-                    password: "hashed_password",
-                    role: AUTH_ROLE.ADMIN,
-                    phone: "010-9876-5432",
-                    refresh_token: "mock-refresh-token",
-                    created_at: "2023-01-01T00:00:00Z",
-                    updated_at: "2024-07-29T10:00:00Z",
-                    deleted_at: null,
-                },
-            ],
-        });
+    http.get(apiPath(`/users`), () => {
+        const body: GetUserListResponse = success([...mockUsers]);
+        return HttpResponse.json(body);
     }),
 
-    // 특정 사용자 조회
-    http.get(`/users/:id`, ({ params }) => {
-        const { id } = params;
-        const userId = Number(id);
-
-        return HttpResponse.json({
-            isSuccess: true,
-            result: {
-                id: userId,
-                name: userId === 1 ? "홍길동" : "김철수",
-                login_id: userId === 1 ? "2020123456" : "admin",
-                password: "hashed_password",
-                role: userId === 1 ? AUTH_ROLE.PRESIDENT : AUTH_ROLE.ADMIN,
-                phone: userId === 1 ? "010-1234-5678" : "010-9876-5432",
-                refresh_token: "mock-refresh-token",
-                created_at: "2023-01-01T00:00:00Z",
-                updated_at: "2024-07-29T10:00:00Z",
-                deleted_at: null,
-                club:
-                    userId === 1
-                        ? {
-                              id: 1,
-                              name: "D-Maker",
-                          }
-                        : undefined,
-            },
-        });
+    http.get(apiPath(`/users/:id`), ({ params }) => {
+        const body: GetUserResponse = success(findMockUser(Number(params.id)));
+        return HttpResponse.json(body);
     }),
 
-    // 사용자 생성
-    http.post(`/users`, async ({ request }) => {
-        const body = (await request.json()) as {
-            name: string;
-            login_id: string;
-            password: string;
-            role: string;
-            phone: string;
-        };
+    http.post(apiPath(`/users`), async ({ request }) => {
+        const body = (await request.json()) as CreateUserRequest;
 
-        const newUser = {
+        const newUser: User = {
             id: Math.floor(Math.random() * 1000) + 100,
             name: body.name,
             login_id: body.login_id,
             password: "hashed_password",
             role: body.role,
             phone: body.phone,
-            refresh_token: "mock-refresh-token",
+            refresh_token: body.refresh_token ?? "mock-refresh-token",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             deleted_at: null,
         };
 
-        return HttpResponse.json(
-            {
-                isSuccess: true,
-                result: newUser,
-            },
-            { status: 201 }
-        );
+        const response: CreateUserResponse = success(newUser);
+        return HttpResponse.json(response, { status: 201 });
     }),
 
-    // 사용자 수정
-    http.patch(`/users/:id`, async ({ request, params }) => {
-        const { id } = params;
-        const body = (await request.json()) as {
-            name?: string;
-            login_id?: string;
-            password?: string;
-            role?: string;
-            phone?: string;
-            refresh_token?: string;
-        };
+    http.patch(apiPath(`/users/:id`), async ({ request, params }) => {
+        const current = findMockUser(Number(params.id));
+        const body = (await request.json()) as UpdateUserRequest;
 
-        const updatedUser = {
-            id: Number(id),
-            name: body.name || "홍길동",
-            login_id: body.login_id || "2020123456",
-            password: body.password ? "hashed_" + body.password : "hashed_password",
-            role: body.role || AUTH_ROLE.PRESIDENT,
-            phone: body.phone || "010-1234-5678",
-            refresh_token: body.refresh_token || "mock-refresh-token",
-            created_at: "2023-01-01T00:00:00Z",
+        const updatedUser: User = {
+            ...current,
+            name: body.name ?? current.name,
+            login_id: body.login_id ?? current.login_id,
+            password: body.password ? `hashed_${body.password}` : current.password,
+            role: body.role ?? current.role,
+            phone: body.phone ?? current.phone,
+            refresh_token: body.refresh_token ?? current.refresh_token,
             updated_at: new Date().toISOString(),
-            deleted_at: null,
-            club: {
+            club: current.club ?? {
                 id: 1,
                 name: "D-Maker",
             },
         };
 
-        return HttpResponse.json(
-            {
-                isSuccess: true,
-                result: updatedUser,
-            },
-            { status: 200 }
-        );
+        // 관리자 mock은 club이 없을 수 있음
+        if (updatedUser.role === AUTH_ROLE.ADMIN) {
+            delete updatedUser.club;
+        }
+
+        const response: UpdateUserResponse = success(updatedUser);
+        return HttpResponse.json(response);
     }),
 
-    // 사용자 삭제
-    http.delete(`/users/:id`, ({ params }) => {
-        const { id } = params;
-        return HttpResponse.json(
-            {
-                isSuccess: true,
-                result: null,
-            },
-            { status: 200 }
-        );
+    http.delete(apiPath(`/users/:id`), () => {
+        const body: SuccessResponse<null> = success(null);
+        return HttpResponse.json(body);
     }),
 ];
 

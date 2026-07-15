@@ -9,7 +9,9 @@ export type DongleAnalyticsEventName =
     | "club_tab_change"
     | "club_filter_status_change"
     | "club_filter_category_change"
-    | "club_filter_reset";
+    | "club_filter_reset"
+    | "closing_soon_club_click"
+    | "club_apply_click";
 
 type DongleAnalyticsProperties = {
     banner_click: {
@@ -48,6 +50,15 @@ type DongleAnalyticsProperties = {
         category: string;
     };
     club_filter_reset: Record<string, never>;
+    closing_soon_club_click: {
+        club_id: number;
+        club_name: string;
+        dday: number;
+    };
+    club_apply_click: {
+        club_id: number;
+        club_name: string;
+    };
 };
 
 const ALLOWED_PROPERTY_KEYS: Record<DongleAnalyticsEventName, ReadonlyArray<string>> = {
@@ -60,6 +71,8 @@ const ALLOWED_PROPERTY_KEYS: Record<DongleAnalyticsEventName, ReadonlyArray<stri
     club_filter_status_change: ["status"],
     club_filter_category_change: ["category"],
     club_filter_reset: [],
+    closing_soon_club_click: ["club_id", "club_name", "dday"],
+    club_apply_click: ["club_id", "club_name"],
 };
 
 export function getPostHogInitOptions() {

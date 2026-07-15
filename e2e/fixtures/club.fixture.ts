@@ -41,15 +41,20 @@ export async function getLoggedInClubId(page: Page) {
     return clubId;
 }
 
+/** club project는 storageState로 이미 로그인된 상태로 시작하므로 "/"로 가면 미들웨어가 club-form으로 리다이렉트한다 */
+async function gotoAuthenticatedClubHome(page: Page) {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.waitForURL(/\/\d+\/club-form$/);
+    return getLoggedInClubId(page);
+}
+
 export async function gotoClubForm(page: Page) {
-    await loginAsClub(page);
+    await gotoAuthenticatedClubHome(page);
     await expect(page.getByRole("button", { name: "동아리 정보 수정" })).toBeVisible();
 }
 
 export async function gotoClubReportList(page: Page) {
-    await loginAsClub(page);
-
-    const clubId = await getLoggedInClubId(page);
+    const clubId = await gotoAuthenticatedClubHome(page);
     await page.goto(`/${clubId}/report`, { waitUntil: "domcontentloaded" });
 
     await expect(page.getByRole("button", { name: "작성하기" })).toBeVisible();
