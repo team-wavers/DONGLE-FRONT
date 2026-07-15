@@ -1,6 +1,12 @@
 import { describe, expect, test } from "vitest";
+import type { Club } from "@dongle/types/club/club.d";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
-import { clubEditSchema, createClubEditSavedValues, splitClubEditTags } from "./club-edit.schema";
+import {
+    clubEditSchema,
+    createClubEditDefaultValues,
+    createClubEditSavedValues,
+    splitClubEditTags,
+} from "./club-edit.schema";
 
 function createValues(overrides: Record<string, unknown> = {}) {
     return {
@@ -87,6 +93,43 @@ describe("clubEditSchema", () => {
 describe("splitClubEditTags", () => {
     test("쉼표 태그 문자열을 trim된 배열로 변환한다", () => {
         expect(splitClubEditTags(" 개발, 디자인 ,, 운영 ")).toEqual(["개발", "디자인", "운영"]);
+    });
+});
+
+function createClub(overrides: Partial<Club> = {}): Club {
+    return {
+        id: 1,
+        name: "동글",
+        icon_url: null,
+        is_recruiting: true,
+        category: "학술분과",
+        sns: {},
+        tags: [],
+        recruit_start: "2026-03-31",
+        recruit_end: "2026-07-16",
+        description: "<p>설명</p>",
+        main_activities: "<p>활동</p>",
+        apply_url: null,
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-01-01T00:00:00.000Z",
+        deleted_at: null,
+        president: { id: 1, name: "회장", phone: "" },
+        location: "학생회관 301호",
+        ...overrides,
+    };
+}
+
+describe("createClubEditDefaultValues", () => {
+    test("서버가 내려준 ISO 타임스탬프를 날짜피커가 쓰는 YYYY-MM-DD로 정규화한다", () => {
+        const values = createClubEditDefaultValues(
+            createClub({
+                recruit_start: "2026-03-31T00:00:00.000Z",
+                recruit_end: "2026-07-16",
+            })
+        );
+
+        expect(values.recruitmentStartDate).toBe("2026-03-31");
+        expect(values.recruitmentEndDate).toBe("2026-07-16");
     });
 });
 
