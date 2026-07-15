@@ -33,6 +33,7 @@ function createValues(overrides: Partial<ClubEditFormValues> = {}): ClubEditForm
         tags: "개발, 디자인",
         recruitmentStartDate: "",
         recruitmentEndDate: "",
+        applyUrl: "",
         instagram: "",
         youtube: "",
         iconUrls: [],

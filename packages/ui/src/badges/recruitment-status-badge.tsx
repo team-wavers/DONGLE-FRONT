@@ -1,5 +1,5 @@
-import { Badge } from "./badge";
 import { cn } from "../utils";
+import { Badge } from "./badge";
 
 export type RecruitmentStatus = "recruiting" | "closed";
 export type RecruitmentStatusBadgeSize = "sm" | "md" | "lg";

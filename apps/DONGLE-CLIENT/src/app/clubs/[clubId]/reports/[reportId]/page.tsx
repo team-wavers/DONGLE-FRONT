@@ -3,6 +3,7 @@ import {
     buildReportFallbackMetadata,
     buildReportPageMetadata,
 } from "@/lib/report-page-metadata";
+import { resolveReportThumbnailUrl } from "@/lib/report-thumbnail";
 import { formatDateByLocale } from "@dongle/ui/utils";
 import { ArrowLeft, CalendarDays, PencilLine } from "lucide-react";
 import type { Metadata } from "next";
@@ -119,7 +120,7 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
             id: item.id,
             title: item.title,
             createdAt: item.createdAt,
-            image_urls: item.image_urls,
+            thumbnailUrl: resolveReportThumbnailUrl(item.image_urls, item.content),
         }));
     const wasUpdated = report.updatedAt !== report.createdAt;
     const hasReportImages = Array.isArray(report.image_urls) && report.image_urls.some((url) => url.trim().length > 0);

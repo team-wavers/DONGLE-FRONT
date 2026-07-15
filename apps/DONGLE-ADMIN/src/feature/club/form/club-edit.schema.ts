@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Club } from "@dongle/types/club/club.d";
-import { trimToEmpty } from "@dongle/utils";
+import { normalizeExternalUrl, trimToEmpty } from "@dongle/utils";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import { hasMeaningfulRichText, normalizeRecruitmentStatus } from "@/feature/club/validation/club-form.validation";
 
@@ -15,6 +15,7 @@ export const clubEditSchema = z
         tags: z.string().transform(trimToEmpty),
         recruitmentStartDate: z.string().transform(trimToEmpty),
         recruitmentEndDate: z.string().transform(trimToEmpty),
+        applyUrl: z.string().transform(trimToEmpty),
         instagram: z.string().transform(trimToEmpty),
         youtube: z.string().transform(trimToEmpty),
         iconUrls: z.array(z.string()),
@@ -61,6 +62,14 @@ export const clubEditSchema = z
             }
         }
 
+        if (value.applyUrl && !normalizeExternalUrl(value.applyUrl)) {
+            context.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["applyUrl"],
+                message: "올바른 지원 링크 주소를 입력해주세요",
+            });
+        }
+
         if (value.recruitmentStartDate && value.recruitmentEndDate) {
             const startDate = new Date(value.recruitmentStartDate);
             const endDate = new Date(value.recruitmentEndDate);
@@ -96,6 +105,7 @@ export function createClubEditDefaultValues(club: Club): ClubEditFormValues {
         tags: club.tags.join(", "),
         recruitmentStartDate: club.recruit_start ?? "",
         recruitmentEndDate: club.recruit_end ?? "",
+        applyUrl: club.apply_url ?? "",
         instagram: club.sns?.instagram ?? "",
         youtube: club.sns?.youtube ?? "",
         iconUrls: club.icon_url ? [club.icon_url] : [],

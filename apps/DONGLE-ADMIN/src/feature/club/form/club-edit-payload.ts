@@ -1,6 +1,6 @@
 import type { UpdateClubRequest } from "@dongle/types/club/club.response";
 import { normalizeSocialUrl } from "@dongle/ui/utils";
-import { trimToEmpty, trimToNull } from "@dongle/utils";
+import { normalizeExternalUrl, trimToEmpty, trimToNull } from "@dongle/utils";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import type { ClubEditFormValues } from "./club-edit.schema";
 import { splitClubEditTags } from "./club-edit.schema";
@@ -51,6 +51,9 @@ export function buildClubEditPayload(values: ClubEditFormValues, iconUrl?: strin
         payload.recruit_start = null;
         payload.recruit_end = null;
     }
+
+    // 빈 값이면 null로 보내 기존 링크를 제거한다.
+    payload.apply_url = normalizeExternalUrl(values.applyUrl);
 
     if (iconUrl !== undefined) {
         payload.icon_url = iconUrl;

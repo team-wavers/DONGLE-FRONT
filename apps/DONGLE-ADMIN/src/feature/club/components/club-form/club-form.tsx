@@ -179,6 +179,16 @@ export default function ClubForm({ club, clubId, presidentId }: ClubFormProps) {
                                 label="모집 마감일"
                             />
                         </div>
+
+                        {/* 지원 링크 */}
+                        <RHFTextField<ClubEditFormValues>
+                            id="applyUrl"
+                            name="applyUrl"
+                            label="지원 링크"
+                            type="text"
+                            placeholder="예: https://forms.gle/... (구글폼, 오픈채팅 등)"
+                            description="모집중일 때 사용자 앱 동아리 상세에 지원하기 버튼으로 노출됩니다"
+                        />
                 </AdminFormSection>
 
                 <AdminFormSection

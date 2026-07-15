@@ -23,6 +23,21 @@ export function shouldAttemptTokenRefresh({
     return status === 401 && !skipAuthRefresh && !hasRetried;
 }
 
+async function ensureServerMsw(): Promise<void> {
+    if (typeof window !== "undefined") {
+        return;
+    }
+
+    // msw/node는 Node 전용이라 Edge Middleware 번들에 포함되면 안 된다.
+    // NEXT_RUNTIME은 Next가 빌드타임에 리터럴로 치환하므로 edge 번들에서는 이 분기 자체가 제거된다.
+    if (process.env.NEXT_RUNTIME !== "nodejs") {
+        return;
+    }
+
+    const { enableServerMocking } = await import("./mocks/enable-server");
+    await enableServerMocking();
+}
+
 export async function makeRequest({
     url,
     method,
@@ -33,6 +48,8 @@ export async function makeRequest({
     accessTokenOverride,
 }: MakeRequestParams): Promise<Response> {
     const isClient = typeof window !== "undefined";
+
+    await ensureServerMsw();
 
     // 서버 컴포넌트/서버 액션일 때만 accessToken 가져오기
     const accessToken = accessTokenOverride ?? (!isClient ? await getAccessTokenFromServerCookie() : undefined);

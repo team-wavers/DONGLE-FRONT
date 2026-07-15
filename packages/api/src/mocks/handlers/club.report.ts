@@ -1,177 +1,112 @@
 import { http, HttpResponse } from "msw";
-import { ClubReport } from "@dongle/types";
+import type {
+    ClubReport,
+    ClubReportCreateResponse,
+    ClubReportDeleteResponse,
+    ClubReportImageResponse,
+    ClubReportListResponse,
+    ClubReportResponse,
+    ClubReportUpdateResponse,
+    CreateClubReportRequest,
+    UpdateClubReportRequest,
+} from "@dongle/types/club/club.report";
+import type { SuccessResponse } from "@dongle/types/response";
+import { apiPath } from "../api-path";
+import { mockReportsForClub } from "../fixtures";
+
+function success<T>(result: T): SuccessResponse<T> {
+    return { isSuccess: true, result };
+}
 
 const clubReportHandlers = [
-    // 특정 동아리의 보고서 목록 조회 (실제 서비스 함수에 맞게 수정)
-    http.get(`/clubs/:clubId/reports`, ({ params }) => {
-        const { clubId } = params;
-        const clubIdNum = Number(clubId);
-
-        // 목업용 고정 보고서 데이터
-        const reports: ClubReport[] = [
-            {
-                id: 1,
-                content: "D-Maker의 첫 번째 활동보고서입니다. React 스터디를 진행했습니다.",
-                image_urls: [
-                    "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500",
-                    "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=500",
-                ],
-                title: "React 스터디 활동보고서",
-                createdAt: "2024-07-15T10:00:00Z",
-                updatedAt: "2024-07-15T10:00:00Z",
-                deletedAt: null,
-                club_id: clubIdNum,
-            },
-            {
-                id: 2,
-                content: "D-Maker의 두 번째 활동보고서입니다. 프로젝트 발표회를 진행했습니다.",
-                image_urls: ["https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=500"],
-                title: "프로젝트 발표회 보고서",
-                createdAt: "2024-07-20T14:30:00Z",
-                updatedAt: "2024-07-20T14:30:00Z",
-                deletedAt: null,
-                club_id: clubIdNum,
-            },
-        ];
-
-        return HttpResponse.json({
-            isSuccess: true,
-            result: reports,
-        });
+    http.get(apiPath(`/clubs/:clubId/reports`), ({ params }) => {
+        const body: ClubReportListResponse = success(mockReportsForClub(Number(params.clubId)));
+        return HttpResponse.json(body);
     }),
 
-    // 특정 동아리의 특정 보고서 조회
-    http.get(`/clubs/:clubId/reports/:reportId`, ({ params }) => {
-        const { clubId, reportId } = params;
-        const clubIdNum = Number(clubId);
-        const reportIdNum = Number(reportId);
+    http.get(apiPath(`/clubs/:clubId/reports/:reportId`), ({ params }) => {
+        const clubId = Number(params.clubId);
+        const reportId = Number(params.reportId);
+        const existing = mockReportsForClub(clubId).find((report) => report.id === reportId);
 
-        const report: ClubReport = {
-            id: reportIdNum,
+        const report: ClubReport = existing ?? {
+            id: reportId,
             content: "D-Maker의 첫 번째 활동보고서입니다. React 스터디를 진행했습니다.",
             image_urls: [
-                "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500",
-                "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=500",
+                "https://s3.ap-northeast-2.amazonaws.com/dongle-mock/photo-1555066931-4365d14bab8c?w=500",
+                "https://s3.ap-northeast-2.amazonaws.com/dongle-mock/photo-1551650975-87deedd944c3?w=500",
             ],
             title: "React 스터디 활동보고서",
             createdAt: "2024-07-15T10:00:00Z",
             updatedAt: "2024-07-15T10:00:00Z",
             deletedAt: null,
-            club_id: clubIdNum,
+            club_id: clubId,
         };
 
-        return HttpResponse.json({
-            isSuccess: true,
-            result: report,
-        });
+        const body: ClubReportResponse = success(report);
+        return HttpResponse.json(body);
     }),
 
-    // 보고서 생성
-    http.post(`/clubs/:clubId/reports`, async ({ request, params }) => {
-        const { clubId } = params;
-        const body = (await request.json()) as {
-            title: string;
-            content: string;
-            image_urls?: string[];
-        };
+    http.post(apiPath(`/clubs/:clubId/reports`), async ({ request, params }) => {
+        const body = (await request.json()) as CreateClubReportRequest;
 
-        const newReport = {
-            id: Math.floor(Math.random() * 1000) + 100, // 임시 ID 생성
+        const newReport: ClubReport = {
+            id: Math.floor(Math.random() * 1000) + 100,
             content: body.content,
-            image_urls: body.image_urls || [],
+            image_urls: body.image_urls ?? [],
             title: body.title,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             deletedAt: null,
-            club_id: Number(clubId),
+            club_id: Number(params.clubId),
         };
 
-        return HttpResponse.json(
-            {
-                isSuccess: true,
-                result: newReport,
-            },
-            { status: 201 }
-        );
+        const response: ClubReportCreateResponse = success(newReport);
+        return HttpResponse.json(response, { status: 201 });
     }),
 
-    // 보고서 수정
-    http.put(`/clubs/:clubId/reports/:reportId`, async ({ request, params }) => {
-        const { clubId, reportId } = params;
-        const body = (await request.json()) as {
-            title: string;
-            content: string;
-            image_urls?: string[];
-        };
+    http.put(apiPath(`/clubs/:clubId/reports/:reportId`), async ({ request, params }) => {
+        const body = (await request.json()) as UpdateClubReportRequest;
+        const clubId = Number(params.clubId);
+        const reportId = Number(params.reportId);
+        const current =
+            mockReportsForClub(clubId).find((report) => report.id === reportId) ??
+            mockReportsForClub(clubId)[0];
 
-        const updatedReport = {
-            id: Number(reportId),
-            content: body.content,
-            image_urls: body.image_urls || [],
-            title: body.title,
-            createdAt: "2024-07-15T10:00:00Z",
+        const updatedReport: ClubReport = {
+            ...current,
+            id: reportId,
+            content: body.content ?? current.content,
+            image_urls: body.image_urls ?? current.image_urls,
+            title: body.title ?? current.title,
             updatedAt: new Date().toISOString(),
-            deletedAt: null,
-            club_id: Number(clubId),
+            club_id: clubId,
         };
 
-        return HttpResponse.json(
-            {
-                isSuccess: true,
-                result: updatedReport,
-            },
-            { status: 200 }
-        );
+        const response: ClubReportUpdateResponse = success(updatedReport);
+        return HttpResponse.json(response);
     }),
 
-    // 보고서 삭제
-    http.delete(`/clubs/:clubId/reports/:reportId`, ({ params }) => {
-        const { clubId, reportId } = params;
-
-        return HttpResponse.json({
-            isSuccess: true,
-            result: null,
-        });
+    http.delete(apiPath(`/clubs/:clubId/reports/:reportId`), () => {
+        const body: ClubReportDeleteResponse = success(null);
+        return HttpResponse.json(body);
     }),
 
-    // 이미지 업로드
-    http.post(`/clubs/:clubId/report-images`, async ({ request }) => {
-        // service는 { file: image } 형태로 JSON으로 전송하지만,
-        // File 객체는 FormData로 전송해야 하므로 두 가지 경우 모두 처리
+    http.post(apiPath(`/clubs/:clubId/report-images`), async ({ request }) => {
         let file: File | null = null;
 
         try {
-            // FormData로 시도
             const formData = await request.formData();
-            file = formData.get("file") as File;
+            file = formData.get("file") as File | null;
         } catch {
-            // JSON으로 시도 (실제로는 File 객체를 JSON으로 보낼 수 없지만)
-            try {
-                //const body = (await request.json()) as { file?: File };
-                // JSON으로는 File 객체를 받을 수 없으므로 null 처리
-                file = null;
-            } catch {
-                file = null;
-            }
+            file = null;
         }
 
-        if (!file) {
-            // File이 없어도 mock에서는 임시 URL 반환
-            const imageUrl = `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000000)}?w=500`;
+        void file;
 
-            return HttpResponse.json({
-                isSuccess: true,
-                result: imageUrl,
-            });
-        }
-
-        // 임시 이미지 URL 생성
-        const imageUrl = `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000000)}?w=500`;
-
-        return HttpResponse.json({
-            isSuccess: true,
-            result: imageUrl,
-        });
+        const imageUrl = `https://s3.ap-northeast-2.amazonaws.com/dongle-mock/photo-${Math.floor(Math.random() * 1000000000)}?w=500`;
+        const body: ClubReportImageResponse = success(imageUrl);
+        return HttpResponse.json(body);
     }),
 ];
 

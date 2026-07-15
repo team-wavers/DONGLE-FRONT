@@ -1,34 +1,12 @@
-import { Suspense } from "react";
 import ClubMainClient from "@/components/main/club-main-client";
-import { loadHomePageViewData } from "./home-page-data";
 import { Skeleton } from "@dongle/ui/skeleton";
-import type { DisplayMainBannerItem } from "@dongle/service/main-banner/get-display-banner-image-urls";
-
-const MOCK_MAIN_BANNERS: DisplayMainBannerItem[] = [
-    {
-        imageUrl: "/logo/logo-og.png",
-        linkUrl: "/clubs",
-    },
-];
-
-function getDevelopmentFallbackBanners(banners: DisplayMainBannerItem[]) {
-    if (banners.length > 0 || process.env.NODE_ENV !== "development") {
-        return banners;
-    }
-
-    return MOCK_MAIN_BANNERS;
-}
+import { Suspense } from "react";
+import { loadHomePageViewData } from "./home-page-data";
 
 async function HomePageContent() {
     const { clubs, banners, clubsLoadFailed } = await loadHomePageViewData();
 
-    return (
-        <ClubMainClient
-            clubs={clubs}
-            banners={getDevelopmentFallbackBanners(banners)}
-            clubsLoadFailed={clubsLoadFailed}
-        />
-    );
+    return <ClubMainClient clubs={clubs} banners={banners} clubsLoadFailed={clubsLoadFailed} />;
 }
 
 function HomePageFallback() {

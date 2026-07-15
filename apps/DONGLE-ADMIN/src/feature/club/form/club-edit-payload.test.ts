@@ -14,6 +14,7 @@ function createValues(overrides: Partial<ClubEditFormValues> = {}): ClubEditForm
         tags: "개발, 디자인",
         recruitmentStartDate: "",
         recruitmentEndDate: "",
+        applyUrl: "",
         instagram: "",
         youtube: "dongle",
         iconUrls: [],
@@ -52,6 +53,13 @@ describe("buildClubEditPayload", () => {
             recruit_start: "2026-05-20",
             recruit_end: "2026-05-31",
         });
+    });
+
+    test("지원 링크는 정규화해서 보내고 비어 있으면 null로 제거한다", () => {
+        expect(buildClubEditPayload(createValues({ applyUrl: "forms.gle/abc" })).apply_url).toBe(
+            "https://forms.gle/abc"
+        );
+        expect(buildClubEditPayload(createValues({ applyUrl: "" })).apply_url).toBeNull();
     });
 
     test("아이콘 URL 결정값이 있으면 payload에 포함한다", () => {

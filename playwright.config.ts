@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
+import { ADMIN_AUTH_FILE, CLUB_AUTH_FILE } from "./e2e/utils/auth-files";
 
 function loadLocalEnv() {
     const envPath = path.resolve(process.cwd(), ".env.local");
@@ -34,6 +35,13 @@ function loadLocalEnv() {
     }
 }
 
+const useMsw = process.env.NEXT_PUBLIC_USE_MSW === "1";
+
+if (useMsw && !process.env.API_URL) {
+    // MSW가 네트워크 전에 가로채므로 호스트는 더미여도 되고, /v1 path만 맞으면 된다.
+    process.env.API_URL = "https://api.mock.local/v1";
+}
+
 loadLocalEnv();
 
 const isCI = Boolean(process.env.CI);
@@ -51,11 +59,17 @@ const shouldRunProject = (projectName: string) =>
     requestedProjects.length === 0 || requestedProjects.includes(projectName);
 const needsClientServer = shouldRunProject("client");
 const needsAdminServer = shouldRunProject("admin") || shouldRunProject("club");
+const skipClientBuildInCi = process.env.E2E_SKIP_CLIENT_BUILD === "1";
+const skipAdminBuildInCi = process.env.E2E_SKIP_ADMIN_BUILD === "1";
 const clientCommand = isCI
-    ? "pnpm --filter dongle-client build && pnpm --filter dongle-client start:e2e"
+    ? skipClientBuildInCi
+        ? "pnpm --filter dongle-client start:e2e"
+        : "pnpm --filter dongle-client build && pnpm --filter dongle-client start:e2e"
     : "pnpm --filter dongle-client dev:e2e";
 const adminCommand = isCI
-    ? "pnpm --filter dongle-admin build && pnpm --filter dongle-admin start:e2e"
+    ? skipAdminBuildInCi
+        ? "pnpm --filter dongle-admin start:e2e"
+        : "pnpm --filter dongle-admin build && pnpm --filter dongle-admin start:e2e"
     : "pnpm --filter dongle-admin dev:e2e";
 const clientTimeout = isCI ? 180_000 : 120_000;
 const adminTimeout = isCI ? 300_000 : 120_000;
@@ -82,8 +96,28 @@ export default defineConfig({
             },
         },
         {
+            name: "admin-setup",
+            testDir: "./e2e/admin",
+            testMatch: /admin\.setup\.ts/,
+            use: {
+                ...devices["Desktop Chrome"],
+                baseURL: "http://127.0.0.1:4001",
+            },
+        },
+        {
             name: "admin",
             testDir: "./e2e/admin",
+            dependencies: ["admin-setup"],
+            use: {
+                ...devices["Desktop Chrome"],
+                baseURL: "http://127.0.0.1:4001",
+                storageState: ADMIN_AUTH_FILE,
+            },
+        },
+        {
+            name: "club-setup",
+            testDir: "./e2e/club",
+            testMatch: /club\.setup\.ts/,
             use: {
                 ...devices["Desktop Chrome"],
                 baseURL: "http://127.0.0.1:4001",
@@ -92,9 +126,11 @@ export default defineConfig({
         {
             name: "club",
             testDir: "./e2e/club",
+            dependencies: ["club-setup"],
             use: {
                 ...devices["Desktop Chrome"],
                 baseURL: "http://127.0.0.1:4001",
+                storageState: CLUB_AUTH_FILE,
             },
         },
     ],

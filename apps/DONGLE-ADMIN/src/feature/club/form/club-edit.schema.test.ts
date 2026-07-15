@@ -13,6 +13,7 @@ function createValues(overrides: Record<string, unknown> = {}) {
         tags: "개발, 디자인",
         recruitmentStartDate: "",
         recruitmentEndDate: "",
+        applyUrl: "",
         instagram: "",
         youtube: "",
         iconUrls: [],
@@ -55,6 +56,17 @@ describe("clubEditSchema", () => {
 
         expect(result.success).toBe(false);
         expect(result.error?.issues[0]?.message).toBe("모집 마감일은 모집 시작일보다 늦어야 합니다");
+    });
+
+    test("지원 링크가 URL로 정규화되지 않으면 실패한다", () => {
+        const result = clubEditSchema.safeParse(createValues({ applyUrl: "잘못된 링크" }));
+
+        expect(result.success).toBe(false);
+        expect(result.error?.issues[0]?.path.join(".")).toBe("applyUrl");
+    });
+
+    test("지원 링크가 비어 있으면 통과한다", () => {
+        expect(clubEditSchema.safeParse(createValues({ applyUrl: "" })).success).toBe(true);
     });
 
     test("마크업만 있는 rich text는 거부한다", () => {
