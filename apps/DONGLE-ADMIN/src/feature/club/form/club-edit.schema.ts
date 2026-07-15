@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Club } from "@dongle/types/club/club.d";
-import { normalizeExternalUrl, trimToEmpty } from "@dongle/utils";
+import { formatDateForRequest, normalizeExternalUrl, trimToEmpty } from "@dongle/utils";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import { hasMeaningfulRichText, normalizeRecruitmentStatus } from "@/feature/club/validation/club-form.validation";
 
@@ -103,8 +103,8 @@ export function createClubEditDefaultValues(club: Club): ClubEditFormValues {
         description: club.description ?? "",
         main_activities: club.main_activities ?? "",
         tags: club.tags.join(", "),
-        recruitmentStartDate: club.recruit_start ?? "",
-        recruitmentEndDate: club.recruit_end ?? "",
+        recruitmentStartDate: formatDateForRequest(club.recruit_start),
+        recruitmentEndDate: formatDateForRequest(club.recruit_end),
         applyUrl: club.apply_url ?? "",
         instagram: club.sns?.instagram ?? "",
         youtube: club.sns?.youtube ?? "",
