@@ -14,24 +14,28 @@ async function ClubSidebarAsync({ clubId }: { clubId: string }) {
 
 function ClubSidebarFallback() {
     return (
-        <div className="hidden md:flex fixed inset-y-0 left-0 z-10 h-svh w-3xs border-r bg-white">
-            <div className="flex w-full flex-col">
-                <div className="border-b border-border px-4 py-5 min-h-24 flex flex-col justify-center">
-                    <Skeleton className="h-8 w-32" />
-                    <Skeleton className="mt-2 h-5 w-12" />
-                </div>
-                <div className="flex-1 p-4 pt-4">
-                    <div className="space-y-4">
-                        <Skeleton className="h-8 w-full" />
-                        <Skeleton className="h-8 w-full" />
+        <>
+            {/* real Sidebar reserves this space via its own gap div; the fixed box below doesn't */}
+            <div className="hidden md:block w-3xs shrink-0" />
+            <div className="hidden md:flex fixed inset-y-0 left-0 z-10 h-svh w-3xs border-r bg-white">
+                <div className="flex w-full flex-col">
+                    <div className="border-b border-border px-4 py-5 min-h-24 flex flex-col justify-center">
+                        <Skeleton className="h-8 w-32" />
+                        <Skeleton className="mt-2 h-5 w-12" />
+                    </div>
+                    <div className="flex-1 p-4 pt-4">
+                        <div className="space-y-4">
+                            <Skeleton className="h-8 w-full" />
+                            <Skeleton className="h-8 w-full" />
+                            <Skeleton className="h-8 w-full" />
+                        </div>
+                    </div>
+                    <div className="border-t border-border px-4 py-5">
                         <Skeleton className="h-8 w-full" />
                     </div>
                 </div>
-                <div className="border-t border-border px-4 py-5">
-                    <Skeleton className="h-8 w-full" />
-                </div>
             </div>
-        </div>
+        </>
     );
 }
 
