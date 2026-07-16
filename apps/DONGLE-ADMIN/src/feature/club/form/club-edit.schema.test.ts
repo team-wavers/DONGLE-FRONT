@@ -131,6 +131,20 @@ describe("createClubEditDefaultValues", () => {
         expect(values.recruitmentStartDate).toBe("2026-03-31");
         expect(values.recruitmentEndDate).toBe("2026-07-16");
     });
+
+    test("서버 로컬 타임존과 무관하게 KST 기준 날짜로 정규화한다", () => {
+        const values = createClubEditDefaultValues(
+            createClub({
+                // UTC 기준으로는 07-16이지만 KST(+9)로는 07-17 00:30
+                recruit_start: "2026-07-16T15:30:00.000Z",
+                // UTC 기준으로는 07-17이지만 KST(+9)로는 07-18 00:00
+                recruit_end: "2026-07-17T15:00:00.000Z",
+            })
+        );
+
+        expect(values.recruitmentStartDate).toBe("2026-07-17");
+        expect(values.recruitmentEndDate).toBe("2026-07-18");
+    });
 });
 
 describe("createClubEditSavedValues", () => {
