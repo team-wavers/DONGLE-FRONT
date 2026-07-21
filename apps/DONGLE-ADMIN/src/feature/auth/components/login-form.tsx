@@ -5,9 +5,8 @@ import { FormField } from "@/shared/ui/form/form-field/form-field";
 import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 import { toast } from "sonner";
 import { loginFormAction } from "@/feature/auth/action/login-form.action";
-import { normalizeInternalReturnTo } from "@/feature/auth/utils/normalize-internal-return-to";
+import { resolvePostLoginPath } from "@/feature/auth/utils/resolve-post-login-path";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
 
 function LoginFormContent() {
     const router = useRouter();
@@ -23,11 +22,20 @@ function LoginFormContent() {
     // 성공/실패 시 토스트 표시 및 콜백 호출
     useEffect(() => {
         if (state.success) {
+            const destination = resolvePostLoginPath({
+                role: state.role,
+                clubId: state.clubId,
+                returnTo: searchParams.get("returnTo"),
+            });
+
+            if (!destination.ok) {
+                toast.error("배정된 동아리가 없습니다. 관리자에게 문의해주세요.");
+                router.replace("/login?reason=no_club");
+                return;
+            }
+
             toast.success("로그인 성공");
-            const clubId = state.clubId;
-            const safeReturnTo = normalizeInternalReturnTo(searchParams.get("returnTo"));
-            const url = safeReturnTo || (state.role === AUTH_ROLE.ADMIN ? "/admin" : `/${clubId}/club-form`);
-            router.push(url);
+            router.push(destination.path);
         }
         if (state.error) {
             if (state.error) toast.error(state.error);
@@ -49,6 +57,8 @@ function LoginFormContent() {
             toast.error("유효하지 않은 토큰입니다. 다시 로그인해주세요.");
         } else if (reason === "unauthorized") {
             toast.error("접근 권한이 없습니다. 관리자 권한이 필요합니다.");
+        } else if (reason === "no_club") {
+            toast.error("배정된 동아리가 없습니다. 관리자에게 문의해주세요.");
         }
     }, [searchParams]);
 
