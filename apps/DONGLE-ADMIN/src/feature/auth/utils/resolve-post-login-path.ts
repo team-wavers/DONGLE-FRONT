@@ -16,6 +16,10 @@ export function resolvePostLoginPath({
     clubId,
     returnTo,
 }: ResolvePostLoginPathInput): ResolvePostLoginPathResult {
+    if (role === AUTH_ROLE.PRESIDENT && !clubId) {
+        return { ok: false, reason: "no_club" };
+    }
+
     const safeReturnTo = normalizeInternalReturnTo(returnTo ?? null);
     if (safeReturnTo) {
         return { ok: true, path: safeReturnTo };

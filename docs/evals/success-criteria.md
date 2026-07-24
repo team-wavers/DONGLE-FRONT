@@ -387,9 +387,11 @@
 
 ### 로그인 후 이동 경로
 
-- 안전한 `returnTo`가 있으면 역할과 무관하게 그 경로로 이동한다.
-- 관리자는 `/admin`으로 이동한다.
-- 회장은 배정된 `clubId`가 있을 때 `/{clubId}/club-form`으로 이동한다.
+- 회장(`AUTH_ROLE.PRESIDENT`)은 `returnTo`보다 먼저 `clubId` 유무를 확인한다.
+- 회장에 `clubId`가 없으면 안전한 `returnTo`가 있어도 `no_club`로 실패한다.
+- 회장에 `clubId`가 있고 안전한 `returnTo`가 있으면 그 경로로 이동한다.
+- 관리자는 안전한 `returnTo`가 있으면 그 경로로, 없으면 `/admin`으로 이동한다.
+- 회장은 배정된 `clubId`가 있고 `returnTo`가 없으면 `/{clubId}/club-form`으로 이동한다.
 - 회장에 `clubId`가 없으면 `/undefined/club-form`으로 보내지 않고 `no_club`로 실패한다.
 
 ### 로그인 입력/오류 분기 정책

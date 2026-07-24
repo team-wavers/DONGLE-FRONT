@@ -35,7 +35,7 @@
 | report update action | [activity-report-update.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/form/activity-report-update.action.test.ts) | code-graded | auth/service branch mapping |
 | admin register url | [use-url-generator.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-url-generator.test.ts) | code-graded | helper |
 | admin auth returnTo | [normalize-internal-return-to.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/normalize-internal-return-to.test.ts) | code-graded | helper |
-| admin auth post-login path | [resolve-post-login-path.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/resolve-post-login-path.test.ts) | code-graded | 회장 clubId 없는 로그인 이동 가드 |
+| admin auth post-login path | [resolve-post-login-path.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/resolve-post-login-path.test.ts) | code-graded | 회장 clubId 가드를 returnTo보다 먼저 적용 |
 | admin auth login policy | [login-form-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/login-form-policy.test.ts) | code-graded | input normalization / error branch helper |
 | session draft | [use-session-storage-draft.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-session-storage-draft.test.ts) | code-graded | helper |
 | social url | [normalize-social-url.test.ts](../../apps/DONGLE-CLIENT/src/lib/normalize-social-url.test.ts) | code-graded | shared helper |

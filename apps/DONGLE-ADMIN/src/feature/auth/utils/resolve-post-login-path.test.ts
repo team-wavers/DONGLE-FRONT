@@ -3,11 +3,37 @@ import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
 import { resolvePostLoginPath } from "./resolve-post-login-path";
 
 describe("resolvePostLoginPath", () => {
-    test("안전한 returnTo가 있으면 역할을 무시하고 그 경로로 이동한다", () => {
+    test("회장에 clubId가 없고 returnTo가 있어도 no_club로 실패한다", () => {
         expect(
             resolvePostLoginPath({
                 role: AUTH_ROLE.PRESIDENT,
                 clubId: undefined,
+                returnTo: "/99/club-form",
+            })
+        ).toEqual({ ok: false, reason: "no_club" });
+        expect(
+            resolvePostLoginPath({
+                role: AUTH_ROLE.PRESIDENT,
+                clubId: "",
+                returnTo: "/admin/user",
+            })
+        ).toEqual({ ok: false, reason: "no_club" });
+    });
+
+    test("회장에 clubId가 있고 안전한 returnTo가 있으면 그 경로로 이동한다", () => {
+        expect(
+            resolvePostLoginPath({
+                role: AUTH_ROLE.PRESIDENT,
+                clubId: "12",
+                returnTo: "/12/club-form",
+            })
+        ).toEqual({ ok: true, path: "/12/club-form" });
+    });
+
+    test("관리자에 안전한 returnTo가 있으면 그 경로로 이동한다", () => {
+        expect(
+            resolvePostLoginPath({
+                role: AUTH_ROLE.ADMIN,
                 returnTo: "/admin/user",
             })
         ).toEqual({ ok: true, path: "/admin/user" });
