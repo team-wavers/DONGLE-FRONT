@@ -120,6 +120,12 @@ function createClub(overrides: Partial<Club> = {}): Club {
 }
 
 describe("createClubEditDefaultValues", () => {
+    test("tags가 null이어도 빈 문자열로 안전하게 초기화한다", () => {
+        const values = createClubEditDefaultValues(createClub({ tags: null as unknown as string[] }));
+
+        expect(values.tags).toBe("");
+    });
+
     test("서버가 내려준 ISO 타임스탬프를 날짜피커가 쓰는 YYYY-MM-DD로 정규화한다", () => {
         const values = createClubEditDefaultValues(
             createClub({

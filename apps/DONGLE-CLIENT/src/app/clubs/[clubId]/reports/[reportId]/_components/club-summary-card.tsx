@@ -1,5 +1,6 @@
 import { getClubCategoryPresentation } from "@/components/main/club-category-presentation";
 import type { Club } from "@dongle/types/club/club";
+import { normalizeClubTags } from "@dongle/utils";
 import { cn } from "@dongle/ui/utils";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,7 +14,8 @@ interface ClubSummaryCardProps {
 export default function ClubSummaryCard({ club }: ClubSummaryCardProps) {
     const presentation = getClubCategoryPresentation(club.category);
     const Icon = presentation.icon;
-    const displayTags = club.tags.length > 0 ? club.tags.slice(0, 3) : [club.category];
+    const tags = normalizeClubTags(club.tags);
+    const displayTags = tags.length > 0 ? tags.slice(0, 3) : [club.category];
 
     return (
         <Link

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Club } from "@dongle/types/club/club.d";
-import { formatDateForRequest, normalizeExternalUrl, trimToEmpty } from "@dongle/utils";
+import { formatDateForRequest, normalizeClubTags, normalizeExternalUrl, trimToEmpty } from "@dongle/utils";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import { hasMeaningfulRichText, normalizeRecruitmentStatus } from "@/feature/club/validation/club-form.validation";
 
@@ -102,7 +102,7 @@ export function createClubEditDefaultValues(club: Club): ClubEditFormValues {
         location: club.location ?? "",
         description: club.description ?? "",
         main_activities: club.main_activities ?? "",
-        tags: club.tags.join(", "),
+        tags: normalizeClubTags(club.tags).join(", "),
         recruitmentStartDate: formatDateForRequest(club.recruit_start, { timeZone: "Asia/Seoul" }),
         recruitmentEndDate: formatDateForRequest(club.recruit_end, { timeZone: "Asia/Seoul" }),
         applyUrl: club.apply_url ?? "",
