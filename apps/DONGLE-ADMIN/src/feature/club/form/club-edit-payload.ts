@@ -23,10 +23,8 @@ export function buildClubEditPayload(values: ClubEditFormValues, iconUrl?: strin
         payload.name = values.clubName;
     }
 
-    const tags = splitClubEditTags(values.tags);
-    if (tags.length > 0) {
-        payload.tags = tags;
-    }
+    // 빈 배열도 보내 기존 태그를 제거할 수 있게 한다.
+    payload.tags = splitClubEditTags(values.tags);
 
     if (values.description) {
         payload.description = values.description;

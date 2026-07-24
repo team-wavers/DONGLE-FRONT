@@ -24,5 +24,9 @@ export default async function MainPage() {
         redirect("/admin");
     }
 
+    if (clubId == null || clubId === "") {
+        redirect("/login?reason=no_club");
+    }
+
     redirect(`/${clubId}/club-form`);
 }

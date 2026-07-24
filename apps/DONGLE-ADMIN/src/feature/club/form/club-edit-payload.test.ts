@@ -62,6 +62,11 @@ describe("buildClubEditPayload", () => {
         expect(buildClubEditPayload(createValues({ applyUrl: "" })).apply_url).toBeNull();
     });
 
+    test("태그를 비우면 빈 배열을 보내 기존 태그를 제거한다", () => {
+        expect(buildClubEditPayload(createValues({ tags: "" })).tags).toEqual([]);
+        expect(buildClubEditPayload(createValues({ tags: "  ,  " })).tags).toEqual([]);
+    });
+
     test("아이콘 URL 결정값이 있으면 payload에 포함한다", () => {
         expect(buildClubEditPayload(createValues(), null).icon_url).toBeNull();
         expect(buildClubEditPayload(createValues(), "https://cdn.test/icon.png").icon_url).toBe("https://cdn.test/icon.png");

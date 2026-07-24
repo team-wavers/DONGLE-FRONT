@@ -6,6 +6,7 @@ import ClubIconAvatar from "@/components/main/club-icon-avatar";
 import { trackDongleEvent } from "@/lib/analytics";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
 import { cn } from "@dongle/ui/utils";
+import { normalizeClubTags } from "@dongle/utils";
 import Link from "next/link";
 
 type ClubListItemViewModel = {
@@ -47,7 +48,8 @@ export default function ClubListSection({
                 <div data-testid="club-list" className="grid gap-3">
                     {clubs.map((club) => {
                         const presentation = getClubCategoryPresentation(club.category);
-                        const displayTags = club.tags.length > 0 ? club.tags.slice(0, 3) : [club.category];
+                        const tags = normalizeClubTags(club.tags);
+                        const displayTags = tags.length > 0 ? tags.slice(0, 3) : [club.category];
 
                         return (
                             <Link

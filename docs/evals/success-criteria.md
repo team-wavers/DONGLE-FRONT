@@ -48,9 +48,14 @@
 
 - 모집마감 상태로 수정하면 모집 시작일과 마감일은 `null`로 제거해야 한다.
 - 모집중 상태로 수정하면 검증된 모집 시작일과 마감일을 payload에 유지해야 한다.
+- 태그를 비우면 `tags: []`를 보내 기존 태그를 제거해야 한다.
 - 아이콘 삭제 또는 업로드 결과가 있으면 `icon_url`을 명시적으로 payload에 포함해야 한다.
 - 새 아이콘 업로드 성공 후에는 업로드된 URL을 성공 결과로 반환해 다음 수정 기준값의 `iconUrls`가 최신 URL을 유지해야 한다.
 - 기존 아이콘이 있는 replace 업로드에서 새 파일 선택을 취소하면 기존 아이콘 URL이 복구되어야 한다.
+
+### 수정 폼 기본값
+
+- `tags`가 `null`이어도 수정 폼 기본값은 빈 문자열로 안전하게 초기화되어야 한다.
 
 ### 회장 수정 폼 스키마
 
@@ -380,6 +385,15 @@
 - protocol-relative URL(`//...`)과 외부 URL은 허용하지 않는다.
 - 인코딩된 protocol-relative 우회 문자열(`%2F%2F...`)도 허용하지 않는다.
 
+### 로그인 후 이동 경로
+
+- 회장(`AUTH_ROLE.PRESIDENT`)은 `returnTo`보다 먼저 `clubId` 유무를 확인한다.
+- 회장에 `clubId`가 없으면 안전한 `returnTo`가 있어도 `no_club`로 실패한다.
+- 회장에 `clubId`가 있고 안전한 `returnTo`가 있으면 그 경로로 이동한다.
+- 관리자는 안전한 `returnTo`가 있으면 그 경로로, 없으면 `/admin`으로 이동한다.
+- 회장은 배정된 `clubId`가 있고 `returnTo`가 없으면 `/{clubId}/club-form`으로 이동한다.
+- 회장에 `clubId`가 없으면 `/undefined/club-form`으로 보내지 않고 `no_club`로 실패한다.
+
 ### 로그인 입력/오류 분기 정책
 
 - username 입력은 trim 정규화를 적용한다.
@@ -389,6 +403,7 @@
 
 관련 테스트:
 - [normalize-internal-return-to.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/normalize-internal-return-to.test.ts)
+- [resolve-post-login-path.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/resolve-post-login-path.test.ts)
 - [login-form-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/login-form-policy.test.ts)
 
 ## Shared Debounced Input

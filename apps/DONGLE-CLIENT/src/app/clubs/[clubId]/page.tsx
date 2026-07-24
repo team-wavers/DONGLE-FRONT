@@ -16,7 +16,7 @@ import {
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
 import { Skeleton } from "@dongle/ui/skeleton";
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
-import { formatMobilePhoneNumber, normalizeExternalUrl } from "@dongle/utils";
+import { formatMobilePhoneNumber, normalizeClubTags, normalizeExternalUrl } from "@dongle/utils";
 import { ArrowLeft, CalendarDays, Instagram, MapPin, Phone, UserRound, Youtube } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -141,6 +141,7 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
         club.recruit_start && club.recruit_end ? formatDateRange(club.recruit_start, club.recruit_end) : "미정";
     const recruitDday = club.is_recruiting ? getRecruitDday(club.recruit_end) : null;
     const applyUrl = club.is_recruiting ? normalizeExternalUrl(club.apply_url) : null;
+    const tags = normalizeClubTags(club.tags);
     const presidentPhone = club.president?.phone;
     const formattedPresidentPhone = presidentPhone ? formatMobilePhoneNumber(presidentPhone) : "-";
     type InfoItem = {
@@ -206,9 +207,9 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
                     </div>
                 </div>
 
-                {club.tags.length > 0 && (
+                {tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                        {club.tags.map((tag: string, index: number) => (
+                        {tags.map((tag: string, index: number) => (
                             <span
                                 key={`${tag}-${index}`}
                                 className={`rounded-md border px-3 py-2 text-sm font-bold ${categoryPresentation.labelClassName}`}>

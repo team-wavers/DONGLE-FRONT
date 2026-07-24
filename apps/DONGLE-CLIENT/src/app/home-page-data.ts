@@ -20,7 +20,7 @@ export async function loadHomePageViewData() {
                   name: club.name,
                   icon_url: club.icon_url,
                   category: club.category,
-                  tags: club.tags,
+                  tags: club.tags ?? [],
                   is_recruiting: club.is_recruiting,
                   recruit_end: club.recruit_end ?? null,
               }))
