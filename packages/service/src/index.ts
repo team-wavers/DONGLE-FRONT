@@ -3,5 +3,6 @@ export * from "./cache-tags";
 export * from "./club/club.report.service";
 export * from "./club/club.schedule.service";
 export * from "./club/club.service";
+export * from "./dashboard/dashboard.service";
 export * from "./main-banner/main-banner.service";
 export * from "./user/user.service";
