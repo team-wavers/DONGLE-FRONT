@@ -11,23 +11,9 @@ import {
     UserPlus,
     Users,
 } from "lucide-react";
-import { getAdminDashboardService } from "@/lib/server/cached-services";
 import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
 import { formatKoreanDate } from "@/lib/format/date";
-
-async function getAdminHomeData() {
-    const response = await getAdminDashboardService();
-    const isError = !response.isSuccess;
-    const data = response.isSuccess ? response.result : null;
-
-    return {
-        isError,
-        clubs: data?.clubs ?? { total: 0, recruiting: 0, recent: [] },
-        users: data?.users ?? { total: 0, recent: [] },
-        banners: data?.banners ?? { total: 0, active: 0 },
-        schedules: data?.schedules ?? { thisMonth: 0 },
-    };
-}
+import { getAdminHomeData } from "./admin-home-data";
 
 export default async function AdminPage() {
     const { isError, clubs, users, banners, schedules } = await getAdminHomeData();

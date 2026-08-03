@@ -19,6 +19,17 @@
 관련 테스트:
 - [filterable-club-list.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/components/filterable-club-list/filterable-club-list.test.ts)
 
+## Admin Home Dashboard
+
+### 관리자 홈 데이터 로딩
+
+- 관리자 홈은 백엔드 `GET /dashboard` 응답의 동아리/사용자/배너/일정 집계값과 최근 항목을 그대로 표시해야 한다.
+- API가 실패 응답(`isSuccess: false`)을 반환하면 집계값은 0으로, 화면은 실패 상태로 표시해야 한다.
+- 네트워크 예외 등으로 요청 자체가 reject 되어도 페이지가 중단되지 않고 실패 상태로 표시해야 한다.
+
+관련 테스트:
+- `apps/DONGLE-ADMIN/src/app/(대시보드)/(총동연)/admin/admin-home-data.test.ts`
+
 ## Client Analytics
 
 ### PostHog 이벤트 계약
