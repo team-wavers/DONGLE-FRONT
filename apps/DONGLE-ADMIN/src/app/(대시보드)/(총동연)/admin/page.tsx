@@ -11,80 +11,59 @@ import {
     UserPlus,
     Users,
 } from "lucide-react";
-import {
-    getAdminMainBannerListService,
-    getClubListService,
-    getUserListService,
-} from "@/lib/server/cached-services";
+import { getAdminDashboardService } from "@/lib/server/cached-services";
 import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
-import { getAdminClubScheduleCalendarService } from "@dongle/service";
-import { getMonthScheduleQuery } from "@/feature/schedule/schedule.utils";
 import { formatKoreanDate } from "@/lib/format/date";
 
 async function getAdminHomeData() {
-    const currentMonth = new Date();
-    const [clubs, users, banners, schedules] = await Promise.allSettled([
-        getClubListService(),
-        getUserListService(),
-        getAdminMainBannerListService(),
-        getAdminClubScheduleCalendarService(getMonthScheduleQuery(currentMonth)),
-    ]);
-
-    const isClubError = clubs.status === "rejected" || !clubs.value.isSuccess;
-    const isUserError = users.status === "rejected" || !users.value.isSuccess;
-    const isBannerError = banners.status === "rejected" || !banners.value.isSuccess;
-    const isScheduleError = schedules.status === "rejected";
-
-    const clubList = isClubError ? [] : clubs.value.result ?? [];
-    const userList = isUserError ? [] : users.value.result ?? [];
-    const bannerList = isBannerError ? [] : banners.value.result ?? [];
-    const scheduleList = isScheduleError ? [] : schedules.value;
+    const response = await getAdminDashboardService();
+    const isError = !response.isSuccess;
+    const data = response.isSuccess ? response.result : null;
 
     return {
-        clubs: { data: clubList, isError: isClubError },
-        users: { data: userList, isError: isUserError },
-        banners: { data: bannerList, isError: isBannerError },
-        schedules: { data: scheduleList, isError: isScheduleError },
+        isError,
+        clubs: data?.clubs ?? { total: 0, recruiting: 0, recent: [] },
+        users: data?.users ?? { total: 0, recent: [] },
+        banners: data?.banners ?? { total: 0, active: 0 },
+        schedules: data?.schedules ?? { thisMonth: 0 },
     };
 }
 
 export default async function AdminPage() {
-    const { clubs, users, banners, schedules } = await getAdminHomeData();
-    const activeBannerCount = banners.data.filter((banner) => banner.is_active).length;
-    const recruitingClubCount = clubs.data.filter((club) => club.is_recruiting).length;
-    const recentClubs = clubs.data.slice(0, 4);
-    const recentUsers = users.data.slice(0, 4);
+    const { isError, clubs, users, banners, schedules } = await getAdminHomeData();
+    const recentClubs = clubs.recent;
+    const recentUsers = users.recent;
 
     const statCards = [
         {
             label: "전체 동아리",
-            value: clubs.data.length,
-            helper: clubs.isError ? "불러오기 실패" : `모집중 ${recruitingClubCount}개`,
-            isError: clubs.isError,
+            value: clubs.total,
+            helper: isError ? "불러오기 실패" : `모집중 ${clubs.recruiting}개`,
+            isError,
             href: "/admin/club",
             icon: Users,
         },
         {
             label: "사용자",
-            value: users.data.length,
-            helper: users.isError ? "불러오기 실패" : "관리자/회장 계정",
-            isError: users.isError,
+            value: users.total,
+            helper: isError ? "불러오기 실패" : "관리자/회장 계정",
+            isError,
             href: "/admin/user",
             icon: UserPlus,
         },
         {
             label: "이번 달 일정",
-            value: schedules.data.length,
-            helper: schedules.isError ? "불러오기 실패" : "공개 상태 포함",
-            isError: schedules.isError,
+            value: schedules.thisMonth,
+            helper: isError ? "불러오기 실패" : "공개 상태 포함",
+            isError,
             href: "/admin/schedule",
             icon: CalendarDays,
         },
         {
             label: "활성 배너",
-            value: activeBannerCount,
-            helper: banners.isError ? "불러오기 실패" : `전체 ${banners.data.length}개`,
-            isError: banners.isError,
+            value: banners.active,
+            helper: isError ? "불러오기 실패" : `전체 ${banners.total}개`,
+            isError,
             href: "/admin/banner",
             icon: ImageIcon,
         },
@@ -153,7 +132,7 @@ export default async function AdminPage() {
                         </div>
                     </CardHeader>
                     <CardContent className="px-0">
-                        {clubs.isError ? (
+                        {isError ? (
                             <p className="px-5 py-8 text-sm text-red-600">동아리 목록을 불러오지 못했습니다.</p>
                         ) : recentClubs.length === 0 ? (
                             <p className="px-5 py-8 text-sm text-muted-foreground">등록된 동아리가 없습니다.</p>
@@ -214,7 +193,7 @@ export default async function AdminPage() {
                             <CardTitle className="text-base">최근 사용자</CardTitle>
                         </CardHeader>
                         <CardContent className="px-0">
-                            {users.isError ? (
+                            {isError ? (
                                 <p className="px-5 py-8 text-sm text-red-600">사용자 목록을 불러오지 못했습니다.</p>
                             ) : recentUsers.length === 0 ? (
                                 <p className="px-5 py-8 text-sm text-muted-foreground">등록된 사용자가 없습니다.</p>
