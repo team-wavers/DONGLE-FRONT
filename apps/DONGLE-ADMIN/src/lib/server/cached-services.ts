@@ -1,5 +1,6 @@
 import { cache } from "react";
 import {
+    getAdminDashboardService as getAdminDashboardServiceBase,
     getAdminMainBannerService,
     getAdminMainBannerListService as getAdminMainBannerListServiceBase,
     getClubListService as getClubListServiceBase,
@@ -16,4 +17,5 @@ export const getClubReportListService = cache((clubId: number) => getClubReportL
 export const getUserListService = cache(getUserListServiceBase);
 export const getUserService = cache(getUserServiceBase);
 export const getAdminMainBannerListService = cache(getAdminMainBannerListServiceBase);
+export const getAdminDashboardService = cache(getAdminDashboardServiceBase);
 export { getAdminMainBannerService, getClubReportService };

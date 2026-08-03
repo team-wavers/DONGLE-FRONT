@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import localFont from "next/font/local";
 import Image from "next/image";
 import Link from "next/link";
 import HeaderScheduleLink from "@/components/navigation/header-schedule-link";
@@ -8,6 +9,11 @@ import { DEFAULT_OG_IMAGE_PATH, SITE_DESCRIPTION, SITE_HOME_TITLE, SITE_TITLE, S
 import { AppHeader } from "@dongle/ui/headers/app-header";
 import { MswProvider } from "@dongle/api/mocks/msw-provider";
 import "./globals.css";
+
+const pretendard = localFont({
+    src: "../assets/fonts/PretendardVariable.woff2",
+    variable: "--font-pretendard",
+});
 
 export const metadata: Metadata = {
     metadataBase: new URL(SITE_URL),
@@ -51,7 +57,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <head>
                 <SiteJsonLd />
             </head>
-            <body className="min-h-screen bg-white text-zinc-900">
+            <body className={`${pretendard.variable} min-h-screen bg-white text-zinc-900`}>
                 <MswProvider>
                     <div className="min-h-screen flex flex-col pb-64">
                         <AppHeader
