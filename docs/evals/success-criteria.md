@@ -388,6 +388,18 @@
 관련 테스트:
 - [use-url-generator.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-url-generator.test.ts)
 
+## Admin Feedback
+
+### 메일 문의 조합
+
+- 문의 유형과 trim한 문의 내용은 필수다.
+- 메일 제목과 본문에는 문의 유형, 내용, 현재 화면 URL, 사용자 역할, 작성 시각을 포함해야 한다.
+- 동아리 회장 문의에는 동아리 ID를 포함하고 총동연 관리자 문의에는 포함하지 않아야 한다.
+- 한글, 줄바꿈, URL 특수문자는 `mailto:` URL에서 안전하게 인코딩되어야 한다.
+
+관련 테스트:
+- [admin-feedback-mail.test.ts](../../apps/DONGLE-ADMIN/src/feature/feedback/admin-feedback-mail.test.ts)
+
 ## Admin Auth
 
 ### 로그인 후 내부 복귀 경로 검증

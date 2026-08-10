@@ -35,6 +35,7 @@
 | report create action | [activity-report-create.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/form/activity-report-create.action.test.ts) | code-graded | upload/service branch mapping |
 | report update action | [activity-report-update.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/report/form/activity-report-update.action.test.ts) | code-graded | auth/service branch mapping |
 | admin register url | [use-url-generator.test.ts](../../apps/DONGLE-ADMIN/src/hooks/use-url-generator.test.ts) | code-graded | helper |
+| admin feedback mail | [admin-feedback-mail.test.ts](../../apps/DONGLE-ADMIN/src/feature/feedback/admin-feedback-mail.test.ts) | code-graded | 필수 입력 검증 / 역할·동아리 ID 분기 / mailto 제목·본문 인코딩 helper |
 | admin auth returnTo | [normalize-internal-return-to.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/normalize-internal-return-to.test.ts) | code-graded | helper |
 | admin auth post-login path | [resolve-post-login-path.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/resolve-post-login-path.test.ts) | code-graded | 회장 clubId 가드를 returnTo보다 먼저 적용 |
 | admin auth login policy | [login-form-policy.test.ts](../../apps/DONGLE-ADMIN/src/feature/auth/utils/login-form-policy.test.ts) | code-graded | input normalization / error branch helper |

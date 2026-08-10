@@ -5,6 +5,7 @@ import LogoutButton from "@/feature/auth/components/logout-button";
 import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
 import SidebarLayout from "./sidebar-layout";
 import SidebarAnnouncements from "./sidebar-announcements";
+import AdminFeedbackDialog from "@/feature/feedback/admin-feedback-dialog";
 
 export default async function AdminSidebar() {
     const accessToken = await getAccessTokenFromServerCookie();
@@ -32,6 +33,7 @@ export default async function AdminSidebar() {
     const footer = (
         <div className="flex flex-col gap-3">
             <SidebarAnnouncements />
+            <AdminFeedbackDialog role="admin" />
             <LogoutButton accessToken={accessToken ?? null} />
         </div>
     );

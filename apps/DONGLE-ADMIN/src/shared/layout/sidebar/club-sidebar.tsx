@@ -5,6 +5,7 @@ import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-
 import SidebarLayout from "./sidebar-layout";
 import { createClubMenuConfig } from "./club-sidebar.config";
 import SidebarAnnouncements from "./sidebar-announcements";
+import AdminFeedbackDialog from "@/feature/feedback/admin-feedback-dialog";
 
 interface ClubSidebarProps {
     clubId: string;
@@ -38,6 +39,7 @@ export default async function ClubSidebar({ clubId, clubName }: ClubSidebarProps
     const footer = (
         <div className="flex flex-col gap-3">
             <SidebarAnnouncements />
+            <AdminFeedbackDialog role="club-president" clubId={clubId} />
             <LogoutButton accessToken={accessToken ?? null} />
         </div>
     );
