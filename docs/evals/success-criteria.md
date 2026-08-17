@@ -636,3 +636,13 @@
 
 관련 테스트:
 - [normalize-social-url.test.ts](../../apps/DONGLE-CLIENT/src/lib/normalize-social-url.test.ts)
+
+## Admin Feedback
+
+### 문의 폼 검증
+
+- 카테고리는 `bug`/`inconvenience`/`feature`/`other` 4종을 제공해야 한다.
+- 카테고리가 비어있으면 category 오류를, 내용이 공백만 있으면 content 오류를 반환해야 한다.
+
+관련 테스트:
+- [admin-feedback-form.test.ts](../../apps/DONGLE-ADMIN/src/feature/feedback/admin-feedback-form.test.ts)
