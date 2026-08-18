@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@dongle/ui/button";
 import {
     Dialog,
@@ -25,6 +26,8 @@ interface AdminFeedbackDialogProps {
 }
 
 export default function AdminFeedbackDialog({ role }: AdminFeedbackDialogProps) {
+    const router = useRouter();
+    const pathname = usePathname();
     const [open, setOpen] = useState(false);
     const [category, setCategory] = useState<FeedbackCategory | "">("");
     const [content, setContent] = useState("");
@@ -53,10 +56,14 @@ export default function AdminFeedbackDialog({ role }: AdminFeedbackDialogProps) 
                 const result = await submitAdminFeedbackAction({
                     category,
                     content,
-                    pageUrl: window.location.href,
+                    pageUrl: window.location.origin + window.location.pathname,
                 });
 
                 if (!result.ok) {
+                    if (result.sessionExpired) {
+                        router.push(`/login?expired=true&returnTo=${encodeURIComponent(pathname)}`);
+                        return;
+                    }
                     if (result.fieldErrors) setErrors(result.fieldErrors);
                     toast.error(result.formError ?? "문의 등록에 실패했습니다.");
                     return;
