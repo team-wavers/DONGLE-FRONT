@@ -41,6 +41,13 @@ export async function submitAdminFeedbackAction(
         });
 
         if (!result.isSuccess) {
+            if (result.error.status === 401) {
+                return actionFailure({
+                    formError: "로그인 시간이 만료되었습니다. 다시 로그인해주세요.",
+                    sessionExpired: true,
+                });
+            }
+
             return actionFailure({
                 formError: getServiceErrorMessage(result.error, "문의 등록에 실패했습니다. 다시 시도해주세요."),
             });

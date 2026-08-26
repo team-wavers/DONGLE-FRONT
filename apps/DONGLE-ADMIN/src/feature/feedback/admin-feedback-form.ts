@@ -7,6 +7,8 @@ export const ADMIN_FEEDBACK_CATEGORIES = [
     { value: "other", label: "기타 문의" },
 ] as const satisfies { value: FeedbackCategory; label: string }[];
 
+const ADMIN_FEEDBACK_CATEGORY_VALUES = ADMIN_FEEDBACK_CATEGORIES.map((item) => item.value);
+
 interface AdminFeedbackValidationInput {
     category: FeedbackCategory | "";
     content: string;
@@ -14,7 +16,9 @@ interface AdminFeedbackValidationInput {
 
 export function validateAdminFeedback({ category, content }: AdminFeedbackValidationInput) {
     return {
-        ...(!category ? { category: "문의 유형을 선택해주세요." } : {}),
+        ...(!category || !ADMIN_FEEDBACK_CATEGORY_VALUES.includes(category)
+            ? { category: "문의 유형을 선택해주세요." }
+            : {}),
         ...(!content.trim() ? { content: "문의 내용을 입력해주세요." } : {}),
     };
 }

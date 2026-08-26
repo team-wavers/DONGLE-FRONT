@@ -32,4 +32,13 @@ describe("validateAdminFeedback", () => {
 
         expect(errors).toEqual({});
     });
+
+    it("허용되지 않은 category 값이면 category 오류를 반환한다", () => {
+        const errors = validateAdminFeedback({
+            category: "spam" as never,
+            content: "문의합니다",
+        });
+
+        expect(errors.category).toBeDefined();
+    });
 });
