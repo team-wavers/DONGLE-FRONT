@@ -53,11 +53,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
     return (
-        <html lang="ko">
+        <html lang="ko" className={pretendard.variable}>
             <head>
                 <SiteJsonLd />
             </head>
-            <body className={`${pretendard.variable} min-h-screen bg-white text-zinc-900`}>
+            <body className="min-h-screen bg-white text-zinc-900">
                 <MswProvider>
                     <div className="min-h-screen flex flex-col pb-64">
                         <AppHeader
