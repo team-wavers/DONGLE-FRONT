@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AdminClubSchedule } from "@dongle/types/club/club.schedule";
+import { formatDateForRequest } from "@dongle/utils";
 import {
     getPublicScheduleCalendarDates,
     getPublicScheduleMonthKey,
@@ -9,8 +10,8 @@ import {
     mapPublicScheduleToDisplayItem,
 } from "./public-schedule-calendar";
 
-function getLocalDateKey(date: Date) {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+function getSeoulDateKey(date: Date) {
+    return formatDateForRequest(date, { timeZone: "Asia/Seoul" });
 }
 
 const commonSchedule = {
@@ -56,8 +57,8 @@ describe("public schedule calendar", () => {
         const dates = getPublicScheduleCalendarDates("2026-06");
 
         expect(dates).toHaveLength(42);
-        expect(getLocalDateKey(dates[0])).toBe("2026-05-31");
-        expect(getLocalDateKey(dates[41])).toBe("2026-07-11");
+        expect(getSeoulDateKey(dates[0])).toBe("2026-05-31");
+        expect(getSeoulDateKey(dates[41])).toBe("2026-07-11");
     });
 
     it("공통 일정은 clubId null과 총동연 라벨을 유지한다", () => {

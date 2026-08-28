@@ -12,6 +12,27 @@ test("validateActivityReportInput은 빈 제목과 내용을 거부한다", () =
     expect(result.fieldErrors.content).toBe("내용을 입력해주세요");
 });
 
+test("validateActivityReportInput은 공백만 있는 제목과 내용을 빈 값으로 거부한다", () => {
+    const result = validateActivityReportInput({
+        title: "  ",
+        content: "          ",
+    });
+
+    expect(result.isValid).toBe(false);
+    expect(result.fieldErrors.title).toBe("제목을 입력해주세요");
+    expect(result.fieldErrors.content).toBe("내용을 입력해주세요");
+});
+
+test("validateActivityReportInput은 trim 후 길이를 검증한다", () => {
+    const result = validateActivityReportInput({
+        title: " 가 ",
+        content: "  123456789  ",
+    });
+
+    expect(result.fieldErrors.title).toBe("제목은 최소 2자 이상이어야 합니다");
+    expect(result.fieldErrors.content).toBe("내용은 최소 10자 이상이어야 합니다");
+});
+
 test("validateActivityReportInput은 제목 길이와 내용 최소 길이를 검증한다", () => {
     const result = validateActivityReportInput({
         title: "가",

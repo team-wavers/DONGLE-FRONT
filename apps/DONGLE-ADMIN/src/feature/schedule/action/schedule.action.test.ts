@@ -51,6 +51,10 @@ vi.mock("next/cache", () => ({
     revalidateTag: vi.fn(),
 }));
 
+function asSuccess<T>(result: T) {
+    return { isSuccess: true as const, result };
+}
+
 describe("schedule actions", () => {
     const apiSchedule = {
         id: 7,
@@ -73,7 +77,7 @@ describe("schedule actions", () => {
     });
 
     test("회장 일정 생성은 폼 값을 검증해 payload로 변환하고 ActionResult 성공 응답을 반환한다", async () => {
-        vi.mocked(createClubScheduleService).mockResolvedValue(apiSchedule);
+        vi.mocked(createClubScheduleService).mockResolvedValue(asSuccess(apiSchedule));
 
         const result = await createClubScheduleAction(1, {
             title: " CMUX 일정 ",
@@ -133,7 +137,7 @@ describe("schedule actions", () => {
             club_id: null,
             club: null,
         };
-        vi.mocked(createAdminCommonClubScheduleService).mockResolvedValue(commonSchedule);
+        vi.mocked(createAdminCommonClubScheduleService).mockResolvedValue(asSuccess(commonSchedule));
 
         const result = await createAdminCommonClubScheduleAction({
             title: " 공통 행사 ",
@@ -221,7 +225,7 @@ describe("schedule actions", () => {
             club: null,
             title: "수정된 공통 행사",
         };
-        vi.mocked(updateAdminClubScheduleService).mockResolvedValue(commonSchedule);
+        vi.mocked(updateAdminClubScheduleService).mockResolvedValue(asSuccess(commonSchedule));
 
         const result = await updateAdminClubScheduleAction(7, {
             title: " 수정된 공통 행사 ",
@@ -269,7 +273,7 @@ describe("schedule actions", () => {
                 category: "학술분과",
             },
         };
-        vi.mocked(updateAdminClubScheduleService).mockResolvedValue(adminSchedule);
+        vi.mocked(updateAdminClubScheduleService).mockResolvedValue(asSuccess(adminSchedule));
 
         const result = await updateAdminClubScheduleAction(7, {
             title: "수정된 동아리 행사",
@@ -297,15 +301,17 @@ describe("schedule actions", () => {
     });
 
     test("관리자 일정 공개 상태 변경 성공 시 ActionResult data를 반환한다", async () => {
-        vi.mocked(updateAdminClubScheduleStatusService).mockResolvedValue({
-            ...apiSchedule,
-            is_public: false,
-            club: {
-                id: 1,
-                name: "CMUX",
-                category: "학술분과",
-            },
-        });
+        vi.mocked(updateAdminClubScheduleStatusService).mockResolvedValue(
+            asSuccess({
+                ...apiSchedule,
+                is_public: false,
+                club: {
+                    id: 1,
+                    name: "CMUX",
+                    category: "학술분과",
+                },
+            })
+        );
 
         const result = await updateAdminClubScheduleStatusAction(7, false);
 
@@ -331,7 +337,7 @@ describe("schedule actions", () => {
                 category: "학술분과",
             },
         };
-        vi.mocked(getAdminClubScheduleCalendarService).mockResolvedValue([adminSchedule]);
+        vi.mocked(getAdminClubScheduleCalendarService).mockResolvedValue(asSuccess([adminSchedule]));
 
         const result = await getAdminClubScheduleCalendarAction({
             from: "2026-06-01 00:00:00",
@@ -349,14 +355,16 @@ describe("schedule actions", () => {
     });
 
     test("관리자 일정 삭제 성공 시 관리자 일정 삭제 서비스와 일정 태그 초기화를 호출한다", async () => {
-        vi.mocked(getAdminClubScheduleService).mockResolvedValue({
-            ...apiSchedule,
-            club: {
-                id: 1,
-                name: "CMUX",
-                category: "학술분과",
-            },
-        });
+        vi.mocked(getAdminClubScheduleService).mockResolvedValue(
+            asSuccess({
+                ...apiSchedule,
+                club: {
+                    id: 1,
+                    name: "CMUX",
+                    category: "학술분과",
+                },
+            })
+        );
         vi.mocked(deleteAdminClubScheduleService).mockResolvedValue({
             isSuccess: true,
             result: { affected: 1 },
@@ -372,11 +380,13 @@ describe("schedule actions", () => {
     });
 
     test("관리자 공통 일정 삭제 성공 시 공통 일정 태그만 초기화하고 club-null 태그를 만들지 않는다", async () => {
-        vi.mocked(getAdminClubScheduleService).mockResolvedValue({
-            ...apiSchedule,
-            club_id: null,
-            club: null,
-        });
+        vi.mocked(getAdminClubScheduleService).mockResolvedValue(
+            asSuccess({
+                ...apiSchedule,
+                club_id: null,
+                club: null,
+            })
+        );
         vi.mocked(deleteAdminClubScheduleService).mockResolvedValue({
             isSuccess: true,
             result: { affected: 1 },
@@ -422,14 +432,16 @@ describe("schedule actions", () => {
     });
 
     test("관리자 일정 삭제 서비스 실패 시 실패 응답을 반환하고 태그를 초기화하지 않는다", async () => {
-        vi.mocked(getAdminClubScheduleService).mockResolvedValue({
-            ...apiSchedule,
-            club: {
-                id: 1,
-                name: "CMUX",
-                category: "학술분과",
-            },
-        });
+        vi.mocked(getAdminClubScheduleService).mockResolvedValue(
+            asSuccess({
+                ...apiSchedule,
+                club: {
+                    id: 1,
+                    name: "CMUX",
+                    category: "학술분과",
+                },
+            })
+        );
         vi.mocked(deleteAdminClubScheduleService).mockResolvedValue({
             isSuccess: false,
             error: {

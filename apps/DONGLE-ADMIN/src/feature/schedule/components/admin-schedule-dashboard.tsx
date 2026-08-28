@@ -160,6 +160,7 @@ export default function AdminScheduleDashboard({
         () => getMonthCalendarDates(visibleMonth.getFullYear(), visibleMonth.getMonth()),
         [visibleMonth]
     );
+    const visibleMonthKey = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, "0")}`;
     const calendarDateKeys = useMemo(() => calendarDates.map(getScheduleCalendarDateKey), [calendarDates]);
     const calendarScheduleIndex = useMemo(
         () => buildScheduleCalendarIndex(filteredSchedules, calendarDateKeys),
@@ -402,7 +403,7 @@ export default function AdminScheduleDashboard({
                                 {calendarDates.map((date, index) => {
                                     const dateKey = calendarDateKeys[index];
                                     const daySchedules = calendarScheduleIndex.get(dateKey) ?? [];
-                                    const isCurrentMonth = date.getMonth() === visibleMonth.getMonth();
+                                    const isCurrentMonth = dateKey.startsWith(`${visibleMonthKey}-`);
                                     const isSelected = dateKey === selectedDateKey;
 
                                     return (
@@ -418,7 +419,7 @@ export default function AdminScheduleDashboard({
                                                 isSelected ? "bg-sky-50 ring-2 ring-inset ring-sky-500" : "",
                                                 isCurrentMonth ? "text-zinc-900" : "text-zinc-300",
                                             ].join(" ")}>
-                                            <span className="text-sm font-semibold">{date.getDate()}</span>
+                                            <span className="text-sm font-semibold">{Number(dateKey.slice(8, 10))}</span>
                                             <div className="mt-2 flex flex-col gap-1">
                                                 {daySchedules.slice(0, 3).map((schedule) => (
                                                     <span

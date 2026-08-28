@@ -173,4 +173,25 @@ describe("clubScheduleSchema", () => {
             externalUrl: "https://dongle.kr/schedule",
         });
     });
+
+    it("timezone 없는 일정 일시는 Seoul wall-clock을 유지한다", () => {
+        const values = createClubScheduleDefaultValues({
+            id: 7,
+            clubId: 1,
+            clubName: "CMUX",
+            category: "학술분과",
+            title: "기존 일정",
+            type: "regular_meeting",
+            startsAt: "2026-05-20 19:00:00",
+            endsAt: "2026-05-20 21:00:00",
+            isPublic: true,
+            location: "",
+            description: "",
+        });
+
+        expect(values).toMatchObject({
+            startsAt: "2026-05-20T19:00",
+            endsAt: "2026-05-20T21:00",
+        });
+    });
 });

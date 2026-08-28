@@ -6,7 +6,13 @@ import { getAdminClubScheduleCalendarService } from "@dongle/service";
 
 export default async function AdminSchedulePage() {
     const initialVisibleMonth = new Date();
-    const schedules = await getAdminClubScheduleCalendarService(getMonthScheduleQuery(initialVisibleMonth));
+    const scheduleResponse = await getAdminClubScheduleCalendarService(getMonthScheduleQuery(initialVisibleMonth));
+
+    if (!scheduleResponse.isSuccess) {
+        throw new Error(scheduleResponse.error.detail || scheduleResponse.error.message);
+    }
+
+    const schedules = scheduleResponse.result;
 
     return (
         <div className="flex h-full w-full flex-col">

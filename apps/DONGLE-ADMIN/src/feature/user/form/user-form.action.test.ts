@@ -56,3 +56,30 @@ test("submitUserCreateAction은 관리자 계정을 생성한다", async () => {
     });
     expect(revalidateTag).toHaveBeenCalledWith("user");
 });
+
+test("submitUserCreateAction은 생성 비밀번호를 trim 후 전송한다", async () => {
+    vi.mocked(createUserService).mockResolvedValue({
+        isSuccess: true,
+        result: {
+            id: 1,
+            name: "운영자",
+            login_id: "ops.admin",
+            password: "hashed-password",
+            role: "admin",
+            phone: "010-1234-5678",
+            refresh_token: "",
+            created_at: "2026-04-22T00:00:00.000Z",
+            updated_at: "2026-04-22T00:00:00.000Z",
+            deleted_at: null,
+        },
+    });
+
+    await submitUserCreateAction({
+        name: "운영자",
+        login_id: "ops.admin",
+        password: " password ",
+        phone: "010-1234-5678",
+    });
+
+    expect(createUserService).toHaveBeenCalledWith(expect.objectContaining({ password: "password" }));
+});

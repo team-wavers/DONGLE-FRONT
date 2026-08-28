@@ -25,7 +25,13 @@ export default async function PublicSchedulesPage({ searchParams }: PublicSchedu
     const monthKey = getPublicScheduleMonthKey(params?.month);
     let loadFailed = false;
     const schedules = await getPublicClubScheduleCalendarService(getPublicScheduleMonthQuery(monthKey))
-        .then((items) => items.map(mapPublicCalendarScheduleToPublicSchedule))
+        .then((response) => {
+            if (!response.isSuccess) {
+                throw new Error(response.error.detail || response.error.message);
+            }
+
+            return response.result.map(mapPublicCalendarScheduleToPublicSchedule);
+        })
         .catch(() => {
             loadFailed = true;
             return [];

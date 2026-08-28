@@ -7,8 +7,6 @@ vi.mock("next/cache", () => ({
     revalidateTag: vi.fn(),
 }));
 
-const ORIGINAL_ENV = { ...process.env };
-
 function buildRequest(body: unknown, secret?: string) {
     return new NextRequest("https://client.example.com/api/revalidate", {
         method: "POST",
@@ -19,11 +17,11 @@ function buildRequest(body: unknown, secret?: string) {
 
 describe("POST /api/revalidate", () => {
     beforeEach(() => {
-        process.env.REVALIDATE_SECRET = "test-secret";
+        vi.stubEnv("REVALIDATE_SECRET", "test-secret");
     });
 
     afterEach(() => {
-        process.env = { ...ORIGINAL_ENV };
+        vi.unstubAllEnvs();
         vi.clearAllMocks();
     });
 

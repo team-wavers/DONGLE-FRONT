@@ -83,6 +83,18 @@ test("validateClubForm은 모집 종료일이 시작일보다 이르면 실패�
     expect(result.fieldErrors.recruitmentEndDate).toBe("모집 마감일은 모집 시작일보다 늦어야 합니다");
 });
 
+test("validateClubForm은 모집 시작일과 종료일이 같으면 실패한다", () => {
+    const result = validateClubForm(
+        createFormData({
+            recruitmentStartDate: "2026-04-30",
+            recruitmentEndDate: "2026-04-30",
+        })
+    );
+
+    expect(result.isValid).toBe(false);
+    expect(result.fieldErrors.recruitmentEndDate).toBe("모집 마감일은 모집 시작일보다 늦어야 합니다");
+});
+
 test("validateClubForm은 빈 rich text 소개와 주요 활동을 거부한다", () => {
     const result = validateClubForm(
         createFormData({
