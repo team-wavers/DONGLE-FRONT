@@ -38,6 +38,12 @@
 - 실제 제출 후 목록/상세 반영 확인
 - 실제 라우팅 연결 확인
 
+## 프론트 BFF로 닫히지 않는 잔여 리스크
+
+- 미들웨어 JWT 서명 검증은 `JWT_SECRET`이 ADMIN 런타임에 백엔드와 같게 설정되어야 한다. 시크릿 부재 시 fail-closed라 유효 세션도 로그인으로 보낸다.
+- 업로드 매직바이트는 앞 12바이트만 보며, 백엔드/CDN이 SVG를 다른 확장자로 서빙하면 XSS 여부는 스토리지 Content-Type에 남는다.
+- `delete-report-form.action.ts` / `delete-main-banner.action.ts`는 이번 범위 밖이라 role/club 가드가 토큰 존재 검사만 한다.
+
 ## 지금 하지 않는 것
 
 - E2E를 늘리기 위한 하네스 확장

@@ -65,6 +65,23 @@ test("서비스 실패 분기에서 동일한 규약 응답을 반환한다", as
     });
 });
 
+test("서비스 401이면 sessionExpired를 반환하고 태그를 초기화하지 않는다", async () => {
+    vi.spyOn(reportActionNetwork, "uploadImages").mockResolvedValue([]);
+    vi.spyOn(reportActionNetwork, "updateReport").mockResolvedValue({
+        isSuccess: false,
+        result: undefined,
+        error: { status: 401, message: "Unauthorized", detail: "Unauthorized" },
+    });
+
+    const result = await submitActivityReportUpdateAction(makeInput());
+
+    expect(result).toMatchObject({
+        ok: false,
+        sessionExpired: true,
+    });
+    expect(revalidateTag).not.toHaveBeenCalled();
+});
+
 test("수정 성공 시 보고서 목록, 동아리, 단건 태그를 초기화한다", async () => {
     vi.spyOn(reportActionNetwork, "uploadImages").mockResolvedValue([]);
     vi.spyOn(reportActionNetwork, "updateReport").mockResolvedValue({

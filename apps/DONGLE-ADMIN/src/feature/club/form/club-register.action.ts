@@ -1,16 +1,16 @@
 "use server";
 
 import { createClubService, updateClubService, uploadClubIconService } from "@dongle/service/club/club.service";
-import { createUserService } from "@dongle/service/user/user.service";
+import { createUserService, deleteUserService } from "@dongle/service/user/user.service";
 import { clubTagGroups, userTagGroups } from "@dongle/service";
 import type { CreateClubRequest } from "@dongle/types/club/club.response";
-import { normalizeSocialUrl } from "@dongle/ui/utils";
+import { normalizeSocialUrl } from "@dongle/utils";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import { clubRegisterSchema, splitTags, type ClubRegisterField, type ClubRegisterFormValues } from "./club-register.schema";
 import { actionFailure, actionSuccess, getServiceErrorMessage, getZodFieldErrors, type ActionResult } from "@/shared/action";
-import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
+import { cookies } from "next/headers";
 
 export interface ClubRegisterSuccessData {
     tempId: string;
@@ -71,8 +71,6 @@ export async function submitClubRegisterAction(
     }
 
     try {
-        await requireServerActionAccessToken();
-
         const tempId = generateTempId();
         const tempPassword = tempId;
         const data = parsed.data;
@@ -112,8 +110,11 @@ export async function submitClubRegisterAction(
         const club = await createClubService(clubPayload);
 
         if (!club.isSuccess) {
+            const compensation = await deleteUserService(user.result.id);
             return actionFailure({
-                formError: getServiceErrorMessage(club.error, "동아리 등록에 실패했습니다. 다시 시도해주세요."),
+                formError: compensation.isSuccess
+                    ? getServiceErrorMessage(club.error, "동아리 등록에 실패했습니다. 다시 시도해주세요.")
+                    : "동아리 등록과 생성된 회장 계정 정리에 실패했습니다. 관리자에게 문의해주세요.",
             });
         }
 
@@ -149,22 +150,25 @@ export async function submitClubRegisterAction(
             revalidateTags(clubTagGroups.list());
         }
 
-        return actionSuccess({
-            data: {
+        const flashData = {
                 tempId,
                 tempPassword,
                 clubName: data.clubName,
                 warningMessage,
-            },
+        };
+        const cookieStore = await cookies();
+        cookieStore.set("clubRegisterSuccess", Buffer.from(JSON.stringify(flashData)).toString("base64url"), {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            path: "/club-register/register-success",
+            maxAge: 300,
+        });
+
+        return actionSuccess({
+            redirectTo: "/club-register/register-success",
         });
     } catch (error) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return actionFailure({
-                formError: "로그인 시간이 만료되었습니다. 다시 로그인해주세요.",
-                sessionExpired: true,
-            });
-        }
-
         captureServerException(error, "동아리 등록 중 오류", {
             action: "submitClubRegisterAction",
             registrationKey: key,

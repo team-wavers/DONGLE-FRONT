@@ -12,14 +12,18 @@ import {
 } from "@/shared/action";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
+import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
+import { getSessionExpiredActionFailure } from "@/shared/action";
 
 export async function deleteClubAction(clubId: number): Promise<ActionResult<string, null>> {
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ role: AUTH_ROLE.ADMIN });
 
         const result = await deleteClubService(clubId);
 
         if (!result.isSuccess) {
+            const expired = getSessionExpiredActionFailure(result.error);
+            if (expired) return actionFailure(expired);
             return actionFailure({
                 formError: getServiceErrorMessage(result.error, "동아리 삭제에 실패했습니다. 다시 시도해주세요."),
             });
@@ -33,6 +37,8 @@ export async function deleteClubAction(clubId: number): Promise<ActionResult<str
             redirectTo: "/admin/club",
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "동아리 삭제 중 오류", {
             action: "deleteClubAction",
             clubId,

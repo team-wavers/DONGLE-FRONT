@@ -1,3 +1,5 @@
+import { isSessionExpiredError } from "@/shared/action/session-expired";
+
 type ReportActionErrorBranch = "auth" | "upload" | "service" | "exception";
 
 export type ReportActionErrorResult = {
@@ -60,5 +62,5 @@ export function buildReportActionError({
 }
 
 export function isUnauthorizedError(error: unknown): boolean {
-    return error instanceof Error && error.message === "Unauthorized";
+    return isSessionExpiredError(error);
 }

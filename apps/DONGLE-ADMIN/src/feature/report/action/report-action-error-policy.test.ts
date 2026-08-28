@@ -27,8 +27,9 @@ describe("buildReportActionError", () => {
 });
 
 describe("isUnauthorizedError", () => {
-    test("Unauthorized 에러만 true", () => {
+    test("Unauthorized 에러와 HTTP 401을 세션 만료로 본다", () => {
         expect(isUnauthorizedError(new Error("Unauthorized"))).toBe(true);
+        expect(isUnauthorizedError({ status: 401 })).toBe(true);
         expect(isUnauthorizedError(new Error("Other"))).toBe(false);
         expect(isUnauthorizedError("Unauthorized")).toBe(false);
     });

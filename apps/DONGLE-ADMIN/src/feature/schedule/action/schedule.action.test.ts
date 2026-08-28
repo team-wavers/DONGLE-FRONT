@@ -431,6 +431,22 @@ describe("schedule actions", () => {
         expect(revalidateTag).not.toHaveBeenCalled();
     });
 
+    test("회장 일정 삭제 서비스 401이면 sessionExpired를 반환하고 태그를 초기화하지 않는다", async () => {
+        vi.mocked(deleteClubScheduleService).mockResolvedValue({
+            isSuccess: false,
+            error: {
+                status: 401,
+                message: "Unauthorized",
+                detail: "Unauthorized",
+            },
+        } as Awaited<ReturnType<typeof deleteClubScheduleService>>);
+
+        const result = await deleteClubScheduleAction(1, 7);
+
+        expect(result).toMatchObject({ ok: false, sessionExpired: true });
+        expect(revalidateTag).not.toHaveBeenCalled();
+    });
+
     test("관리자 일정 삭제 서비스 실패 시 실패 응답을 반환하고 태그를 초기화하지 않는다", async () => {
         vi.mocked(getAdminClubScheduleService).mockResolvedValue(
             asSuccess({
