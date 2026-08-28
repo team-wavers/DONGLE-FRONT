@@ -12,6 +12,7 @@ import {
     updateAdminClubScheduleStatusService,
     updateClubScheduleService,
 } from "@dongle/service";
+import type { Response } from "@dongle/types/response";
 import type {
     AdminClubSchedule,
     AdminClubScheduleCalendarQuery,
@@ -50,6 +51,14 @@ function revalidateScheduleTags(clubId?: number | null, scheduleId?: number) {
     revalidateTags(clubScheduleTagGroups.list());
 }
 
+function unwrapScheduleResponse<T>(response: Response<T>, fallbackMessage: string): T {
+    if (!response.isSuccess) {
+        throw new Error(getServiceErrorMessage(response.error, fallbackMessage));
+    }
+
+    return response.result;
+}
+
 export async function createClubScheduleAction(
     clubId: number,
     values: ClubScheduleFormValues
@@ -73,7 +82,10 @@ export async function createClubScheduleAction(
         await requireServerActionAccessToken();
 
         const payload = buildClubSchedulePayload(parsed.data);
-        const result = await createClubScheduleService(clubId, payload);
+        const result = unwrapScheduleResponse(
+            await createClubScheduleService(clubId, payload),
+            "일정 등록에 실패했습니다. 다시 시도해주세요."
+        );
         revalidateScheduleTags(clubId, result.id);
 
         return actionSuccess({
@@ -107,7 +119,10 @@ export async function createAdminCommonClubScheduleAction(
         await requireServerActionAccessToken();
 
         const payload = buildClubSchedulePayload(parsed.data);
-        const result = await createAdminCommonClubScheduleService(payload);
+        const result = unwrapScheduleResponse(
+            await createAdminCommonClubScheduleService(payload),
+            "공통 일정 등록에 실패했습니다. 다시 시도해주세요."
+        );
         revalidateScheduleTags(result.club_id, result.id);
 
         return actionSuccess({
@@ -148,7 +163,10 @@ export async function updateClubScheduleAction(
         await requireServerActionAccessToken();
 
         const payload = buildClubSchedulePayload(parsed.data);
-        const result = await updateClubScheduleService(clubId, scheduleId, payload);
+        const result = unwrapScheduleResponse(
+            await updateClubScheduleService(clubId, scheduleId, payload),
+            "일정 수정에 실패했습니다. 다시 시도해주세요."
+        );
         revalidateScheduleTags(clubId, scheduleId);
 
         return actionSuccess({
@@ -190,7 +208,10 @@ export async function updateAdminClubScheduleAction(
         await requireServerActionAccessToken();
 
         const payload = buildClubSchedulePayload(parsed.data);
-        const result = await updateAdminClubScheduleService(scheduleId, payload);
+        const result = unwrapScheduleResponse(
+            await updateAdminClubScheduleService(scheduleId, payload),
+            "일정 수정에 실패했습니다. 다시 시도해주세요."
+        );
         revalidateScheduleTags(result.club_id, scheduleId);
 
         return actionSuccess({
@@ -260,7 +281,10 @@ export async function updateAdminClubScheduleStatusAction(
     try {
         await requireServerActionAccessToken();
 
-        const result = await updateAdminClubScheduleStatusService(scheduleId, { is_public: isPublic });
+        const result = unwrapScheduleResponse(
+            await updateAdminClubScheduleStatusService(scheduleId, { is_public: isPublic }),
+            "공개 상태 변경에 실패했습니다. 다시 시도해주세요."
+        );
         revalidateScheduleTags(result.club_id, scheduleId);
 
         return actionSuccess({
@@ -287,7 +311,10 @@ export async function deleteAdminClubScheduleAction(scheduleId: number): Promise
     try {
         await requireServerActionAccessToken();
 
-        const schedule = await getAdminClubScheduleService(scheduleId);
+        const schedule = unwrapScheduleResponse(
+            await getAdminClubScheduleService(scheduleId),
+            "일정 정보를 불러오지 못했습니다."
+        );
         const result = await deleteAdminClubScheduleService(scheduleId);
 
         if (!result.isSuccess) {
@@ -319,7 +346,10 @@ export async function getAdminClubScheduleCalendarAction(
     try {
         await requireServerActionAccessToken();
 
-        const result = await getAdminClubScheduleCalendarService(query);
+        const result = unwrapScheduleResponse(
+            await getAdminClubScheduleCalendarService(query),
+            "월간 일정 조회에 실패했습니다. 다시 시도해주세요."
+        );
 
         return actionSuccess({
             data: result,

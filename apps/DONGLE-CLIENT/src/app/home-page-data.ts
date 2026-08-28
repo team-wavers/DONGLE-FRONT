@@ -4,7 +4,7 @@ import {
     getPublicMainBannerListService,
 } from "@/lib/server/cached-services";
 
-export async function loadHomePageViewData() {
+export async function loadHomePageViewData(now = new Date()) {
     const [clubListResponse, mainBannerResponse] = await Promise.allSettled([
         getClubListService(),
         getPublicMainBannerListService(),
@@ -27,7 +27,7 @@ export async function loadHomePageViewData() {
             : [];
     const banners =
         mainBannerResult?.isSuccess && mainBannerResult.result
-            ? getDisplayMainBannerItems(mainBannerResult.result)
+            ? getDisplayMainBannerItems(mainBannerResult.result, now)
             : [];
 
     return { clubs, banners, clubsLoadFailed };

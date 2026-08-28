@@ -1,4 +1,4 @@
-import { createSyntheticErrorResponse } from "./handle-error-response";
+import { createSyntheticErrorResponse, summarizeRequestPayload } from "./handle-error-response";
 
 interface ParseJsonOrSyntheticParams {
     response: Response;
@@ -14,7 +14,13 @@ export async function parseJsonOrSynthetic<T = unknown>({
     method,
 }: ParseJsonOrSyntheticParams): Promise<T> {
     try {
-        const body = await response.json();
+        const rawBody = await response.text();
+
+        if (response.ok && rawBody.trim() === "") {
+            return { isSuccess: true, result: null } as T;
+        }
+
+        const body = JSON.parse(rawBody) as unknown;
 
         if (
             body &&
@@ -29,7 +35,7 @@ export async function parseJsonOrSynthetic<T = unknown>({
                 body,
                 url,
                 method,
-                requestPayload,
+                request: summarizeRequestPayload(requestPayload),
             });
 
             return {
@@ -47,7 +53,7 @@ export async function parseJsonOrSynthetic<T = unknown>({
             error,
             url,
             method,
-            requestPayload,
+            request: summarizeRequestPayload(requestPayload),
         });
 
         return createSyntheticErrorResponse({

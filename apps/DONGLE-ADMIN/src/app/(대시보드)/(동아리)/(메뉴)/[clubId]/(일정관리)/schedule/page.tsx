@@ -6,7 +6,12 @@ export default async function Page({ params }: { params: Promise<{ clubId: strin
     const { clubId } = await params;
     const clubIdNumber = Number(clubId);
     const scheduleResponse = await getClubScheduleListService(clubIdNumber);
-    const schedules = scheduleResponse.map((schedule) => mapClubScheduleToClubSchedule(schedule));
+
+    if (!scheduleResponse.isSuccess) {
+        throw new Error(scheduleResponse.error.detail || scheduleResponse.error.message);
+    }
+
+    const schedules = scheduleResponse.result.map((schedule) => mapClubScheduleToClubSchedule(schedule));
 
     return <ClubScheduleManager clubId={clubId} initialSchedules={schedules} />;
 }

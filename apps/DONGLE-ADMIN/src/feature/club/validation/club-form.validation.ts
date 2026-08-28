@@ -121,7 +121,7 @@ export function validateClubForm(
         const startDate = new Date(formData.recruitmentStartDate);
         const endDate = new Date(formData.recruitmentEndDate);
 
-        if (startDate > endDate) {
+        if (startDate >= endDate) {
             fieldErrors.recruitmentEndDate = "모집 마감일은 모집 시작일보다 늦어야 합니다";
         }
     }

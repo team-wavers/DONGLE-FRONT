@@ -11,7 +11,7 @@ import {
 const userFormBaseSchema = z.object({
     name: z.string().transform(trimToEmpty),
     login_id: z.string().transform(trimToEmpty),
-    password: z.string(),
+    password: z.string().transform(trimToEmpty),
     phone: z.string().transform(trimToEmpty),
 });
 

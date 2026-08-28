@@ -289,6 +289,37 @@ export function parseMonthKey(monthKey: string) {
     return new Date(year, month - 1, 1);
 }
 
+export function getCalendarGridDates(year: number, monthIndex: number, options?: DateTimeFormatOptions) {
+    const firstDate = new Date(Date.UTC(year, monthIndex, 1));
+    const startDate = new Date(firstDate);
+    startDate.setUTCDate(firstDate.getUTCDate() - firstDate.getUTCDay());
+
+    return Array.from({ length: 42 }, (_, index) => {
+        const calendarDate = new Date(startDate);
+        calendarDate.setUTCDate(startDate.getUTCDate() + index);
+
+        if (!options?.timeZone) {
+            return new Date(
+                calendarDate.getUTCFullYear(),
+                calendarDate.getUTCMonth(),
+                calendarDate.getUTCDate()
+            );
+        }
+
+        const dateKey = [
+            calendarDate.getUTCFullYear(),
+            padDatePart(calendarDate.getUTCMonth() + 1),
+            padDatePart(calendarDate.getUTCDate()),
+        ].join("-");
+
+        return new Date(getTimeZoneLocalTimestamp(getDateTimeInputParts(`${dateKey} 00:00:00`), options.timeZone));
+    });
+}
+
+export function isDateKeyWithinRange(dateKey: string, startKey: string, endKey: string) {
+    return Boolean(dateKey && startKey && endKey) && startKey <= dateKey && dateKey <= endKey;
+}
+
 export function getMonthDateTimeRange(date: Date, options?: DateTimeFormatOptions) {
     if (!options?.timeZone) {
         const year = date.getFullYear();

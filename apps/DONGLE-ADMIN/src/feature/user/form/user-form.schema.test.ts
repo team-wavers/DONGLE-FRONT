@@ -28,7 +28,7 @@ describe("userCreateSchema", () => {
         expect(result.data).toMatchObject({
             name: "운영자",
             login_id: "admin",
-            password: " password ",
+            password: "password",
             phone: "010-1234-5678",
         });
     });

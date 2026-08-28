@@ -9,6 +9,7 @@ interface MakeRequestParams {
     baseUrl: string;
     refreshToken: () => Promise<{ success: boolean; accessToken?: string }>;
     accessTokenOverride?: string;
+    hasRetried?: boolean;
 }
 
 export function shouldAttemptTokenRefresh({
@@ -46,6 +47,7 @@ export async function makeRequest({
     baseUrl,
     refreshToken,
     accessTokenOverride,
+    hasRetried = false,
 }: MakeRequestParams): Promise<Response> {
     const isClient = typeof window !== "undefined";
 
@@ -93,7 +95,7 @@ export async function makeRequest({
         shouldAttemptTokenRefresh({
             status: response.status,
             skipAuthRefresh,
-            hasRetried: accessTokenOverride !== undefined,
+            hasRetried,
         })
     ) {
         const refreshResult = await refreshToken();
@@ -107,6 +109,7 @@ export async function makeRequest({
                 baseUrl,
                 refreshToken,
                 accessTokenOverride: refreshResult.accessToken,
+                hasRetried: true,
             });
         }
     }

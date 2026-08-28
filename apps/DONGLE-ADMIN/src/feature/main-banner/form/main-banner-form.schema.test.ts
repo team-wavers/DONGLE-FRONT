@@ -101,4 +101,19 @@ describe("createMainBannerDefaultValues", () => {
             is_active: false,
         });
     });
+
+    test("timezone 없는 게시 일시는 Seoul wall-clock을 유지한다", () => {
+        const values = createMainBannerDefaultValues({
+            image_url: "https://cdn.test/banner.png",
+            link_url: null,
+            publish_start_at: "2026-05-20 10:00:00",
+            publish_end_at: "2026-05-20 18:00:00",
+            is_active: true,
+        });
+
+        expect(values).toMatchObject({
+            publish_start_at: "2026-05-20T10:00",
+            publish_end_at: "2026-05-20T18:00",
+        });
+    });
 });
