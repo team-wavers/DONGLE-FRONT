@@ -62,8 +62,8 @@ describe("sanitizeDongleAnalyticsProperties", () => {
 });
 
 describe("trackDongleEvent", () => {
-    it("브라우저 환경이 아니면 PostHog capture를 호출하지 않는다", () => {
-        trackDongleEvent("social_link_click", {
+    it("브라우저 환경이 아니면 PostHog capture를 호출하지 않는다", async () => {
+        await trackDongleEvent("social_link_click", {
             club_id: 12,
             club_name: "동글동아리",
             platform: "instagram",
@@ -73,10 +73,10 @@ describe("trackDongleEvent", () => {
         expect(capture).not.toHaveBeenCalled();
     });
 
-    it("브라우저 환경에서는 정규화된 이벤트만 전송한다", () => {
+    it("브라우저 환경에서는 정규화된 이벤트만 전송한다", async () => {
         vi.stubGlobal("window", {});
 
-        trackDongleEvent("schedule_external_link_click", {
+        await trackDongleEvent("schedule_external_link_click", {
             club_id: 12,
             club_name: "동글동아리",
             destination: "https://dongle.kr/schedule",

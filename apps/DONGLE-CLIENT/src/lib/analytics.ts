@@ -1,5 +1,3 @@
-import posthog from "posthog-js";
-
 export type DongleAnalyticsEventName =
     | "banner_click"
     | "club_card_click"
@@ -106,7 +104,14 @@ export function sanitizeDongleAnalyticsProperties(
     }, {});
 }
 
-export function trackDongleEvent<EventName extends DongleAnalyticsEventName>(
+let posthogModulePromise: Promise<typeof import("posthog-js")> | null = null;
+
+function loadPostHog() {
+    posthogModulePromise ??= import("posthog-js");
+    return posthogModulePromise;
+}
+
+export async function trackDongleEvent<EventName extends DongleAnalyticsEventName>(
     eventName: EventName,
     properties: DongleAnalyticsProperties[EventName]
 ) {
@@ -114,5 +119,6 @@ export function trackDongleEvent<EventName extends DongleAnalyticsEventName>(
         return;
     }
 
+    const { default: posthog } = await loadPostHog();
     posthog.capture(eventName, sanitizeDongleAnalyticsProperties(eventName, properties));
 }
