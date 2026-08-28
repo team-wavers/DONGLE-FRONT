@@ -8,7 +8,7 @@ const isSentryDisabled = isSentryDisabledByEnv();
 Sentry.init({
   dsn: sentryDsn,
   enabled: Boolean(sentryDsn) && !isSentryDisabled,
-  sendDefaultPii: true,
+  sendDefaultPii: false,
   environment: sentryEnvironment,
   release: process.env.SENTRY_RELEASE,
   tracesSampleRate: isSentryDisabled ? 0 : 0.1,

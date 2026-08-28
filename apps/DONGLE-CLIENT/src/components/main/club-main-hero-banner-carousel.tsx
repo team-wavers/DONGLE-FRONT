@@ -78,7 +78,8 @@ export default function ClubMainHeroBannerCarousel({ banners }: ClubMainHeroBann
                                     alt={`메인 배너 ${index + 1}`}
                                     className="aspect-[3/1] w-full object-cover"
                                     sizes="(max-width: 1024px) calc(100vw - 48px), 976px"
-                                    loading={index === 0 ? "eager" : "lazy"}
+                                    priority={index === 0}
+                                    loading={index === 0 ? undefined : "lazy"}
                                 />
                                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-900/45 via-zinc-900/10 to-transparent" />
                             </div>
