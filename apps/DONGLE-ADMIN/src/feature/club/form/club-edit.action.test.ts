@@ -78,4 +78,19 @@ describe("submitClubEditAction", () => {
         expect(revalidateTag).toHaveBeenCalledWith("club");
         expect(revalidateTag).toHaveBeenCalledWith("club-11");
     });
+
+    test("서비스 401이면 sessionExpired를 반환하고 태그를 초기화하지 않는다", async () => {
+        vi.mocked(updateClubService).mockResolvedValue({
+            isSuccess: false,
+            error: { status: 401, message: "Unauthorized", detail: "Unauthorized" },
+        } as Awaited<ReturnType<typeof updateClubService>>);
+
+        const result = await submitClubEditAction({
+            clubId: "11",
+            values: createValues(),
+        });
+
+        expect(result).toMatchObject({ ok: false, sessionExpired: true });
+        expect(revalidateTag).not.toHaveBeenCalled();
+    });
 });

@@ -10,6 +10,8 @@ import { actionFailure, actionSuccess, getActionErrorMessage, getServiceErrorMes
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
+import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
+import { getSessionExpiredActionFailure, isAllowedStoredImageUrl, validateImageUpload } from "@/shared/action";
 import {
     buildMainBannerPayload,
     mainBannerSchema,
@@ -24,6 +26,8 @@ async function resolveMainBannerImageUrl(values: MainBannerFormValues): Promise<
     fieldError?: string;
 }> {
     if (values.imageFile && values.imageFile.size > 0) {
+        const validationError = await validateImageUpload(values.imageFile);
+        if (validationError) return { fieldError: validationError };
         const response = await uploadMainBannerImageService(values.imageFile);
 
         if (!response.isSuccess || !response.result?.image_url) {
@@ -38,6 +42,9 @@ async function resolveMainBannerImageUrl(values: MainBannerFormValues): Promise<
     }
 
     if (values.imageUrls[0]) {
+        if (!isAllowedStoredImageUrl(values.imageUrls[0])) {
+            return { fieldError: "허용된 이미지 저장소 URL만 사용할 수 있습니다." };
+        }
         return {
             imageUrl: values.imageUrls[0],
         };
@@ -59,7 +66,7 @@ export async function submitMainBannerCreateAction(values: MainBannerFormValues)
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ role: AUTH_ROLE.ADMIN });
 
         const { imageUrl, fieldError } = await resolveMainBannerImageUrl(parsed.data);
         if (!imageUrl) {
@@ -74,6 +81,8 @@ export async function submitMainBannerCreateAction(values: MainBannerFormValues)
         const response = await createMainBannerService(buildMainBannerPayload(parsed.data, imageUrl));
 
         if (!response.isSuccess) {
+            const expired = getSessionExpiredActionFailure(response.error);
+            if (expired) return actionFailure(expired);
             return actionFailure({
                 formError: getServiceErrorMessage(response.error, "배너 등록에 실패했습니다."),
             });
@@ -85,6 +94,8 @@ export async function submitMainBannerCreateAction(values: MainBannerFormValues)
             redirectTo: "/admin/banner",
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "배너 등록 중 오류", {
             action: "submitMainBannerCreateAction",
         });
@@ -117,7 +128,7 @@ export async function submitMainBannerUpdateAction({
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ role: AUTH_ROLE.ADMIN });
 
         const { imageUrl, fieldError } = await resolveMainBannerImageUrl(parsed.data);
         if (!imageUrl) {
@@ -132,6 +143,8 @@ export async function submitMainBannerUpdateAction({
         const response = await updateMainBannerService(bannerId, buildMainBannerPayload(parsed.data, imageUrl));
 
         if (!response.isSuccess) {
+            const expired = getSessionExpiredActionFailure(response.error);
+            if (expired) return actionFailure(expired);
             return actionFailure({
                 formError: getServiceErrorMessage(response.error, "배너 수정에 실패했습니다."),
             });
@@ -143,6 +156,8 @@ export async function submitMainBannerUpdateAction({
             redirectTo: "/admin/banner",
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "배너 수정 중 오류", {
             action: "submitMainBannerUpdateAction",
             bannerId,

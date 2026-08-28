@@ -1,16 +1,29 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { refreshTokenService } from "@dongle/service/auth/auth.service";
 import { getCookieOptions } from "@dongle/api/utils/cookie/cookie.options";
 import { getTokenExpiresIn, decodeJwtToken } from "@dongle/api/utils/jwt.util";
 
+type RefreshResponse = {
+    isSuccess: boolean;
+    result?: { accessToken: string; refreshToken?: string };
+};
+
 export async function handleTokenRefresh(request: NextRequest, refreshToken: string): Promise<NextResponse> {
     try {
-        const refreshTokenResponse = await refreshTokenService({
-            refreshToken,
-        });
+        const apiUrl = process.env.API_URL;
+        if (!apiUrl) {
+            return handleTokenRefreshFailure(request);
+        }
 
-        if (refreshTokenResponse.isSuccess) {
+        const response = await fetch(`${apiUrl}/auth/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refreshToken }),
+            cache: "no-store",
+        });
+        const refreshTokenResponse = (await response.json()) as RefreshResponse;
+
+        if (response.ok && refreshTokenResponse.isSuccess && refreshTokenResponse.result?.accessToken) {
             // JWT 토큰 파싱 (만료 시간 및 사용자 정보 추출용)
             const accessTokenPayload = decodeJwtToken(refreshTokenResponse.result.accessToken);
             const refreshTokenPayload = refreshTokenResponse.result.refreshToken

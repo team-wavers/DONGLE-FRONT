@@ -25,25 +25,7 @@ export function useClubRegisterForm(registrationKey: string) {
     form,
     invalidMessage: "모든 항목을 작성해주세요.",
     action: (values) => submitClubRegisterAction(registrationKey, values),
-    onSessionExpired: () => {
-      router.push(`/login?expired=true&returnTo=${encodeURIComponent(`/club-register/${registrationKey}`)}`);
-    },
     onSuccess: ({ result }) => {
-      if (result.data) {
-        const encoded = btoa(
-          encodeURIComponent(
-            JSON.stringify({
-              tempId: result.data.tempId,
-              tempPassword: result.data.tempPassword,
-              clubName: result.data.clubName,
-              warningMessage: result.data.warningMessage,
-            })
-          )
-        );
-        router.push(`/club-register/register-success?data=${encodeURIComponent(encoded)}`);
-        return;
-      }
-
       toast.success(result.message ?? "동아리 등록이 성공적으로 완료되었습니다!");
       router.replace(result.redirectTo ?? "/club-register/register-success");
     },
