@@ -168,8 +168,8 @@ export function createClubScheduleDefaultValues(schedule?: ClubSchedule | null):
     return {
         title: schedule.title,
         type: schedule.type,
-        startsAt: formatDateTimeForInput(schedule.startsAt),
-        endsAt: formatDateTimeForInput(schedule.endsAt),
+        startsAt: formatDateTimeForInput(schedule.startsAt, { timeZone: "Asia/Seoul" }),
+        endsAt: formatDateTimeForInput(schedule.endsAt, { timeZone: "Asia/Seoul" }),
         location: schedule.location,
         description: schedule.description,
         isPublic: schedule.isPublic,

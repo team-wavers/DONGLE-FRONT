@@ -1,6 +1,7 @@
 "use server";
 
 import { uploadClubReportImageService } from "@dongle/service/club/club.report.service";
+import { validateImageUpload } from "@/shared/action";
 
 interface UploadReportImagesOptions {
     clubId: string;
@@ -12,6 +13,11 @@ export async function uploadReportImages({ clubId, images }: UploadReportImagesO
 
     if (validImages.length === 0) {
         return [];
+    }
+
+    for (const image of validImages) {
+        const validationError = await validateImageUpload(image);
+        if (validationError) throw new Error(validationError);
     }
 
     return Promise.all(

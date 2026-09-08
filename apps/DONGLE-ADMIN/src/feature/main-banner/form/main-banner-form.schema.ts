@@ -100,8 +100,8 @@ export function createMainBannerDefaultValues(initialData?: Partial<MainBanner>)
         imageUrls: initialData?.image_url ? [initialData.image_url] : [],
         imageFile: null,
         link_url: initialData?.link_url ?? "",
-        publish_start_at: formatDateTimeForInput(initialData?.publish_start_at),
-        publish_end_at: formatDateTimeForInput(initialData?.publish_end_at),
+        publish_start_at: formatDateTimeForInput(initialData?.publish_start_at, { timeZone: "Asia/Seoul" }),
+        publish_end_at: formatDateTimeForInput(initialData?.publish_end_at, { timeZone: "Asia/Seoul" }),
         is_active: initialData?.is_active ?? true,
     };
 }

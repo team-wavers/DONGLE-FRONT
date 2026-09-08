@@ -8,7 +8,7 @@ on:
 
 concurrency:
   group: prod-lightsail-deploy
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   PNPM_VERSION: 10.28.2
@@ -16,59 +16,18 @@ env:
   RELEASES_DIR: /home/ec2-user/dongle.front.prod/releases
   CURRENT_CLIENT_DIR: /home/ec2-user/dongle.front.prod/current.client
   CURRENT_ADMIN_DIR: /home/ec2-user/dongle.front.prod/current.admin
+  KEEP_RELEASES: 5
 
 jobs:
-  # TODO(2026-07-18): 배포가 외부 E2E API(secrets.E2E_API_URL) 가용성/시드 데이터에 종속되어
-  # 프론트 코드가 정상이어도 배포가 막히는 문제가 있어 게이트를 임시 비활성화함. 안정화 후 재활성화 필요.
-  # TODO: 재활성화 시 e2e-full의 webServer build와 deploy job의 build가 중복 실행되는 점도 함께 고려할 것.
-  # e2e-full:
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 30
-  #
-  #   env:
-  #     API_URL: ${{ secrets.E2E_API_URL }}
-  #     E2E_CLUB_USERNAME: ${{ secrets.E2E_CLUB_USERNAME }}
-  #     E2E_CLUB_PASSWORD: ${{ secrets.E2E_CLUB_PASSWORD }}
-  #     E2E_ADMIN_USERNAME: ${{ secrets.E2E_ADMIN_USERNAME }}
-  #     E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
-  #     NEXT_TELEMETRY_DISABLED: "1"
-  #
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Setup pnpm
-  #       uses: pnpm/action-setup@v4
-  #       with:
-  #         version: ${{ env.PNPM_VERSION }}
-  #
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version-file: .node-version
-  #         cache: pnpm
-  #
-  #     - name: Install dependencies
-  #       run: pnpm install --frozen-lockfile
-  #
-  #     - name: Install Playwright browsers
-  #       run: pnpm exec playwright install --with-deps chromium
-  #
-  #     - name: Run full E2E suite
-  #       run: pnpm test:e2e
-  #
-  #     - name: Upload Playwright report
-  #       if: failure()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: playwright-report-full
-  #         path: playwright-report
-  #         retention-days: 7
+  # TODO(2026-07-18): 운영 배포 E2E 게이트(e2e-full)는 외부 E2E API(secrets.E2E_API_URL)
+  # 가용성/시드 데이터에 의존해 프론트 코드가 정상이어도 배포가 막히는 문제가 있어
+  # 비활성화했다. 과거 워크플로 정의는 이 파일의 이전 커밋(git history)에서 확인한다.
+  # 재활성화 전 정리 필요: (1) e2e-full webServer build와 deploy job build 중복 제거,
+  # (2) 외부 API 의존 분리, (3) deploy job에 `needs: e2e-full` 복구.
 
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # needs: e2e-full # TODO(2026-07-18): e2e-full 게이트 재활성화 시 복구
 
     steps:
       - name: Checkout
@@ -84,6 +43,60 @@ jobs:
         with:
           node-version-file: .node-version
           cache: pnpm
+
+      - name: Verify required deploy secrets
+        env:
+          PROD_API_URL: ${{ secrets.PROD_API_URL }}
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          LIGHTSAIL_HOST_KEY: ${{ secrets.LIGHTSAIL_HOST_KEY }}
+          LIGHTSAIL_SSH_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          PROD_CLIENT_BASE_URL: ${{ secrets.PROD_CLIENT_BASE_URL }}
+          CLIENT_NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.CLIENT_NEXT_PUBLIC_SENTRY_DSN }}
+          ADMIN_NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.ADMIN_NEXT_PUBLIC_SENTRY_DSN }}
+        run: |
+          missing=""
+          for name in PROD_API_URL NEXT_SERVER_ACTIONS_ENCRYPTION_KEY LIGHTSAIL_HOST LIGHTSAIL_HOST_KEY LIGHTSAIL_SSH_KEY REVALIDATE_SECRET PROD_CLIENT_BASE_URL CLIENT_NEXT_PUBLIC_SENTRY_DSN ADMIN_NEXT_PUBLIC_SENTRY_DSN; do
+            value="${!name:-}"
+            if [ -z "$value" ]; then
+              missing="$missing $name"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing required deploy secrets:$missing"
+            exit 1
+          fi
+
+      - name: Verify Sentry sourcemap secrets
+        env:
+          CLIENT_SENTRY_AUTH_TOKEN: ${{ secrets.CLIENT_SENTRY_AUTH_TOKEN }}
+          CLIENT_SENTRY_ORG: ${{ secrets.CLIENT_SENTRY_ORG }}
+          CLIENT_SENTRY_PROJECT: ${{ secrets.CLIENT_SENTRY_PROJECT }}
+          ADMIN_SENTRY_AUTH_TOKEN: ${{ secrets.ADMIN_SENTRY_AUTH_TOKEN }}
+          ADMIN_SENTRY_ORG: ${{ secrets.ADMIN_SENTRY_ORG }}
+          ADMIN_SENTRY_PROJECT: ${{ secrets.ADMIN_SENTRY_PROJECT }}
+        run: |
+          check_set() {
+            label="$1"
+            shift
+            set_count=0
+            total=0
+            for value in "$@"; do
+              total=$((total + 1))
+              if [ -n "$value" ]; then
+                set_count=$((set_count + 1))
+              fi
+            done
+            if [ "$set_count" -eq 0 ]; then
+              echo "::warning::$label Sentry sourcemap secrets are not set — sourcemap upload will be skipped."
+            elif [ "$set_count" -ne "$total" ]; then
+              echo "::error::$label Sentry sourcemap secrets are partially set. Set org/project/token all together or leave all empty."
+              exit 1
+            fi
+          }
+          check_set "client" "$CLIENT_SENTRY_AUTH_TOKEN" "$CLIENT_SENTRY_ORG" "$CLIENT_SENTRY_PROJECT"
+          check_set "admin" "$ADMIN_SENTRY_AUTH_TOKEN" "$ADMIN_SENTRY_ORG" "$ADMIN_SENTRY_PROJECT"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -130,7 +143,11 @@ jobs:
       - name: Trust Lightsail host
         env:
           LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
-        run: ssh-keyscan -H "$LIGHTSAIL_HOST" >> ~/.ssh/known_hosts
+          LIGHTSAIL_HOST_KEY: ${{ secrets.LIGHTSAIL_HOST_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s %s\n' "$LIGHTSAIL_HOST" "$LIGHTSAIL_HOST_KEY" >> ~/.ssh/known_hosts
 
       - name: Ensure remote directories
         env:
@@ -191,11 +208,13 @@ jobs:
           ADMIN_RELEASE_DIR="\$RELEASE_DIR/admin"
           CLIENT_HEALTHCHECK_URL="$CLIENT_HEALTHCHECK_URL"
           ADMIN_HEALTHCHECK_URL="$ADMIN_HEALTHCHECK_URL"
+          KEEP_RELEASES="$KEEP_RELEASES"
           LEGACY_CLIENT_TARGET="$ROOT_DIR/dongle.client.prod"
           LEGACY_ADMIN_TARGET="$ROOT_DIR/dongle.admin.prod"
           PREVIOUS_CLIENT_TARGET=\$(readlink -f "$CURRENT_CLIENT_DIR" || true)
           PREVIOUS_ADMIN_TARGET=\$(readlink -f "$CURRENT_ADMIN_DIR" || true)
           ROLLBACK_STARTED=0
+          DEPLOY_SUCCEEDED=0
 
           if [ -z "\$PREVIOUS_CLIENT_TARGET" ] && [ -d "\$LEGACY_CLIENT_TARGET" ]; then
             PREVIOUS_CLIENT_TARGET="\$LEGACY_CLIENT_TARGET"
@@ -205,6 +224,12 @@ jobs:
             PREVIOUS_ADMIN_TARGET="\$LEGACY_ADMIN_TARGET"
           fi
 
+          exec 9>"$ROOT_DIR/deploy.lock"
+          if ! flock -n 9; then
+            echo "::error::another deployment is already in progress" >&2
+            exit 1
+          fi
+
           curl_healthcheck() {
             curl --fail --silent --show-error --retry 10 --retry-delay 2 --retry-connrefused "\$1"
           }
@@ -212,8 +237,18 @@ jobs:
           verify_release() {
             local url="\$1"
             local expected_release="\$2"
+            local body
 
-            curl_healthcheck "\$url" | grep -q "\"release\":\"\$expected_release\""
+            body=\$(curl_healthcheck "\$url")
+            printf '%s' "\$body" | jq -e --arg release "\$expected_release" '.ok == true and .release == \$release' >/dev/null
+          }
+
+          prune_releases() {
+            local old_dirs
+            old_dirs=\$(ls -1dt "$RELEASES_DIR"/*/ 2>/dev/null | tail -n +\$((KEEP_RELEASES + 1)) || true)
+            if [ -n "\$old_dirs" ]; then
+              echo "\$old_dirs" | xargs -r rm -rf
+            fi
           }
 
           rollback() {
@@ -222,27 +257,46 @@ jobs:
             fi
 
             ROLLBACK_STARTED=1
+            echo "Rolling back release $RELEASE_ID"
+
+            if [ -f "$ROOT_DIR/.env.pm2.prod.bak" ]; then
+              cp -p "$ROOT_DIR/.env.pm2.prod.bak" "$ROOT_DIR/.env.pm2.prod"
+              chmod 600 "$ROOT_DIR/.env.pm2.prod"
+            fi
 
             if [ -n "\$PREVIOUS_CLIENT_TARGET" ]; then
               ln -sfn "\$PREVIOUS_CLIENT_TARGET" "$CURRENT_CLIENT_DIR"
+            else
+              rm -f "$CURRENT_CLIENT_DIR"
             fi
 
             if [ -n "\$PREVIOUS_ADMIN_TARGET" ]; then
               ln -sfn "\$PREVIOUS_ADMIN_TARGET" "$CURRENT_ADMIN_DIR"
-            fi
-
-            if pm2 describe dongle.client.prod >/dev/null 2>&1 || pm2 describe dongle.admin.prod >/dev/null 2>&1; then
-              pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env || true
             else
-              pm2 start "$ROOT_DIR/ecosystem.config.js" --update-env || true
+              rm -f "$CURRENT_ADMIN_DIR"
             fi
 
-            if [ -n "\${CLIENT_HEALTHCHECK_URL:-}" ]; then
-              curl_healthcheck "\$CLIENT_HEALTHCHECK_URL" >/dev/null || true
-            fi
+            if [ -z "\$PREVIOUS_CLIENT_TARGET" ] && [ -z "\$PREVIOUS_ADMIN_TARGET" ]; then
+              echo "No previous release to roll back to (first deploy) — stopping PM2"
+              pm2 delete dongle.client.prod dongle.admin.prod >/dev/null 2>&1 || true
+            else
+              if pm2 describe dongle.client.prod >/dev/null 2>&1 || pm2 describe dongle.admin.prod >/dev/null 2>&1; then
+                pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env
+              else
+                pm2 start "$ROOT_DIR/ecosystem.config.js" --update-env
+              fi
 
-            if [ -n "\${ADMIN_HEALTHCHECK_URL:-}" ]; then
-              curl_healthcheck "\$ADMIN_HEALTHCHECK_URL" >/dev/null || true
+              if [ -n "\$PREVIOUS_CLIENT_TARGET" ]; then
+                PREVIOUS_CLIENT_RELEASE=\$(basename "\$(dirname "\$PREVIOUS_CLIENT_TARGET")")
+                verify_release http://127.0.0.1:3000/api/health "\$PREVIOUS_CLIENT_RELEASE" || echo "::warning::client rollback health verification failed"
+              fi
+
+              if [ -n "\$PREVIOUS_ADMIN_TARGET" ]; then
+                PREVIOUS_ADMIN_RELEASE=\$(basename "\$(dirname "\$PREVIOUS_ADMIN_TARGET")")
+                verify_release http://127.0.0.1:4000/api/health "\$PREVIOUS_ADMIN_RELEASE" || echo "::warning::admin rollback health verification failed"
+              fi
+
+              pm2 save || echo "::warning::pm2 save failed during rollback"
             fi
 
             if [ -n "\$PREVIOUS_CLIENT_TARGET" ]; then
@@ -252,13 +306,22 @@ jobs:
             if [ -n "\$PREVIOUS_ADMIN_TARGET" ]; then
               echo "Rolled back admin to \$PREVIOUS_ADMIN_TARGET"
             fi
-
-            if pm2 describe dongle.client.prod >/dev/null 2>&1 || pm2 describe dongle.admin.prod >/dev/null 2>&1; then
-              pm2 save || true
-            fi
           }
 
-          cat > "$ROOT_DIR/.env.pm2.prod" <<ENVFILE
+          cleanup_on_exit() {
+            if [ "\$DEPLOY_SUCCEEDED" = "1" ]; then
+              return
+            fi
+            rollback
+          }
+          trap cleanup_on_exit EXIT
+          trap 'cleanup_on_exit; exit 1' TERM HUP INT
+
+          if [ -f "$ROOT_DIR/.env.pm2.prod" ]; then
+            cp -p "$ROOT_DIR/.env.pm2.prod" "$ROOT_DIR/.env.pm2.prod.bak"
+          fi
+
+          cat > "$ROOT_DIR/.env.pm2.prod" <<'ENVFILE'
           API_URL=$PROD_API_URL
           NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
           SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT
@@ -270,40 +333,31 @@ jobs:
           REVALIDATE_SECRET=$REVALIDATE_SECRET
           CLIENT_BASE_URL=$PROD_CLIENT_BASE_URL
           ENVFILE
+          chmod 600 "$ROOT_DIR/.env.pm2.prod"
 
           ln -sfn "\$CLIENT_RELEASE_DIR" "$CURRENT_CLIENT_DIR"
           ln -sfn "\$ADMIN_RELEASE_DIR" "$CURRENT_ADMIN_DIR"
 
-          if ! {
-            if pm2 describe dongle.client.prod >/dev/null 2>&1 || pm2 describe dongle.admin.prod >/dev/null 2>&1; then
-              pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env
-            else
-              pm2 start "$ROOT_DIR/ecosystem.config.js" --update-env
-            fi
-          }; then
-            rollback
-            exit 1
+          if pm2 describe dongle.client.prod >/dev/null 2>&1 || pm2 describe dongle.admin.prod >/dev/null 2>&1; then
+            pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env
+          else
+            pm2 start "$ROOT_DIR/ecosystem.config.js" --update-env
           fi
 
-          if ! verify_release http://127.0.0.1:3000/api/health "$SENTRY_RELEASE"; then
-            rollback
-            exit 1
+          verify_release http://127.0.0.1:3000/api/health "$SENTRY_RELEASE"
+          verify_release http://127.0.0.1:4000/api/health "$SENTRY_RELEASE"
+
+          if [ -n "\${CLIENT_HEALTHCHECK_URL:-}" ]; then
+            verify_release "\$CLIENT_HEALTHCHECK_URL" "$SENTRY_RELEASE"
           fi
 
-          if ! verify_release http://127.0.0.1:4000/api/health "$SENTRY_RELEASE"; then
-            rollback
-            exit 1
-          fi
-
-          if [ -n "\${CLIENT_HEALTHCHECK_URL:-}" ] && ! curl_healthcheck "\$CLIENT_HEALTHCHECK_URL" >/dev/null; then
-            rollback
-            exit 1
-          fi
-
-          if [ -n "\${ADMIN_HEALTHCHECK_URL:-}" ] && ! curl_healthcheck "\$ADMIN_HEALTHCHECK_URL" >/dev/null; then
-            rollback
-            exit 1
+          if [ -n "\${ADMIN_HEALTHCHECK_URL:-}" ]; then
+            verify_release "\$ADMIN_HEALTHCHECK_URL" "$SENTRY_RELEASE"
           fi
 
           pm2 save
+
+          prune_releases
+
+          DEPLOY_SUCCEEDED=1
           EOF

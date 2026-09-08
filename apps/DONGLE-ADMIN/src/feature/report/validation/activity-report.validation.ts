@@ -15,8 +15,8 @@ export function validateActivityReportInput(input: ActivityReportInput): {
     isValid: boolean;
 } {
     const fieldErrors: ActivityReportFieldErrors = {};
-    const title = input.title ?? "";
-    const content = input.content ?? "";
+    const title = input.title?.trim() ?? "";
+    const content = input.content?.trim() ?? "";
 
     if (!title) {
         fieldErrors.title = "제목을 입력해주세요";

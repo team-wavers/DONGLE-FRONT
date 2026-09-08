@@ -6,27 +6,19 @@ import {
     getScheduleDisplayDateParts,
     type ScheduleDisplayItem,
 } from "@dongle/ui/schedules/schedule-display";
-import { formatMonthKey, getDateTimeTimestamp, getMonthDateTimeRange, normalizeExternalUrl, parseMonthKey } from "@dongle/utils";
+import {
+    formatDateForRequest,
+    formatMonthKey,
+    getCalendarGridDates,
+    getDateTimeTimestamp,
+    getMonthDateTimeRange,
+    isDateKeyWithinRange,
+    normalizeExternalUrl,
+    parseMonthKey,
+} from "@dongle/utils";
 import type { ClubPublicSchedule } from "./club-schedule.types";
 
 const SCHEDULE_TIME_ZONE = "Asia/Seoul";
-
-function getDateKey(date: Date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-}
-
-function getDayTimestampRange(date: Date) {
-    const dateKey = getDateKey(date);
-
-    return {
-        from: getDateTimeTimestamp(`${dateKey} 00:00:00`, { timeZone: SCHEDULE_TIME_ZONE }),
-        to: getDateTimeTimestamp(`${dateKey} 23:59:59`, { timeZone: SCHEDULE_TIME_ZONE }),
-    };
-}
 
 function getScheduleTimestamp(value: string) {
     return getDateTimeTimestamp(value, { timeZone: SCHEDULE_TIME_ZONE });
@@ -55,32 +47,20 @@ export function parsePublicScheduleMonthKey(monthKey: string) {
 
 export function getPublicScheduleCalendarDates(monthKey: string) {
     const visibleMonth = parsePublicScheduleMonthKey(monthKey);
-    const year = visibleMonth.getFullYear();
-    const month = visibleMonth.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const start = new Date(firstDay);
-    start.setDate(firstDay.getDate() - firstDay.getDay());
-
-    return Array.from({ length: 42 }, (_, index) => {
-        const date = new Date(start);
-        date.setDate(start.getDate() + index);
-        return date;
+    return getCalendarGridDates(visibleMonth.getFullYear(), visibleMonth.getMonth(), {
+        timeZone: SCHEDULE_TIME_ZONE,
     });
 }
 
 export function getPublicSchedulesForDate(schedules: ClubPublicSchedule[], date: Date) {
-    const { from, to } = getDayTimestampRange(date);
+    const dateKey = formatDateForRequest(date, { timeZone: SCHEDULE_TIME_ZONE });
 
     return sortPublicSchedulesByStartAt(
         schedules.filter((schedule) => {
-            const startsAt = getScheduleTimestamp(schedule.start_at);
-            const endsAt = getScheduleTimestamp(schedule.end_at);
+            const startKey = formatDateForRequest(schedule.start_at, { timeZone: SCHEDULE_TIME_ZONE });
+            const endKey = formatDateForRequest(schedule.end_at, { timeZone: SCHEDULE_TIME_ZONE });
 
-            if (Number.isNaN(startsAt) || Number.isNaN(endsAt)) {
-                return false;
-            }
-
-            return startsAt <= to && endsAt >= from;
+            return isDateKeyWithinRange(dateKey, startKey, endKey);
         })
     );
 }

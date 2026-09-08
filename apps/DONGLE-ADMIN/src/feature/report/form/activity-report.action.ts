@@ -1,7 +1,7 @@
 "use server";
 
 import { reportTagGroups } from "@dongle/service";
-import { actionFailure, actionSuccess, getZodFieldErrors, type ActionResult } from "@/shared/action";
+import { actionFailure, actionSuccess, getSessionExpiredActionFailure, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
@@ -47,7 +47,7 @@ export async function submitActivityReportCreateAction({
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ clubId });
 
         let imageUrls: string[] = [];
         try {
@@ -67,6 +67,8 @@ export async function submitActivityReportCreateAction({
         });
 
         if (!response.isSuccess) {
+            const expired = getSessionExpiredActionFailure(response.error);
+            if (expired) return actionFailure(expired);
             return toActionFailure(buildReportActionError({ branch: "service", actionLabel: "create" }));
         }
 
@@ -112,7 +114,7 @@ export async function submitActivityReportUpdateAction({
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ clubId });
 
         let uploadedImageUrls: string[] = [];
         try {
@@ -136,12 +138,14 @@ export async function submitActivityReportUpdateAction({
             return actionFailure({ formError: "변경된 정보가 없습니다." });
         }
 
-        const { isSuccess, result } = await reportActionNetwork.updateReport(
+        const { isSuccess, result, error } = await reportActionNetwork.updateReport(
             Number(clubId),
             Number(reportId),
             updatePayload
         );
         if (!isSuccess || !result) {
+            const expired = getSessionExpiredActionFailure(error);
+            if (expired) return actionFailure(expired);
             return toActionFailure(buildReportActionError({ branch: "service", actionLabel: "update" }));
         }
 

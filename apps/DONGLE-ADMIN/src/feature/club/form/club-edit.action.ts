@@ -6,6 +6,7 @@ import { actionFailure, actionSuccess, getServiceErrorMessage, getZodFieldErrors
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
+import { getSessionExpiredActionFailure } from "@/shared/action";
 import { clubEditSchema, type ClubEditField, type ClubEditFormValues } from "./club-edit.schema";
 import { buildClubEditPayload } from "./club-edit-payload";
 
@@ -60,7 +61,7 @@ export async function submitClubEditAction({
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ clubId: normalizedClubId });
 
         const iconFile = parsed.data.iconFile;
         let iconUrl: string | null | undefined;
@@ -69,6 +70,8 @@ export async function submitClubEditAction({
             const iconUploadResult = await uploadClubIconService(numericClubId, iconFile);
 
             if (!iconUploadResult.isSuccess) {
+                const expired = getSessionExpiredActionFailure(iconUploadResult.error);
+                if (expired) return actionFailure(expired);
                 return actionFailure({
                     formError: "아이콘 업로드에 실패했습니다. 다시 시도해주세요.",
                     fieldErrors: {
@@ -93,6 +96,8 @@ export async function submitClubEditAction({
         const { isSuccess, error } = await updateClubService(numericClubId, buildClubEditPayload(parsed.data, iconUrl));
 
         if (!isSuccess) {
+            const expired = getSessionExpiredActionFailure(error);
+            if (expired) return actionFailure(expired);
             return actionFailure({
                 formError: getServiceErrorMessage(error, "동아리 수정에 실패했습니다."),
             });
@@ -105,12 +110,8 @@ export async function submitClubEditAction({
             message: "동아리 정보가 성공적으로 수정되었습니다! 공개 화면 반영까지 최대 120초 정도 걸릴 수 있어요.",
         });
     } catch (error) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return actionFailure({
-                formError: "로그인 시간이 만료되었습니다. 다시 로그인해주세요.",
-                sessionExpired: true,
-            });
-        }
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
 
         captureServerException(error, "동아리 수정 중 오류", {
             action: "submitClubEditAction",

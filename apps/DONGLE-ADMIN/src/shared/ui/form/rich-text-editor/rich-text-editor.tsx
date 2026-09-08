@@ -167,6 +167,13 @@ export function RichTextEditor({
             return;
         }
 
+        const allowedTypes = new Set(["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]);
+        if (!allowedTypes.has(file.type) || file.size <= 0 || file.size > 10 * 1024 * 1024) {
+            toast.error("JPEG, PNG, GIF, WebP 형식의 10MB 이하 이미지만 업로드할 수 있습니다.");
+            event.target.value = "";
+            return;
+        }
+
         const formData = new FormData();
         formData.append("file", file);
 
@@ -179,7 +186,12 @@ export function RichTextEditor({
             );
 
             if (!data.isSuccess) {
-                toast.error(getServiceErrorMessage(data.error, "이미지 업로드에 실패했습니다."));
+                if (data.error?.status === 401) {
+                    toast.error("로그인 시간이 만료되었습니다. 다시 로그인해주세요.");
+                    window.location.assign(`/login?expired=true&returnTo=${encodeURIComponent(window.location.pathname)}`);
+                } else {
+                    toast.error(getServiceErrorMessage(data.error, "이미지 업로드에 실패했습니다."));
+                }
             } else {
                 editor.chain().focus().setImage({ src: data.result }).run();
                 toast.success("이미지를 본문에 추가했습니다.");

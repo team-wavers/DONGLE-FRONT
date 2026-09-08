@@ -6,9 +6,11 @@ import {
     formatDateTimeForInput,
     formatDateTimeForRequest,
     formatMonthKey,
+    getCalendarGridDates,
     getDateTimeTimestamp,
     getMonthDateTimeRange,
     parseMonthKey,
+    isDateKeyWithinRange,
 } from "./date";
 
 describe("date utils", () => {
@@ -63,5 +65,19 @@ describe("date utils", () => {
 
         expect(monthKey).toBe("2026-05");
         expect(parseMonthKey(monthKey)).toEqual(new Date(2026, 4, 1));
+    });
+
+    test("월간 캘린더 격자는 지정 timezone 날짜키 기준 6주를 반환한다", () => {
+        const dates = getCalendarGridDates(2026, 4, { timeZone: "Asia/Seoul" });
+
+        expect(dates).toHaveLength(42);
+        expect(formatDateForRequest(dates[0], { timeZone: "Asia/Seoul" })).toBe("2026-04-26");
+        expect(formatDateForRequest(dates[41], { timeZone: "Asia/Seoul" })).toBe("2026-06-06");
+    });
+
+    test("날짜키가 시작일과 종료일의 폐구간에 포함되는지 판정한다", () => {
+        expect(isDateKeyWithinRange("2026-05-20", "2026-05-20", "2026-05-22")).toBe(true);
+        expect(isDateKeyWithinRange("2026-05-22", "2026-05-20", "2026-05-22")).toBe(true);
+        expect(isDateKeyWithinRange("2026-05-23", "2026-05-20", "2026-05-22")).toBe(false);
     });
 });

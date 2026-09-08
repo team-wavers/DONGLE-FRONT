@@ -5,11 +5,12 @@ import {
     buildReportUpdatePayload,
     mergeReportImageUrls,
 } from "@/feature/report/validation/report-update-payload";
+import { trimToEmpty } from "@dongle/utils";
 
 export const activityReportSchema = z
     .object({
-        title: z.string(),
-        content: z.string(),
+        title: z.string().transform(trimToEmpty),
+        content: z.string().transform(trimToEmpty),
         imageUrls: z.array(z.string()),
         imageFile: z.custom<File | null>().nullable().optional(),
     })

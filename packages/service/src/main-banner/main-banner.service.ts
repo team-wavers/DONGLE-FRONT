@@ -54,18 +54,6 @@ function getAdminMainBannerFetchOptions(): FetchOptions {
     };
 }
 
-function createAdminMainBannerFailureResponse(id: number, error: unknown): MainBannerResponse {
-    const message = error instanceof Error && error.message.trim() ? error.message : "배너 정보를 불러오지 못했습니다.";
-
-    return {
-        isSuccess: false,
-        error: {
-            message,
-            detail: `banner_id: ${id}`,
-        },
-    };
-}
-
 export async function getPublicMainBannerListService(isCache = true): Promise<MainBannerListResponse> {
     return instance.get<MainBannerListResponse>(PUBLIC_MAIN_BANNER_PATH, getPublicMainBannerFetchOptions(isCache));
 }
@@ -75,11 +63,7 @@ export async function getAdminMainBannerListService(): Promise<MainBannerListRes
 }
 
 export async function getAdminMainBannerService(id: number): Promise<MainBannerResponse> {
-    try {
-        return await instance.get<MainBannerResponse>(getAdminMainBannerPath(id), getAdminMainBannerFetchOptions());
-    } catch (error) {
-        return createAdminMainBannerFailureResponse(id, error);
-    }
+    return instance.get<MainBannerResponse>(getAdminMainBannerPath(id), getAdminMainBannerFetchOptions());
 }
 
 export async function uploadMainBannerImageService(file: File): Promise<MainBannerImageUploadResponse> {

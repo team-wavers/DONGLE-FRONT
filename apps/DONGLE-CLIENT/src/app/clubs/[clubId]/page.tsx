@@ -64,7 +64,12 @@ async function ClubReportsTabPanel({ clubId, clubName }: { clubId: string; clubN
 async function ClubSchedulesTabPanel({ clubIdNumber, clubName }: { clubIdNumber: number; clubName: string }) {
     try {
         const scheduleResponse = await getClubPublicScheduleListService(clubIdNumber);
-        const schedules = getClubScheduleGroups(scheduleResponse.map(mapClubScheduleToPublicSchedule), {
+
+        if (!scheduleResponse.isSuccess) {
+            throw new Error(scheduleResponse.error.detail || scheduleResponse.error.message);
+        }
+
+        const schedules = getClubScheduleGroups(scheduleResponse.result.map(mapClubScheduleToPublicSchedule), {
             clubId: clubIdNumber,
         });
 

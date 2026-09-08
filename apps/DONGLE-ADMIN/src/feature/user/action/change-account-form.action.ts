@@ -2,13 +2,15 @@
 
 import { patchUserService, getUserService } from "@dongle/service/user/user.service";
 import { userTagGroups } from "@dongle/service";
-import { getAccessTokenFromServerCookie } from "@dongle/api/utils/cookie/server-cookie.util";
 import { UpdateUserRequest } from "@dongle/types/user/user.d";
-import { getUserIdFromToken } from "@dongle/api/utils/jwt.util";
+import { decodeJwtToken, getTokenExpiresIn } from "@dongle/api/utils/jwt.util";
+import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "@dongle/api/utils/cookie/cookie.contant";
+import { getCookieOptions } from "@dongle/api/utils/cookie/cookie.options";
+import { cookies } from "next/headers";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
 import { loginService } from "@dongle/service/auth/auth.service";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
-import { getServiceErrorMessage } from "@/shared/action";
+import { getServiceErrorMessage, getSessionExpiredActionFailure, requireServerActionAccessToken } from "@/shared/action";
 
 export interface ChangeAccountActionState {
     fieldErrors?: {
@@ -19,6 +21,7 @@ export interface ChangeAccountActionState {
     };
     success?: boolean;
     error?: string;
+    sessionExpired?: boolean;
 }
 
 export async function changeAccountFormAction(
@@ -63,15 +66,8 @@ export async function changeAccountFormAction(
 
     try {
         // 쿠키에서 사용자 ID 추출
-        const accessToken = await getAccessTokenFromServerCookie();
-        if (!accessToken) {
-            return {
-                success: false,
-                error: "사용자 정보를 가져올 수 없습니다.",
-            };
-        }
-
-        const userId = getUserIdFromToken(accessToken);
+        const { claims } = await requireServerActionAccessToken();
+        const userId = claims.user_id ?? claims.sub;
         if (!userId) {
             return {
                 success: false,
@@ -80,13 +76,16 @@ export async function changeAccountFormAction(
         }
 
         // 현재 사용자 정보 가져오기
-        const { result: currentUser } = await getUserService(userId);
-        if (!currentUser) {
+        const userResponse = await getUserService(Number(userId));
+        if (!userResponse.isSuccess || !userResponse.result) {
+            const expired = getSessionExpiredActionFailure(userResponse.error);
+            if (expired) return { success: false, error: expired.formError, sessionExpired: true };
             return {
                 success: false,
                 error: "사용자 정보를 가져올 수 없습니다.",
             };
         }
+        const currentUser = userResponse.result;
 
         // 현재 비밀번호 검증
         const loginResult = await loginService({
@@ -95,11 +94,23 @@ export async function changeAccountFormAction(
         });
 
         if (!loginResult.isSuccess) {
+            const expired = getSessionExpiredActionFailure(loginResult.error);
+            if (expired) return { success: false, error: expired.formError, sessionExpired: true };
             return {
                 success: false,
                 error: "현재 비밀번호가 일치하지 않습니다.",
             };
         }
+
+        const cookieStore = await cookies();
+        const accessPayload = decodeJwtToken(loginResult.result.accessToken);
+        const refreshPayload = decodeJwtToken(loginResult.result.refreshToken);
+        cookieStore.set(ACCESS_TOKEN_COOKIE_NAME, loginResult.result.accessToken, {
+            ...getCookieOptions({ maxAge: getTokenExpiresIn(accessPayload, 900), httpOnly: true }),
+        });
+        cookieStore.set(REFRESH_TOKEN_COOKIE_NAME, loginResult.result.refreshToken, {
+            ...getCookieOptions({ maxAge: getTokenExpiresIn(refreshPayload, 7 * 24 * 3600), httpOnly: true }),
+        });
 
         // 업데이트할 데이터 구성
         const updateData: UpdateUserRequest = {};
@@ -125,6 +136,8 @@ export async function changeAccountFormAction(
         const updateResult = await patchUserService(Number(userId), updateData);
 
         if (!updateResult.isSuccess) {
+            const expired = getSessionExpiredActionFailure(updateResult.error);
+            if (expired) return { success: false, error: expired.formError, sessionExpired: true };
             return {
                 success: false,
                 error: getServiceErrorMessage(updateResult.error, "계정 정보 변경에 실패했습니다. 다시 시도해주세요."),
@@ -138,6 +151,8 @@ export async function changeAccountFormAction(
             success: true,
         };
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return { success: false, error: expired.formError, sessionExpired: true };
         captureServerException(error, "계정 정보 변경 중 오류", {
             action: "changeAccountFormAction",
         });

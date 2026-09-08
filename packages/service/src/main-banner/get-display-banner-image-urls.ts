@@ -1,4 +1,8 @@
 import type { MainBanner } from "@dongle/types/main-banner/main-banner";
+import { getDateTimeTimestamp } from "@dongle/utils";
+
+const SEOUL_TIME_ZONE = "Asia/Seoul";
+const INTERNAL_LINK_ORIGIN = "https://dongle.internal";
 
 export interface DisplayMainBannerItem {
     imageUrl: string;
@@ -9,9 +13,9 @@ export interface DisplayMainBannerItem {
  * 현재 시점이 노출 기간(publish_start_at ~ publish_end_at) 내인지 여부
  */
 function isInPublishPeriod(banner: MainBanner, now: Date): boolean {
-    const start = new Date(banner.publish_start_at);
-    const end = new Date(banner.publish_end_at);
-    return start <= now && now <= end;
+    const start = getDateTimeTimestamp(banner.publish_start_at, { timeZone: SEOUL_TIME_ZONE });
+    const end = getDateTimeTimestamp(banner.publish_end_at, { timeZone: SEOUL_TIME_ZONE });
+    return start <= now.getTime() && now.getTime() <= end;
 }
 
 export function normalizeDisplayBannerLinkUrl(value: string | null | undefined): string | null {
@@ -19,8 +23,24 @@ export function normalizeDisplayBannerLinkUrl(value: string | null | undefined):
 
     if (!trimmed) return null;
 
-    if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
-        return trimmed;
+    if (trimmed.startsWith("/")) {
+        try {
+            const url = new URL(trimmed, INTERNAL_LINK_ORIGIN);
+            const decodedPathname = decodeURIComponent(url.pathname);
+
+            if (
+                url.origin !== INTERNAL_LINK_ORIGIN ||
+                !url.pathname.startsWith("/") ||
+                trimmed.includes("\\") ||
+                decodedPathname.includes("\\")
+            ) {
+                return null;
+            }
+
+            return `${url.pathname}${url.search}${url.hash}`;
+        } catch {
+            return null;
+        }
     }
 
     try {

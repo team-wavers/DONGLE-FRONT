@@ -3,7 +3,7 @@ import {
     getDisplayMainBannerItems,
     getClubListService as getClubListServiceBase,
     getClubPublicScheduleListService as getClubPublicScheduleListServiceBase,
-    getClubReportService,
+    getClubReportService as getClubReportServiceBase,
     getClubReportListService as getClubReportListServiceBase,
     getClubService as getClubServiceBase,
     getPublicClubScheduleCalendarService as getPublicClubScheduleCalendarServiceBase,
@@ -16,4 +16,5 @@ export const getClubPublicScheduleListService = cache(getClubPublicScheduleListS
 export const getPublicClubScheduleCalendarService = cache(getPublicClubScheduleCalendarServiceBase);
 export const getClubReportListService = cache(getClubReportListServiceBase);
 export const getPublicMainBannerListService = cache(getPublicMainBannerListServiceBase);
-export { getClubReportService, getDisplayMainBannerItems };
+export const getClubReportService = cache(getClubReportServiceBase);
+export { getDisplayMainBannerItems };

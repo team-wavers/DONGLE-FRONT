@@ -15,6 +15,21 @@ describe("activityReportSchema", () => {
             expect.arrayContaining(["title", "content"])
         );
     });
+
+    test("유효한 제목과 내용을 trim 정규화한다", () => {
+        const result = activityReportSchema.safeParse({
+            title: "  정기 활동보고서  ",
+            content: "  열 글자보다 긴 활동 내용입니다.  ",
+            imageUrls: [],
+            imageFile: null,
+        });
+
+        expect(result.success).toBe(true);
+        expect(result.data).toMatchObject({
+            title: "정기 활동보고서",
+            content: "열 글자보다 긴 활동 내용입니다.",
+        });
+    });
 });
 
 describe("buildActivityReportUpdatePayload", () => {

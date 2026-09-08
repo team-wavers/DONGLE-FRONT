@@ -5,7 +5,7 @@
 ## 기본 경로
 
 - 기본 검증은 `pnpm verify:fast`다.
-- `verify:fast`는 `verify:docs`, `type`, `Vitest`를 포함한다.
+- `verify:fast`는 `verify:docs`, `verify:vitest-alias`, `type`, `Vitest`를 포함한다.
 - 따라서 기본 경로는 앱 서버 기동, 브라우저 기동, 외부 네트워크 의존성을 요구하지 않아야 한다.
 
 ## 기본 경로 금지 규칙

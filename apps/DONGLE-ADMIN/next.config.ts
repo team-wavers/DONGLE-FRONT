@@ -2,6 +2,11 @@ import path from "path";
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
+// 운영 예시가 전체 URL(https://...)로 잘못 채워지는 경우까지 방어적으로 hostname만 남긴다.
+function toHostname(value: string): string {
+  return value.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+}
+
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname, "../.."), // 모노레포 루트 → standalone에 워크스페이스 패키지 포함
@@ -53,7 +58,7 @@ const nextConfig: NextConfig = {
         ? [
             {
               protocol: "https" as const,
-              hostname: process.env.NEXT_PUBLIC_S3_URL,
+              hostname: toHostname(process.env.NEXT_PUBLIC_S3_URL),
               port: "",
               pathname: "/**",
             },
@@ -91,4 +96,7 @@ export default withSentryConfig(nextConfig, {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: !process.env.CI,
   widenClientFileUpload: true,
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
 });

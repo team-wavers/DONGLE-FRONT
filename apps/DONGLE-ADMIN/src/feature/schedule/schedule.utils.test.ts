@@ -15,6 +15,8 @@ import {
     getScheduleLocationLabel,
     getScheduleMetaText,
     getScheduleMonthKey,
+    getScheduleCalendarDateKey,
+    getScheduleCalendarDayLabel,
     getMonthCalendarDates,
     getMonthScheduleQuery,
     getScheduleDateRangeFilter,
@@ -89,10 +91,7 @@ const SCHEDULES: ClubSchedule[] = [
 ];
 
 function formatLocalDate(date: Date) {
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${date.getFullYear()}-${month}-${day}`;
+    return getScheduleCalendarDateKey(date);
 }
 
 describe("schedule utils", () => {
@@ -102,6 +101,13 @@ describe("schedule utils", () => {
         expect(dates).toHaveLength(42);
         expect(formatLocalDate(dates[0])).toBe("2026-04-26");
         expect(formatLocalDate(dates[41])).toBe("2026-06-06");
+    });
+
+    it("캘린더 칸 라벨은 Seoul 날짜키의 일자와 일치한다", () => {
+        const date = new Date("2026-05-31T15:00:00.000Z");
+
+        expect(getScheduleCalendarDateKey(date)).toBe("2026-06-01");
+        expect(getScheduleCalendarDayLabel(date)).toBe("1");
     });
 
     it("월간 일정 조회 query는 Seoul 기준 서버 요청 문자열로 반환한다", () => {
@@ -539,6 +545,14 @@ describe("schedule utils", () => {
             month: "5월",
             day: "21",
             weekday: "목",
+        });
+    });
+
+    it("timezone 없는 금요일 밤 일정의 요일은 프로세스 timezone과 무관하게 금요일이다", () => {
+        expect(formatScheduleDateBadge("2026-08-28 23:00:00")).toEqual({
+            month: "8월",
+            day: "28",
+            weekday: "금",
         });
     });
 
