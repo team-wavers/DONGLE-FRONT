@@ -131,6 +131,31 @@ describe("schedule actions", () => {
         expect(revalidateTag).not.toHaveBeenCalled();
     });
 
+    test("회장 일정 생성 서비스가 401이지만 메시지가 Unauthorized가 아니어도 sessionExpired를 반환한다", async () => {
+        vi.mocked(createClubScheduleService).mockResolvedValue({
+            isSuccess: false,
+            error: {
+                status: 401,
+                message: "권한이 없거나 로그인 세션이 만료되었습니다.",
+                detail: "권한이 없거나 로그인 세션이 만료되었습니다.",
+            },
+        } as Awaited<ReturnType<typeof createClubScheduleService>>);
+
+        const result = await createClubScheduleAction(1, {
+            title: "CMUX 일정",
+            type: "event",
+            startsAt: "2026-06-16T20:00",
+            endsAt: "2026-06-16T22:00",
+            isPublic: true,
+            location: "",
+            description: "",
+            externalUrl: "",
+        });
+
+        expect(result).toMatchObject({ ok: false, sessionExpired: true });
+        expect(revalidateTag).not.toHaveBeenCalled();
+    });
+
     test("관리자 공통 일정 생성은 폼 값을 검증해 관리자 공통 일정 생성 서비스와 공통 일정 태그 초기화를 호출한다", async () => {
         const commonSchedule = {
             ...apiSchedule,

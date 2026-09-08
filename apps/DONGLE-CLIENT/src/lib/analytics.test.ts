@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import posthog from "posthog-js";
 import {
     getPostHogInitOptions,
+    initPostHog,
     sanitizeDongleAnalyticsProperties,
     trackDongleEvent,
     type DongleAnalyticsEventName,
@@ -9,6 +10,7 @@ import {
 
 vi.mock("posthog-js", () => ({
     default: {
+        init: vi.fn(),
         capture: vi.fn(),
     },
 }));
@@ -87,5 +89,15 @@ describe("trackDongleEvent", () => {
             club_name: "동글동아리",
             destination: "https://dongle.kr/schedule",
         });
+    });
+});
+
+describe("initPostHog", () => {
+    it("여러 번 호출해도 같은 Promise를 재사용한다(모듈 로드/초기화는 한 번만 일어난다)", async () => {
+        const first = initPostHog();
+        const second = initPostHog();
+
+        expect(second).toBe(first);
+        await expect(first).resolves.toBe(posthog);
     });
 });

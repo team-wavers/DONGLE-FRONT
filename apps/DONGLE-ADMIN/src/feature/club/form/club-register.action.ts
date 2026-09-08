@@ -1,7 +1,6 @@
 "use server";
 
 import { createClubService, updateClubService, uploadClubIconService } from "@dongle/service/club/club.service";
-import { createUserService, deleteUserService } from "@dongle/service/user/user.service";
 import { clubTagGroups, userTagGroups } from "@dongle/service";
 import type { CreateClubRequest } from "@dongle/types/club/club.response";
 import { normalizeSocialUrl } from "@dongle/utils";
@@ -75,20 +74,9 @@ export async function submitClubRegisterAction(
         const tempPassword = tempId;
         const data = parsed.data;
 
-        const user = await createUserService({
-            name: data.presidentName,
-            login_id: tempId,
-            password: tempPassword,
-            role: "president",
-            phone: data.presidentContact,
-        });
-
-        if (!user.isSuccess || !user.result?.id) {
-            return actionFailure({
-                formError: getServiceErrorMessage(user.error, "사용자 등록에 실패했습니다. 다시 시도해주세요."),
-            });
-        }
-
+        // 회장 계정 생성과 동아리 생성을 한 번의 요청으로 묶는다 — 백엔드가
+        // 하나의 트랜잭션으로 처리하므로, 키가 무효/만료라 동아리 생성이
+        // 실패해도 회장 계정이 고아로 남지 않는다.
         const isRecruiting = data.recruitmentStatus === RECRUITMENT_STATUS.RECRUITING;
         const clubPayload: CreateClubRequest = {
             key,
@@ -99,7 +87,12 @@ export async function submitClubRegisterAction(
             main_activities: data.main_activities,
             sns: normalizeClubSnsPayload(data.instagram, data.youtube),
             is_recruiting: isRecruiting,
-            president_id: user.result.id,
+            newPresident: {
+                name: data.presidentName,
+                login_id: tempId,
+                password: tempPassword,
+                phone: data.presidentContact,
+            },
             location: data.location,
             ...(isRecruiting && {
                 recruit_start: data.recruitmentStartDate,
@@ -110,11 +103,8 @@ export async function submitClubRegisterAction(
         const club = await createClubService(clubPayload);
 
         if (!club.isSuccess) {
-            const compensation = await deleteUserService(user.result.id);
             return actionFailure({
-                formError: compensation.isSuccess
-                    ? getServiceErrorMessage(club.error, "동아리 등록에 실패했습니다. 다시 시도해주세요.")
-                    : "동아리 등록과 생성된 회장 계정 정리에 실패했습니다. 관리자에게 문의해주세요.",
+                formError: getServiceErrorMessage(club.error, "동아리 등록에 실패했습니다. 다시 시도해주세요."),
             });
         }
 
@@ -143,7 +133,7 @@ export async function submitClubRegisterAction(
             }
         }
 
-        revalidateTags(userTagGroups.detail(user.result.id));
+        revalidateTags(userTagGroups.list());
         if (createdClubId) {
             revalidateTags(clubTagGroups.detail(createdClubId));
         } else {

@@ -111,6 +111,25 @@ function loadPostHog() {
     return posthogModulePromise;
 }
 
+let posthogInitPromise: Promise<typeof import("posthog-js").default> | null = null;
+
+// idle 콜백(instrumentation-client.ts)과 trackDongleEvent가 같은 Promise를 공유해서
+// init 완료 전에 capture가 먼저 나가 이벤트가 유실되는 걸 막는다. 토큰이 없으면
+// posthog.init()만 건너뛰고 모듈은 그대로 반환한다(capture 자체는 항상 시도됨).
+export function initPostHog() {
+    posthogInitPromise ??= loadPostHog().then(({ default: posthog }) => {
+        const posthogToken = process.env.NEXT_PUBLIC_POSTHOG_TOKEN;
+
+        if (posthogToken) {
+            posthog.init(posthogToken, getPostHogInitOptions());
+        }
+
+        return posthog;
+    });
+
+    return posthogInitPromise;
+}
+
 export async function trackDongleEvent<EventName extends DongleAnalyticsEventName>(
     eventName: EventName,
     properties: DongleAnalyticsProperties[EventName]
@@ -119,6 +138,6 @@ export async function trackDongleEvent<EventName extends DongleAnalyticsEventNam
         return;
     }
 
-    const { default: posthog } = await loadPostHog();
+    const posthog = await initPostHog();
     posthog.capture(eventName, sanitizeDongleAnalyticsProperties(eventName, properties));
 }

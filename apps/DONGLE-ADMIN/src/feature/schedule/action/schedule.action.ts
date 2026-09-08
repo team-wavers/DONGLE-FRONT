@@ -55,7 +55,11 @@ function revalidateScheduleTags(clubId?: number | null, scheduleId?: number) {
 
 function unwrapScheduleResponse<T>(response: Response<T>, fallbackMessage: string): T {
     if (!response.isSuccess) {
-        throw new Error(getServiceErrorMessage(response.error, fallbackMessage));
+        const error = new Error(getServiceErrorMessage(response.error, fallbackMessage));
+        if (typeof response.error.status === "number") {
+            Object.assign(error, { status: response.error.status });
+        }
+        throw error;
     }
 
     return response.result;

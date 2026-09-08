@@ -18,7 +18,11 @@ import {
 } from "@dongle/utils";
 import type { ClubPublicSchedule } from "./club-schedule.types";
 
-const SCHEDULE_TIME_ZONE = "Asia/Seoul";
+export const SCHEDULE_TIME_ZONE = "Asia/Seoul";
+
+export function getScheduleCalendarDateKey(date: Date) {
+    return formatDateForRequest(date, { timeZone: SCHEDULE_TIME_ZONE });
+}
 
 function getScheduleTimestamp(value: string) {
     return getDateTimeTimestamp(value, { timeZone: SCHEDULE_TIME_ZONE });
@@ -49,6 +53,26 @@ export function getPublicScheduleCalendarDates(monthKey: string) {
     const visibleMonth = parsePublicScheduleMonthKey(monthKey);
     return getCalendarGridDates(visibleMonth.getFullYear(), visibleMonth.getMonth(), {
         timeZone: SCHEDULE_TIME_ZONE,
+    });
+}
+
+export interface ScheduleCalendarCell {
+    date: Date;
+    dateKey: string;
+    day: number;
+    isCurrentMonth: boolean;
+}
+
+export function getScheduleCalendarCells(monthKey: string): ScheduleCalendarCell[] {
+    return getPublicScheduleCalendarDates(monthKey).map((date) => {
+        const dateKey = getScheduleCalendarDateKey(date);
+
+        return {
+            date,
+            dateKey,
+            day: Number(dateKey.slice(8, 10)),
+            isCurrentMonth: dateKey.slice(0, 7) === monthKey,
+        };
     });
 }
 

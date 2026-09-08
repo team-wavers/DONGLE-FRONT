@@ -11,11 +11,14 @@ import { CalendarDays, ChevronLeft, ChevronRight, ListChecks } from "lucide-reac
 import { trackDongleEvent } from "@/lib/analytics";
 import type { ClubPublicSchedule } from "@/lib/club-schedule.types";
 import {
-    getPublicScheduleCalendarDates,
     getPublicSchedulesForDate,
+    getScheduleCalendarCells,
+    getScheduleCalendarDateKey,
     mapPublicScheduleToDisplayItem,
     parsePublicScheduleMonthKey,
+    SCHEDULE_TIME_ZONE,
     sortPublicSchedulesByStartAt,
+    type ScheduleCalendarCell,
 } from "@/lib/public-schedule-calendar";
 
 interface PublicScheduleCalendarProps {
@@ -29,12 +32,14 @@ const weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"];
 const monthLabelFormatter = new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
     month: "long",
+    timeZone: SCHEDULE_TIME_ZONE,
 });
 
 const dayLabelFormatter = new Intl.DateTimeFormat("ko-KR", {
     month: "long",
     day: "numeric",
     weekday: "long",
+    timeZone: SCHEDULE_TIME_ZONE,
 });
 
 const calendarChipClassName: Record<ClubPublicSchedule["type"], string> = {
@@ -47,21 +52,13 @@ function getMonthHref(date: Date) {
     return `/schedules?month=${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function isSameCalendarDate(left: Date, right: Date) {
-    return (
-        left.getFullYear() === right.getFullYear() &&
-        left.getMonth() === right.getMonth() &&
-        left.getDate() === right.getDate()
-    );
-}
-
 interface ScheduleCalendarCardProps {
     schedules: ClubPublicSchedule[];
     visibleMonth: Date;
     previousMonth: Date;
     nextMonth: Date;
-    calendarDates: Date[];
-    selectedDate: Date;
+    calendarCells: ScheduleCalendarCell[];
+    selectedDateKey: string;
     compact?: boolean;
     onDateSelect: (date: Date) => void;
 }
@@ -71,8 +68,8 @@ function ScheduleCalendarCard({
     visibleMonth,
     previousMonth,
     nextMonth,
-    calendarDates,
-    selectedDate,
+    calendarCells,
+    selectedDateKey,
     compact = false,
     onDateSelect,
 }: ScheduleCalendarCardProps) {
@@ -109,23 +106,22 @@ function ScheduleCalendarCard({
                             {weekday}
                         </div>
                     ))}
-                    {calendarDates.map((date) => {
-                        const daySchedules = getPublicSchedulesForDate(schedules, date);
-                        const isCurrentMonth = date.getMonth() === visibleMonth.getMonth();
-                        const isSelected = isSameCalendarDate(date, selectedDate);
+                    {calendarCells.map((cell) => {
+                        const daySchedules = getPublicSchedulesForDate(schedules, cell.date);
+                        const isSelected = cell.dateKey === selectedDateKey;
 
                         return (
                             <button
-                                key={date.toISOString()}
+                                key={cell.dateKey}
                                 type="button"
-                                onClick={() => onDateSelect(date)}
+                                onClick={() => onDateSelect(cell.date)}
                                 className={cn(
                                     "border-b border-r border-zinc-100 bg-white p-1.5 text-left align-top transition-colors hover:bg-sky-50/70",
                                     compact ? "min-h-20" : "min-h-24 md:min-h-28 md:p-2",
                                     isSelected && "bg-sky-50 ring-2 ring-inset ring-sky-500",
-                                    isCurrentMonth ? "text-zinc-900" : "text-zinc-300"
+                                    cell.isCurrentMonth ? "text-zinc-900" : "text-zinc-300"
                                 )}>
-                                <span className="text-sm font-semibold">{date.getDate()}</span>
+                                <span className="text-sm font-semibold">{cell.day}</span>
                                 <div className="mt-2 flex flex-col gap-1">
                                     {daySchedules.slice(0, visibleScheduleCount).map((schedule) => (
                                         <span
@@ -207,7 +203,8 @@ export default function PublicScheduleCalendar({
     const visibleMonth = useMemo(() => parsePublicScheduleMonthKey(visibleMonthKey), [visibleMonthKey]);
     const [selectedDate, setSelectedDate] = useState(visibleMonth);
     const [isDaySheetOpen, setIsDaySheetOpen] = useState(false);
-    const calendarDates = useMemo(() => getPublicScheduleCalendarDates(visibleMonthKey), [visibleMonthKey]);
+    const calendarCells = useMemo(() => getScheduleCalendarCells(visibleMonthKey), [visibleMonthKey]);
+    const selectedDateKey = useMemo(() => getScheduleCalendarDateKey(selectedDate), [selectedDate]);
     const selectedSchedules = useMemo(
         () => getPublicSchedulesForDate(schedules, selectedDate),
         [schedules, selectedDate]
@@ -289,8 +286,8 @@ export default function PublicScheduleCalendar({
                     visibleMonth={visibleMonth}
                     previousMonth={previousMonth}
                     nextMonth={nextMonth}
-                    calendarDates={calendarDates}
-                    selectedDate={selectedDate}
+                    calendarCells={calendarCells}
+                    selectedDateKey={selectedDateKey}
                     onDateSelect={handleDateSelect}
                 />
             </div>
