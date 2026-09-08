@@ -1,7 +1,7 @@
 import { decodeJwt } from "jose";
 import type { AuthRole } from "@dongle/types/auth/auth-role";
 
-interface JwtPayload {
+export interface JwtPayload {
     sub?: string | number;
     user_id?: string | number;
     id?: string | number;
@@ -9,6 +9,28 @@ interface JwtPayload {
     exp?: number;
     iat?: number;
     [key: string]: unknown;
+}
+
+export async function verifyJwtToken(token: string, secret = process.env.JWT_SECRET): Promise<JwtPayload | null> {
+    if (!secret) {
+        return null;
+    }
+
+    try {
+        const jose = (await import("jose")) as unknown as {
+            jwtVerify: (
+                value: string,
+                key: Uint8Array,
+                options: { algorithms: string[] }
+            ) => Promise<{ payload: Record<string, unknown> }>;
+        };
+        const { payload } = await jose.jwtVerify(token, new TextEncoder().encode(secret), {
+            algorithms: ["HS256"],
+        });
+        return payload as JwtPayload;
+    } catch {
+        return null;
+    }
 }
 
 /**

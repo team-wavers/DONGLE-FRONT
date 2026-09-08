@@ -48,6 +48,9 @@
 - 동아리 등록 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
 - 쉼표로 입력한 태그 문자열은 공백과 빈 항목을 제거한 배열로 변환되어야 한다.
 - 동아리 등록 폼에서 선택한 아이콘 파일은 동아리 생성 이후 업로드되고 `icon_url`로 저장되어야 한다.
+- 공개 동아리 등록은 로그인 세션 없이 등록 키만으로 사용자·동아리 생성을 호출해야 하며 `sessionExpired`로 매핑하지 않는다.
+- 사용자 생성 이후 동아리 생성이 실패하면 방금 만든 president 사용자를 삭제하고 cache tag를 초기화하지 않는다.
+- 등록 성공 이동 URL에는 `tempPassword`나 `?data=`를 넣지 않고, 임시 자격 증명은 httpOnly flash cookie로만 전달한다.
 
 ### 수정 폼 스키마
 
@@ -72,6 +75,7 @@
 
 - 회장 수정 폼은 클라이언트와 서버 액션이 같은 스키마를 기준으로 검증해야 한다.
 - 회장 이름과 연락처는 제출 전에 trim 정규화되어야 한다.
+- 회장 수정 action은 `patchUserService` 실패 시 `user`/`club` cache tag를 초기화하지 않아야 한다.
 
 ### 모집 상태 정규화
 
@@ -102,6 +106,7 @@
 - [club-edit-payload.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit-payload.test.ts)
 - [club-edit.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-edit.action.test.ts)
 - [club-president.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-president.schema.test.ts)
+- [club-president.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/form/club-president.action.test.ts)
 - [club-form.validation.test.ts](../../apps/DONGLE-ADMIN/src/feature/club/validation/club-form.validation.test.ts)
 
 ## Admin Shared Action
@@ -117,9 +122,27 @@
 - zod issue 목록은 field별 첫 번째 에러 메시지만 공통 field error map으로 변환해야 한다.
 - field path가 없는 issue는 field error map에 포함하지 않아야 한다.
 
+### server action 인가
+
+- 관리자 전용 server action은 검증된 JWT의 `role`이 `ADMIN`일 때만 서비스를 호출한다.
+- 동아리 리소스 server action은 검증된 JWT의 `club_id`가 요청 `clubId`와 일치해야 하며, 관리자는 예외로 통과한다.
+- 액세스 토큰이 없거나 서명 검증에 실패하면 `Unauthorized`로 거부한다.
+
+### session 만료 매핑
+
+- mutating action은 `error.status === 401` 또는 `Unauthorized`를 `sessionExpired: true`와 form error로 매핑한다.
+
+### 이미지 업로드 검증
+
+- 이미지 업로드는 JPEG/PNG/GIF/WebP MIME, 매직바이트, 10MB 상한을 서버에서 검사한다.
+- 배너 `imageUrls`는 허용된 저장소 호스트 또는 내부 경로만 저장한다.
+
 관련 테스트:
 - [action-result.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/action-result.test.ts)
 - [zod-field-errors.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/zod-field-errors.test.ts)
+- [server-action-auth.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/server-action-auth.test.ts)
+- [session-expired.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/session-expired.test.ts)
+- [image-upload-validation.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/image-upload-validation.test.ts)
 
 ## Admin Shared Form
 
@@ -163,6 +186,8 @@
 - 사용자 수정 payload는 변경된 필드만 포함한다.
 - 수정 폼의 비밀번호는 입력된 경우에만 trim 후 payload에 포함한다.
 - 계정 정보 변경 action은 사용자 수정 service 실패 응답을 성공으로 취급하지 않아야 하며, 실패 시 사용자 cache tag를 초기화하지 않아야 한다.
+- 계정 정보 변경의 현재 비밀번호 확인이 login에 성공하면 새 토큰을 쿠키에 반영해야 한다.
+- 계정 정보 변경은 `getUserService`의 `isSuccess`가 false이면 사용자 정보를 가져올 수 없다고 실패하고 cache tag를 초기화하지 않아야 한다.
 
 관련 테스트:
 - [user-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/user/form/user-form.schema.test.ts)
@@ -540,6 +565,7 @@
 
 관련 테스트:
 - [url.test.ts](../../packages/utils/src/url.test.ts)
+- [social-url.test.ts](../../packages/utils/src/social-url.test.ts)
 
 ### Main Banner Display
 
@@ -565,6 +591,14 @@
 - [main-banner-datetime.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/utils/main-banner-datetime.test.ts)
 - [main-banner-form.schema.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/form/main-banner-form.schema.test.ts)
 - [delete-main-banner.action.test.ts](../../apps/DONGLE-ADMIN/src/feature/main-banner/action/delete-main-banner.action.test.ts)
+
+### JWT 서명 검증
+
+- 인가에 쓰는 JWT는 HS256 서명 검증이 성공한 클레임만 신뢰한다.
+- 검증 시크릿이 없거나 서명이 틀리면 claims를 반환하지 않는다.
+
+관련 테스트:
+- [jwt.util.test.ts](../../packages/api/src/utils/jwt.util.test.ts)
 
 ### API Token Refresh Retry
 

@@ -2,16 +2,16 @@
 
 import { deleteUserService } from "@dongle/service/user/user.service";
 import { userTagGroups } from "@dongle/service";
-import { getUserIdFromToken } from "@dongle/api/utils/jwt.util";
-import { actionFailure, actionSuccess, requireServerActionAccessToken, type ActionResult } from "@/shared/action";
+import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
+import { actionFailure, actionSuccess, getSessionExpiredActionFailure, requireServerActionAccessToken, type ActionResult } from "@/shared/action";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
 
 // 사용자 삭제 서버 액션
 export async function deleteUserAction(userId: number): Promise<ActionResult<string, null>> {
     try {
-        const accessToken = await requireServerActionAccessToken();
-        const tokenUserId = getUserIdFromToken(accessToken);
+        const { claims } = await requireServerActionAccessToken({ role: AUTH_ROLE.ADMIN });
+        const tokenUserId = claims.user_id ?? claims.sub;
 
         if (tokenUserId === null) {
             return actionFailure({ formError: "사용자 정보를 가져올 수 없습니다." });
@@ -30,6 +30,8 @@ export async function deleteUserAction(userId: number): Promise<ActionResult<str
         const result = await deleteUserService(userId);
 
         if (!result.isSuccess) {
+            const expired = getSessionExpiredActionFailure(result.error);
+            if (expired) return actionFailure(expired);
             return actionFailure({ formError: "사용자 삭제에 실패했습니다. 다시 시도해주세요." });
         }
 
@@ -38,6 +40,8 @@ export async function deleteUserAction(userId: number): Promise<ActionResult<str
 
         return actionSuccess({ data: null, message: "사용자가 성공적으로 삭제되었습니다." });
     } catch (error: unknown) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "사용자 삭제 중 오류", {
             action: "deleteUserAction",
             userId,

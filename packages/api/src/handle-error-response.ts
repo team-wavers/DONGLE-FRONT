@@ -1,10 +1,3 @@
-interface HandleErrorResponseParams {
-    response: Response;
-    requestPayload?: unknown;
-    url?: string;
-    method?: string;
-}
-
 export interface SyntheticErrorResponseParams {
     response: Response;
     requestPayload?: unknown;
@@ -13,11 +6,13 @@ export interface SyntheticErrorResponseParams {
     parseError?: unknown;
 }
 
-function summarizeRequestPayload(requestPayload: unknown) {
+const SENSITIVE_REQUEST_KEY = /password|passcode|token|authorization|login_?id|username|phone|secret/i;
+
+export function summarizeRequestPayload(requestPayload: unknown) {
     if (requestPayload instanceof FormData) {
         return {
             type: "FormData",
-            keys: Array.from(requestPayload.keys()),
+            keys: Array.from(requestPayload.keys()).filter((key) => !SENSITIVE_REQUEST_KEY.test(key)),
         };
     }
 
@@ -31,7 +26,9 @@ function summarizeRequestPayload(requestPayload: unknown) {
     if (requestPayload && typeof requestPayload === "object") {
         return {
             type: "object",
-            keys: Object.keys(requestPayload as Record<string, unknown>),
+            keys: Object.keys(requestPayload as Record<string, unknown>).filter(
+                (key) => !SENSITIVE_REQUEST_KEY.test(key)
+            ),
         };
     }
 
@@ -98,32 +95,4 @@ export function createSyntheticErrorResponse({
             status: response.status,
         },
     };
-}
-
-export async function handleErrorResponse({
-    response,
-    requestPayload,
-    url,
-    method,
-}: HandleErrorResponseParams): Promise<never> {
-    const requestSummary = summarizeRequestPayload(requestPayload);
-
-    try {
-        const errorData = await response.json();
-        const message = extractErrorMessage(errorData, response);
-
-        console.error(`[${method || "UNKNOWN"}] ${url || response.url} - ${response.status}:`, {
-            request: requestSummary,
-            error: message,
-        });
-
-        throw new Error(message);
-    } catch (error) {
-        if (error instanceof Error && error.message.includes("JSON")) {
-            // 기존 계약: 여전히 throw하지만, parse 실패 로그/합성 응답 생성은 공용 helper로 위임한다.
-            createSyntheticErrorResponse({ response, requestPayload, url, method, parseError: error });
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        throw error;
-    }
 }

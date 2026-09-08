@@ -23,12 +23,12 @@ describe("FetchInstance (instance.ts)", () => {
 
     afterEach(() => {
         vi.unstubAllGlobals();
+        vi.unstubAllEnvs();
         vi.restoreAllMocks();
-        delete process.env.API_URL;
     });
 
     test("GET 200 + {isSuccess:true,result} → 그대로 반환", async () => {
-        process.env.API_URL = "https://api.example.com";
+        vi.stubEnv("API_URL", "https://api.example.com");
 
         const body: SuccessBody<{ ok: true }> = { isSuccess: true, result: { ok: true } };
 
@@ -43,7 +43,7 @@ describe("FetchInstance (instance.ts)", () => {
     });
 
     test("GET 404 + 유효한 JSON {isSuccess:false,error:{message,detail}} → throw 없이 그대로 반환", async () => {
-        process.env.API_URL = "https://api.example.com";
+        vi.stubEnv("API_URL", "https://api.example.com");
 
         const body: ErrorBody = {
             isSuccess: false,
@@ -67,7 +67,7 @@ describe("FetchInstance (instance.ts)", () => {
     });
 
     test("GET 502 + JSON 파싱 불가(HTML body 등) → throw 없이 synthetic {isSuccess:false,error:{message,detail}} 반환", async () => {
-        process.env.API_URL = "https://api.example.com";
+        vi.stubEnv("API_URL", "https://api.example.com");
 
         vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
             new Response("<html>Bad Gateway</html>", {
@@ -89,7 +89,7 @@ describe("FetchInstance (instance.ts)", () => {
     });
 
     test("POST 성공 케이스도 동일하게 바디를 그대로 반환한다", async () => {
-        process.env.API_URL = "https://api.example.com";
+        vi.stubEnv("API_URL", "https://api.example.com");
 
         const body: SuccessBody<{ id: number }> = { isSuccess: true, result: { id: 1 } };
         vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
@@ -103,7 +103,7 @@ describe("FetchInstance (instance.ts)", () => {
     });
 
     test("DELETE 구조화된 실패 케이스도 throw 없이 그대로 반환한다", async () => {
-        process.env.API_URL = "https://api.example.com";
+        vi.stubEnv("API_URL", "https://api.example.com");
 
         const body: ErrorBody = {
             isSuccess: false,
@@ -123,5 +123,38 @@ describe("FetchInstance (instance.ts)", () => {
                 status: 403,
             },
         });
+    });
+
+    test("DELETE 204 빈 바디는 성공 null 응답으로 정규화한다", async () => {
+        vi.stubEnv("API_URL", "https://api.example.com");
+        vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+            new Response(null, { status: 204, statusText: "No Content" })
+        );
+
+        const instance = FetchInstance.getInstance();
+        const res = await instance.delete<SuccessBody<null>>("/posts/1");
+
+        expect(res).toEqual({ isSuccess: true, result: null });
+    });
+
+    test("구조화 실패 로그에는 민감한 요청 필드 값과 이름이 포함되지 않는다", async () => {
+        vi.stubEnv("API_URL", "https://api.example.com");
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        const body: ErrorBody = {
+            isSuccess: false,
+            error: { message: "Unauthorized", detail: "invalid credentials" },
+        };
+        vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+            createJsonResponse(body, { status: 401, statusText: "Unauthorized" })
+        );
+
+        const instance = FetchInstance.getInstance();
+        await instance.post("/auth/login", { login_id: "admin", password: "secret", name: "운영자" });
+
+        const serializedLog = JSON.stringify(consoleError.mock.calls);
+        expect(serializedLog).not.toContain("secret");
+        expect(serializedLog).not.toContain("admin");
+        expect(serializedLog).not.toContain("password");
+        expect(serializedLog).not.toContain("login_id");
     });
 });

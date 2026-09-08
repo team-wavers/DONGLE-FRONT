@@ -1,6 +1,5 @@
 import type { UpdateClubRequest } from "@dongle/types/club/club.response";
-import { normalizeSocialUrl } from "@dongle/ui/utils";
-import { normalizeExternalUrl, trimToEmpty, trimToNull } from "@dongle/utils";
+import { normalizeExternalUrl, normalizeSocialUrl, trimToEmpty, trimToNull } from "@dongle/utils";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import type { ClubEditFormValues } from "./club-edit.schema";
 import { splitClubEditTags } from "./club-edit.schema";

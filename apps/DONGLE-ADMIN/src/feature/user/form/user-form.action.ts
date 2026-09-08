@@ -6,6 +6,8 @@ import { actionFailure, actionSuccess, getActionErrorMessage, getServiceErrorMes
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
 import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
+import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
+import { getSessionExpiredActionFailure } from "@/shared/action";
 import {
     buildUserEditPayload,
     userCreateSchema,
@@ -30,7 +32,7 @@ export async function submitUserCreateAction(values: UserCreateFormValues): Prom
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ role: AUTH_ROLE.ADMIN });
 
         const { isSuccess, error } = await createUserService({
             name: parsed.data.name,
@@ -41,6 +43,8 @@ export async function submitUserCreateAction(values: UserCreateFormValues): Prom
         });
 
         if (!isSuccess) {
+            const expired = getSessionExpiredActionFailure(error);
+            if (expired) return actionFailure(expired);
             return actionFailure({
                 formError: getServiceErrorMessage(error, "관리자 생성에 실패했습니다. 다시 시도해주세요."),
             });
@@ -52,6 +56,8 @@ export async function submitUserCreateAction(values: UserCreateFormValues): Prom
             message: "관리자가 성공적으로 생성되었습니다.",
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "관리자 생성 중 오류", {
             action: "submitUserCreateAction",
             login_id: values.login_id,
@@ -97,11 +103,13 @@ export async function submitUserEditAction({
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ role: AUTH_ROLE.ADMIN });
 
         const { isSuccess, error } = await patchUserService(userId, updateData);
 
         if (!isSuccess) {
+            const expired = getSessionExpiredActionFailure(error);
+            if (expired) return actionFailure(expired);
             return actionFailure({
                 formError: getServiceErrorMessage(error, "사용자 정보 수정에 실패했습니다. 다시 시도해주세요."),
             });
@@ -113,6 +121,8 @@ export async function submitUserEditAction({
             message: "사용자 정보가 성공적으로 수정되었습니다.",
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "사용자 정보 수정 중 오류 발생", {
             action: "submitUserEditAction",
             userId,

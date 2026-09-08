@@ -4,11 +4,14 @@ import {
     formatDateForRequest,
     formatDateTimeForInput,
     formatMonthKey,
+    getCalendarGridDates,
     getDateTimeTimestamp,
     getMonthDateTimeRange,
+    isDateKeyWithinRange,
     matchesKeyword,
     parseMonthKey,
 } from "@dongle/utils";
+import { getScheduleDisplayDateParts } from "@dongle/ui/schedules/schedule-display";
 import type { ClubSchedule, ScheduleType } from "./schedule.types";
 
 const SCHEDULE_TIME_ZONE = "Asia/Seoul";
@@ -34,15 +37,7 @@ export interface ScheduleDateRangeFilter {
 }
 
 export function getMonthCalendarDates(year: number, monthIndex: number) {
-    const firstDate = new Date(year, monthIndex, 1);
-    const startDate = new Date(firstDate);
-    startDate.setDate(firstDate.getDate() - firstDate.getDay());
-
-    return Array.from({ length: 42 }, (_, index) => {
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + index);
-        return date;
-    });
+    return getCalendarGridDates(year, monthIndex, { timeZone: SCHEDULE_TIME_ZONE });
 }
 
 export function isSameCalendarDate(a: Date, b: Date) {
@@ -56,12 +51,16 @@ export function getSchedulesForDate(schedules: ClubSchedule[], date: Date) {
         const startDate = formatDateForRequest(schedule.startsAt, { timeZone: SCHEDULE_TIME_ZONE });
         const endDate = formatDateForRequest(schedule.endsAt, { timeZone: SCHEDULE_TIME_ZONE });
 
-        return startDate <= selectedDate && selectedDate <= endDate;
+        return isDateKeyWithinRange(selectedDate, startDate, endDate);
     });
 }
 
 export function getScheduleCalendarDateKey(date: Date) {
     return formatDateForRequest(date, { timeZone: SCHEDULE_TIME_ZONE });
+}
+
+export function getScheduleCalendarDayLabel(date: Date) {
+    return String(Number(getScheduleCalendarDateKey(date).slice(8, 10)));
 }
 
 // 캘린더 셀(최대 42개)마다 전체 schedules를 다시 필터링하지 않도록, 일정별 시작/종료 키를
@@ -78,7 +77,7 @@ export function buildScheduleCalendarIndex(schedules: ClubSchedule[], dateKeys: 
         const endKey = formatDateForRequest(schedule.endsAt, { timeZone: SCHEDULE_TIME_ZONE });
 
         for (const dateKey of dateKeys) {
-            if (startKey <= dateKey && dateKey <= endKey) {
+            if (isDateKeyWithinRange(dateKey, startKey, endKey)) {
                 index.get(dateKey)?.push(schedule);
             }
         }
@@ -360,20 +359,16 @@ function getScheduleDateParts(value: string) {
 
     const valueForInput = formatDateTimeForInput(value, { timeZone: SCHEDULE_TIME_ZONE });
     const [datePart = "", timePart = ""] = valueForInput.split("T");
-    const [year = "", month = "", day = ""] = datePart.split("-");
     const [hour = "", minute = ""] = timePart.split(":");
-    const weekday = new Intl.DateTimeFormat("ko-KR", {
-        weekday: "short",
-        timeZone: SCHEDULE_TIME_ZONE,
-    }).format(new Date(value));
+    const displayParts = getScheduleDisplayDateParts(value);
 
     return {
-        key: `${year}-${month}`,
-        month: `${Number(month)}월`,
-        monthLabel: `${year}년 ${Number(month)}월`,
-        day,
-        weekday,
-        date: `${year}.${month}.${day}`,
+        key: displayParts.monthKey,
+        month: displayParts.month,
+        monthLabel: displayParts.monthLabel,
+        day: displayParts.day,
+        weekday: displayParts.weekday,
+        date: datePart.replaceAll("-", "."),
         time: `${hour}:${minute}`,
     };
 }

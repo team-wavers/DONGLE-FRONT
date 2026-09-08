@@ -83,64 +83,50 @@ function appendQuery(path: string, query: object) {
     return queryString ? `${path}?${queryString}` : path;
 }
 
-function getResponseResult<T>(response: Response<T>): T {
-    if (!response.isSuccess) {
-        throw new Error(response.error.detail || response.error.message);
-    }
-
-    return response.result;
-}
-
-export async function getClubPublicScheduleListService(clubId: number): Promise<ClubSchedule[]> {
-    const response = await instance.get<Response<ClubSchedule[]>>(
+export async function getClubPublicScheduleListService(clubId: number): Promise<Response<ClubSchedule[]>> {
+    return instance.get<Response<ClubSchedule[]>>(
         getClubPublicSchedulesPath(clubId),
         getPublicScheduleFetchOptions(clubId)
     );
-    return getResponseResult(response);
 }
 
 export async function getPublicClubScheduleCalendarService(
     query: PublicClubScheduleCalendarQuery
-): Promise<AdminClubSchedule[]> {
-    const response = await instance.get<Response<AdminClubSchedule[]>>(
+): Promise<Response<AdminClubSchedule[]>> {
+    return instance.get<Response<AdminClubSchedule[]>>(
         appendQuery(PUBLIC_CLUB_SCHEDULES_PATH, query),
         getPublicCalendarScheduleFetchOptions()
     );
-    return getResponseResult(response);
 }
 
 export async function getClubScheduleListService(
     clubId: number,
     status?: ClubScheduleStatusFilter
-): Promise<ClubSchedule[]> {
-    const response = await instance.get<Response<ClubSchedule[]>>(appendQuery(getClubSchedulesPath(clubId), { status }), {
+): Promise<Response<ClubSchedule[]>> {
+    return instance.get<Response<ClubSchedule[]>>(appendQuery(getClubSchedulesPath(clubId), { status }), {
         cache: "no-store",
     });
-    return getResponseResult(response);
 }
 
 export async function createClubScheduleService(
     clubId: number,
     payload: CreateClubScheduleRequest
-): Promise<ClubSchedule> {
-    const response = await instance.post<Response<ClubSchedule>>(getClubSchedulesPath(clubId), payload);
-    return getResponseResult(response);
+): Promise<Response<ClubSchedule>> {
+    return instance.post<Response<ClubSchedule>>(getClubSchedulesPath(clubId), payload);
 }
 
 export async function createAdminCommonClubScheduleService(
     payload: CreateClubScheduleRequest
-): Promise<AdminClubSchedule> {
-    const response = await instance.post<Response<AdminClubSchedule>>(ADMIN_CLUB_SCHEDULES_PATH, payload);
-    return getResponseResult(response);
+): Promise<Response<AdminClubSchedule>> {
+    return instance.post<Response<AdminClubSchedule>>(ADMIN_CLUB_SCHEDULES_PATH, payload);
 }
 
 export async function updateClubScheduleService(
     clubId: number,
     scheduleId: number,
     payload: UpdateClubScheduleRequest
-): Promise<ClubSchedule> {
-    const response = await instance.patch<Response<ClubSchedule>>(getClubSchedulePath(clubId, scheduleId), payload);
-    return getResponseResult(response);
+): Promise<Response<ClubSchedule>> {
+    return instance.patch<Response<ClubSchedule>>(getClubSchedulePath(clubId, scheduleId), payload);
 }
 
 export async function deleteClubScheduleService(
@@ -152,49 +138,44 @@ export async function deleteClubScheduleService(
 
 export async function getAdminClubScheduleListService(
     query: AdminClubScheduleListQuery = {}
-): Promise<AdminClubSchedule[]> {
-    const response = await instance.get<Response<AdminClubSchedule[]>>(appendQuery(ADMIN_CLUB_SCHEDULES_PATH, query), {
+): Promise<Response<AdminClubSchedule[]>> {
+    return instance.get<Response<AdminClubSchedule[]>>(appendQuery(ADMIN_CLUB_SCHEDULES_PATH, query), {
         cache: "no-store",
     });
-    return getResponseResult(response);
 }
 
 export async function getAdminClubScheduleCalendarService(
     query: AdminClubScheduleCalendarQuery
-): Promise<AdminClubSchedule[]> {
-    const response = await instance.get<Response<AdminClubSchedule[]>>(
+): Promise<Response<AdminClubSchedule[]>> {
+    return instance.get<Response<AdminClubSchedule[]>>(
         appendQuery(`${ADMIN_CLUB_SCHEDULES_PATH}/calendar`, query),
         {
             cache: "no-store",
         }
     );
-    return getResponseResult(response);
 }
 
-export async function getAdminClubScheduleService(scheduleId: number): Promise<AdminClubSchedule> {
-    const response = await instance.get<Response<AdminClubSchedule>>(getAdminClubSchedulePath(scheduleId), {
+export async function getAdminClubScheduleService(scheduleId: number): Promise<Response<AdminClubSchedule>> {
+    return instance.get<Response<AdminClubSchedule>>(getAdminClubSchedulePath(scheduleId), {
         cache: "no-store",
     });
-    return getResponseResult(response);
 }
 
 export async function updateAdminClubScheduleService(
     scheduleId: number,
     payload: UpdateClubScheduleRequest
-): Promise<AdminClubSchedule> {
-    const response = await instance.patch<Response<AdminClubSchedule>>(getAdminClubSchedulePath(scheduleId), payload);
-    return getResponseResult(response);
+): Promise<Response<AdminClubSchedule>> {
+    return instance.patch<Response<AdminClubSchedule>>(getAdminClubSchedulePath(scheduleId), payload);
 }
 
 export async function updateAdminClubScheduleStatusService(
     scheduleId: number,
     payload: UpdateAdminClubScheduleStatusRequest
-): Promise<AdminClubSchedule> {
-    const response = await instance.patch<Response<AdminClubSchedule>>(
+): Promise<Response<AdminClubSchedule>> {
+    return instance.patch<Response<AdminClubSchedule>>(
         `${getAdminClubSchedulePath(scheduleId)}/admin-status`,
         payload
     );
-    return getResponseResult(response);
 }
 
 export async function deleteAdminClubScheduleService(

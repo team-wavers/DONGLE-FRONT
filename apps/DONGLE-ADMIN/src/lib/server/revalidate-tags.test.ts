@@ -6,17 +6,15 @@ vi.mock("next/cache", () => ({
     revalidateTag: vi.fn(),
 }));
 
-const ORIGINAL_ENV = { ...process.env };
-
 describe("revalidateTags", () => {
     beforeEach(() => {
-        process.env.CLIENT_BASE_URL = "https://client.example.com";
-        process.env.REVALIDATE_SECRET = "test-secret";
+        vi.stubEnv("CLIENT_BASE_URL", "https://client.example.com");
+        vi.stubEnv("REVALIDATE_SECRET", "test-secret");
         vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
     });
 
     afterEach(() => {
-        process.env = { ...ORIGINAL_ENV };
+        vi.unstubAllEnvs();
         vi.unstubAllGlobals();
         vi.clearAllMocks();
     });
@@ -55,12 +53,11 @@ describe("revalidateTags", () => {
         });
     });
 
-    test("club, report, user 태그는 CLIENT로 무효화 요청을 보내지 않는다", async () => {
+    test("club, report, user 태그는 CLIENT로 무효화 요청을 보내지 않는다", () => {
         revalidateTags(["club"]);
         revalidateTags(["report"]);
         revalidateTags(["user"]);
 
-        await new Promise((resolve) => setTimeout(resolve, 0));
         expect(fetch).not.toHaveBeenCalled();
     });
 
@@ -73,20 +70,18 @@ describe("revalidateTags", () => {
         });
     });
 
-    test("CLIENT_BASE_URL이 없으면 CLIENT로 무효화 요청을 보내지 않는다", async () => {
-        delete process.env.CLIENT_BASE_URL;
+    test("CLIENT_BASE_URL이 없으면 CLIENT로 무효화 요청을 보내지 않는다", () => {
+        vi.stubEnv("CLIENT_BASE_URL", "");
 
         revalidateTags(["main-banner"]);
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(fetch).not.toHaveBeenCalled();
     });
 
-    test("REVALIDATE_SECRET이 없으면 CLIENT로 무효화 요청을 보내지 않는다", async () => {
-        delete process.env.REVALIDATE_SECRET;
+    test("REVALIDATE_SECRET이 없으면 CLIENT로 무효화 요청을 보내지 않는다", () => {
+        vi.stubEnv("REVALIDATE_SECRET", "");
 
         revalidateTags(["main-banner"]);
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(fetch).not.toHaveBeenCalled();
     });

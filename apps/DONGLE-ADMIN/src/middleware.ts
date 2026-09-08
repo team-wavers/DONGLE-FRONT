@@ -1,7 +1,7 @@
 // middleware.ts 예제
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { decodeJwtToken, isTokenExpired } from "@dongle/api/utils/jwt.util";
+import { verifyJwtToken } from "@dongle/api/utils/jwt.util";
 import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
 import { handleTokenRefresh } from "@/lib/middleware/tokenRefresh.middleware";
 
@@ -36,11 +36,7 @@ export async function middleware(request: NextRequest) {
         return tryRefreshOrRedirect(request, refreshToken?.value, "no_token");
     }
 
-    if (isTokenExpired(accessToken.value)) {
-        return tryRefreshOrRedirect(request, refreshToken?.value, "expired");
-    }
-
-    const payload = decodeJwtToken(accessToken.value);
+    const payload = await verifyJwtToken(accessToken.value);
     if (!payload) {
         return tryRefreshOrRedirect(request, refreshToken?.value, "invalid_token");
     }
@@ -73,6 +69,11 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(new URL(`/${clubId}/club-form`, request.url));
         }
         return redirectToLogin(request, "unauthorized");
+    }
+
+    const [pathClubId] = request.nextUrl.pathname.split("/").filter(Boolean);
+    if (pathClubId && /^\d+$/.test(pathClubId) && role !== AUTH_ROLE.ADMIN && pathClubId !== clubId) {
+        return redirectToLogin(request, "unauthorized_club");
     }
 
     // 기타 경로는 통과

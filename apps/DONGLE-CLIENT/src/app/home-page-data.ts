@@ -4,14 +4,18 @@ import {
     getPublicMainBannerListService,
 } from "@/lib/server/cached-services";
 
-export async function loadHomePageViewData() {
-    const [clubListResponse, mainBannerResponse] = await Promise.allSettled([
-        getClubListService(),
-        getPublicMainBannerListService(),
-    ]);
+export async function loadHomePageBanners(now = new Date()) {
+    const mainBannerResponse = await Promise.allSettled([getPublicMainBannerListService()]);
+    const mainBannerResult = mainBannerResponse[0].status === "fulfilled" ? mainBannerResponse[0].value : null;
 
-    const clubListResult = clubListResponse.status === "fulfilled" ? clubListResponse.value : null;
-    const mainBannerResult = mainBannerResponse.status === "fulfilled" ? mainBannerResponse.value : null;
+    return mainBannerResult?.isSuccess && mainBannerResult.result
+        ? getDisplayMainBannerItems(mainBannerResult.result, now)
+        : [];
+}
+
+export async function loadHomePageClubs() {
+    const clubListResponse = await Promise.allSettled([getClubListService()]);
+    const clubListResult = clubListResponse[0].status === "fulfilled" ? clubListResponse[0].value : null;
     const clubsLoadFailed = !clubListResult?.isSuccess;
     const clubs =
         clubListResult?.isSuccess && clubListResult.result
@@ -25,10 +29,12 @@ export async function loadHomePageViewData() {
                   recruit_end: club.recruit_end ?? null,
               }))
             : [];
-    const banners =
-        mainBannerResult?.isSuccess && mainBannerResult.result
-            ? getDisplayMainBannerItems(mainBannerResult.result)
-            : [];
 
-    return { clubs, banners, clubsLoadFailed };
+    return { clubs, clubsLoadFailed };
+}
+
+export async function loadHomePageViewData(now = new Date()) {
+    const [banners, clubsResult] = await Promise.all([loadHomePageBanners(now), loadHomePageClubs()]);
+
+    return { ...clubsResult, banners };
 }

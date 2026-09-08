@@ -12,6 +12,7 @@ import {
     updateAdminClubScheduleStatusService,
     updateClubScheduleService,
 } from "@dongle/service";
+import type { Response } from "@dongle/types/response";
 import type {
     AdminClubSchedule,
     AdminClubScheduleCalendarQuery,
@@ -21,6 +22,8 @@ import { captureServerException } from "@/lib/sentry/capture-server-exception";
 import { revalidateTags } from "@/lib/server/revalidate-tags";
 import { actionFailure, actionSuccess, getActionErrorMessage, getServiceErrorMessage, getZodFieldErrors, type ActionResult } from "@/shared/action";
 import { requireServerActionAccessToken } from "@/shared/action/server-action-auth";
+import { getSessionExpiredActionFailure } from "@/shared/action";
+import { AUTH_ROLE } from "@dongle/types/auth/auth-role";
 import {
     buildClubSchedulePayload,
     clubScheduleSchema,
@@ -50,6 +53,14 @@ function revalidateScheduleTags(clubId?: number | null, scheduleId?: number) {
     revalidateTags(clubScheduleTagGroups.list());
 }
 
+function unwrapScheduleResponse<T>(response: Response<T>, fallbackMessage: string): T {
+    if (!response.isSuccess) {
+        throw new Error(getServiceErrorMessage(response.error, fallbackMessage));
+    }
+
+    return response.result;
+}
+
 export async function createClubScheduleAction(
     clubId: number,
     values: ClubScheduleFormValues
@@ -70,10 +81,13 @@ export async function createClubScheduleAction(
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ clubId });
 
         const payload = buildClubSchedulePayload(parsed.data);
-        const result = await createClubScheduleService(clubId, payload);
+        const result = unwrapScheduleResponse(
+            await createClubScheduleService(clubId, payload),
+            "일정 등록에 실패했습니다. 다시 시도해주세요."
+        );
         revalidateScheduleTags(clubId, result.id);
 
         return actionSuccess({
@@ -81,6 +95,8 @@ export async function createClubScheduleAction(
             message: "일정이 등록되었습니다.",
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "동아리 일정 생성 중 오류", {
             action: "createClubScheduleAction",
             clubId,
@@ -104,10 +120,13 @@ export async function createAdminCommonClubScheduleAction(
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ role: AUTH_ROLE.ADMIN });
 
         const payload = buildClubSchedulePayload(parsed.data);
-        const result = await createAdminCommonClubScheduleService(payload);
+        const result = unwrapScheduleResponse(
+            await createAdminCommonClubScheduleService(payload),
+            "공통 일정 등록에 실패했습니다. 다시 시도해주세요."
+        );
         revalidateScheduleTags(result.club_id, result.id);
 
         return actionSuccess({
@@ -115,6 +134,8 @@ export async function createAdminCommonClubScheduleAction(
             message: "공통 일정이 등록되었습니다.",
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "관리자 공통 일정 생성 중 오류", {
             action: "createAdminCommonClubScheduleAction",
         });
@@ -145,10 +166,13 @@ export async function updateClubScheduleAction(
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ clubId });
 
         const payload = buildClubSchedulePayload(parsed.data);
-        const result = await updateClubScheduleService(clubId, scheduleId, payload);
+        const result = unwrapScheduleResponse(
+            await updateClubScheduleService(clubId, scheduleId, payload),
+            "일정 수정에 실패했습니다. 다시 시도해주세요."
+        );
         revalidateScheduleTags(clubId, scheduleId);
 
         return actionSuccess({
@@ -156,6 +180,8 @@ export async function updateClubScheduleAction(
             message: "일정이 수정되었습니다.",
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "동아리 일정 수정 중 오류", {
             action: "updateClubScheduleAction",
             clubId,
@@ -187,10 +213,13 @@ export async function updateAdminClubScheduleAction(
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ role: AUTH_ROLE.ADMIN });
 
         const payload = buildClubSchedulePayload(parsed.data);
-        const result = await updateAdminClubScheduleService(scheduleId, payload);
+        const result = unwrapScheduleResponse(
+            await updateAdminClubScheduleService(scheduleId, payload),
+            "일정 수정에 실패했습니다. 다시 시도해주세요."
+        );
         revalidateScheduleTags(result.club_id, scheduleId);
 
         return actionSuccess({
@@ -198,6 +227,8 @@ export async function updateAdminClubScheduleAction(
             message: result.club_id === null ? "공통 일정이 수정되었습니다." : "일정이 수정되었습니다.",
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "관리자 일정 수정 중 오류", {
             action: "updateAdminClubScheduleAction",
             scheduleId,
@@ -219,11 +250,13 @@ export async function deleteClubScheduleAction(
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ clubId });
 
         const result = await deleteClubScheduleService(clubId, scheduleId);
 
         if (!result.isSuccess) {
+            const expired = getSessionExpiredActionFailure(result.error);
+            if (expired) return actionFailure(expired);
             return actionFailure({
                 formError: getServiceErrorMessage(result.error, "일정 삭제에 실패했습니다. 다시 시도해주세요."),
             });
@@ -236,6 +269,8 @@ export async function deleteClubScheduleAction(
             message: "일정이 삭제되었습니다.",
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "동아리 일정 삭제 중 오류", {
             action: "deleteClubScheduleAction",
             clubId,
@@ -258,15 +293,20 @@ export async function updateAdminClubScheduleStatusAction(
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ role: AUTH_ROLE.ADMIN });
 
-        const result = await updateAdminClubScheduleStatusService(scheduleId, { is_public: isPublic });
+        const result = unwrapScheduleResponse(
+            await updateAdminClubScheduleStatusService(scheduleId, { is_public: isPublic }),
+            "공개 상태 변경에 실패했습니다. 다시 시도해주세요."
+        );
         revalidateScheduleTags(result.club_id, scheduleId);
 
         return actionSuccess({
             data: result,
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "관리자 일정 공개 상태 변경 중 오류", {
             action: "updateAdminClubScheduleStatusAction",
             scheduleId,
@@ -285,12 +325,17 @@ export async function deleteAdminClubScheduleAction(scheduleId: number): Promise
     }
 
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ role: AUTH_ROLE.ADMIN });
 
-        const schedule = await getAdminClubScheduleService(scheduleId);
+        const schedule = unwrapScheduleResponse(
+            await getAdminClubScheduleService(scheduleId),
+            "일정 정보를 불러오지 못했습니다."
+        );
         const result = await deleteAdminClubScheduleService(scheduleId);
 
         if (!result.isSuccess) {
+            const expired = getSessionExpiredActionFailure(result.error);
+            if (expired) return actionFailure(expired);
             return actionFailure({
                 formError: getServiceErrorMessage(result.error, "일정 삭제에 실패했습니다. 다시 시도해주세요."),
             });
@@ -303,6 +348,8 @@ export async function deleteAdminClubScheduleAction(scheduleId: number): Promise
             message: "일정이 삭제되었습니다.",
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "관리자 일정 삭제 중 오류", {
             action: "deleteAdminClubScheduleAction",
             scheduleId,
@@ -317,14 +364,19 @@ export async function getAdminClubScheduleCalendarAction(
     query: AdminClubScheduleCalendarQuery
 ): Promise<ScheduleMetaActionResult<AdminClubSchedule[]>> {
     try {
-        await requireServerActionAccessToken();
+        await requireServerActionAccessToken({ role: AUTH_ROLE.ADMIN });
 
-        const result = await getAdminClubScheduleCalendarService(query);
+        const result = unwrapScheduleResponse(
+            await getAdminClubScheduleCalendarService(query),
+            "월간 일정 조회에 실패했습니다. 다시 시도해주세요."
+        );
 
         return actionSuccess({
             data: result,
         });
     } catch (error) {
+        const expired = getSessionExpiredActionFailure(error);
+        if (expired) return actionFailure(expired);
         captureServerException(error, "관리자 월간 일정 조회 중 오류", {
             action: "getAdminClubScheduleCalendarAction",
             query,

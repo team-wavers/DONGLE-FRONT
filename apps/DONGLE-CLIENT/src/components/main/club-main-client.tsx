@@ -2,12 +2,10 @@
 
 import React from "react";
 import ClubListSection from "@/components/main/club-list-section";
-import ClubMainHeroBannerCarousel from "@/components/main/club-main-hero-banner-carousel";
 import ClubSearchSection from "@/components/main/club-search-section";
 import RecruitmentClosingSection from "@/components/main/recruitment-closing-section";
 import { useClubFilters } from "@/hooks/use-club-filters";
 import { getClosingSoonClubs } from "@/lib/recruitment";
-import type { DisplayMainBannerItem } from "@dongle/service/main-banner/get-display-banner-image-urls";
 
 type ClubListItemViewModel = {
     id: number;
@@ -21,11 +19,10 @@ type ClubListItemViewModel = {
 
 interface ClubMainClientProps {
     clubs: ClubListItemViewModel[];
-    banners: DisplayMainBannerItem[];
     clubsLoadFailed?: boolean;
 }
 
-export default function ClubMainClient({ clubs, banners, clubsLoadFailed = false }: ClubMainClientProps) {
+export default function ClubMainClient({ clubs, clubsLoadFailed = false }: ClubMainClientProps) {
     const {
         searchInputValue,
         onSearchInputChange,
@@ -44,8 +41,7 @@ export default function ClubMainClient({ clubs, banners, clubsLoadFailed = false
     const closingSoonEntries = React.useMemo(() => getClosingSoonClubs(clubs), [clubs]);
 
     return (
-        <section className="space-y-6 py-6 md:py-10">
-            {banners.length > 0 ? <ClubMainHeroBannerCarousel banners={banners} /> : null}
+        <>
             <RecruitmentClosingSection entries={closingSoonEntries} />
             <section className="grid grid-cols-1 gap-4 md:grid-cols-[280px_minmax(0,1fr)]">
                 <ClubSearchSection
@@ -67,6 +63,6 @@ export default function ClubMainClient({ clubs, banners, clubsLoadFailed = false
                     loadFailed={clubsLoadFailed}
                 />
             </section>
-        </section>
+        </>
     );
 }

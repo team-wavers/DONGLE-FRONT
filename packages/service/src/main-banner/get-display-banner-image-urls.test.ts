@@ -52,9 +52,21 @@ describe("getDisplayMainBannerItems", () => {
         ]);
     });
 
+    test("timezone 없는 게시 기간을 Seoul wall-clock으로 해석한다", () => {
+        const banner = createBanner({
+            publish_start_at: "2026-05-01 00:00:00",
+            publish_end_at: "2026-05-01 23:59:59",
+        });
+
+        expect(getDisplayMainBannerItems([banner], new Date("2026-04-30T15:30:00.000Z"))).toHaveLength(1);
+        expect(getDisplayMainBannerItems([banner], new Date("2026-04-30T14:59:59.000Z"))).toHaveLength(0);
+    });
+
     test("허용되지 않는 링크는 null로 정규화한다", () => {
         expect(normalizeDisplayBannerLinkUrl("javascript:alert(1)")).toBeNull();
         expect(normalizeDisplayBannerLinkUrl("//example.com/path")).toBeNull();
+        expect(normalizeDisplayBannerLinkUrl("/\\evil.example")).toBeNull();
+        expect(normalizeDisplayBannerLinkUrl("/%5C%5Cevil.example")).toBeNull();
         expect(normalizeDisplayBannerLinkUrl("ftp://example.com/file")).toBeNull();
         expect(normalizeDisplayBannerLinkUrl("")).toBeNull();
         expect(normalizeDisplayBannerLinkUrl(null)).toBeNull();

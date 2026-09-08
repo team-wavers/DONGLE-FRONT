@@ -84,7 +84,17 @@ describe("club schedule service endpoints", () => {
                 revalidate: 180,
             },
         });
-        expect(result).toEqual([clubSchedule]);
+        expect(result).toEqual({ isSuccess: true, result: [clubSchedule] });
+    });
+
+    test("구조화 실패 응답을 throw하지 않고 그대로 반환한다", async () => {
+        const failure = {
+            isSuccess: false as const,
+            error: { message: "일정 조회 실패", detail: "backend unavailable", status: 503 },
+        };
+        fetchInstanceMock.get.mockResolvedValueOnce(failure);
+
+        await expect(getClubScheduleListService(1)).resolves.toEqual(failure);
     });
 
     test("전체 공개 월별 일정은 public 전체 일정 엔드포인트를 호출한다", async () => {
@@ -105,7 +115,7 @@ describe("club schedule service endpoints", () => {
                 },
             }
         );
-        expect(result).toEqual([commonAdminClubSchedule]);
+        expect(result).toEqual({ isSuccess: true, result: [commonAdminClubSchedule] });
     });
 
     test("회장 일정 목록은 status query를 포함해 호출하고 응답 result를 반환한다", async () => {
@@ -116,7 +126,7 @@ describe("club schedule service endpoints", () => {
         expect(fetchInstanceMock.get).toHaveBeenCalledWith("/clubs/1/schedules?status=upcoming", {
             cache: "no-store",
         });
-        expect(result).toEqual([{ ...clubSchedule, id: 2 }]);
+        expect(result).toEqual({ isSuccess: true, result: [{ ...clubSchedule, id: 2 }] });
     });
 
     test("회장 일정 생성은 일정 생성 엔드포인트와 payload를 호출한다", async () => {
@@ -134,7 +144,7 @@ describe("club schedule service endpoints", () => {
         const result = await createClubScheduleService(1, payload);
 
         expect(fetchInstanceMock.post).toHaveBeenCalledWith("/clubs/1/schedules", payload);
-        expect(result).toEqual({ id: 1 });
+        expect(result).toEqual({ isSuccess: true, result: { id: 1 } });
     });
 
     test("관리자 공통 일정 생성은 관리자 일정 엔드포인트와 payload를 호출한다", async () => {
@@ -153,7 +163,7 @@ describe("club schedule service endpoints", () => {
         const result = await createAdminCommonClubScheduleService(payload);
 
         expect(fetchInstanceMock.post).toHaveBeenCalledWith("/club-schedules", payload);
-        expect(result).toEqual(commonAdminClubSchedule);
+        expect(result).toEqual({ isSuccess: true, result: commonAdminClubSchedule });
     });
 
     test("회장 일정 수정은 일정 수정 엔드포인트와 payload를 호출한다", async () => {
@@ -163,7 +173,7 @@ describe("club schedule service endpoints", () => {
             "/clubs/1/schedules/7",
             { title: "수정된 일정" }
         );
-        expect(result).toEqual({ id: 1 });
+        expect(result).toEqual({ isSuccess: true, result: { id: 1 } });
     });
 
     test("회장 일정 삭제는 일정 삭제 엔드포인트를 호출한다", async () => {
@@ -190,7 +200,7 @@ describe("club schedule service endpoints", () => {
                 cache: "no-store",
             }
         );
-        expect(result).toEqual([{ ...adminClubSchedule, id: 4 }]);
+        expect(result).toEqual({ isSuccess: true, result: [{ ...adminClubSchedule, id: 4 }] });
     });
 
     test("관리자 캘린더 일정은 기간 query를 포함해 호출하고 응답 result를 반환한다", async () => {
@@ -207,7 +217,7 @@ describe("club schedule service endpoints", () => {
                 cache: "no-store",
             }
         );
-        expect(result).toEqual([{ ...adminClubSchedule, id: 3 }]);
+        expect(result).toEqual({ isSuccess: true, result: [{ ...adminClubSchedule, id: 3 }] });
     });
 
     test("관리자 일정 상세는 단건 엔드포인트를 호출한다", async () => {
@@ -218,7 +228,7 @@ describe("club schedule service endpoints", () => {
         expect(fetchInstanceMock.get).toHaveBeenCalledWith("/club-schedules/7", {
             cache: "no-store",
         });
-        expect(result).toEqual({ ...adminClubSchedule, id: 7 });
+        expect(result).toEqual({ isSuccess: true, result: { ...adminClubSchedule, id: 7 } });
     });
 
     test("관리자 일정 수정은 관리자 일정 수정 엔드포인트와 payload를 호출한다", async () => {
@@ -230,7 +240,7 @@ describe("club schedule service endpoints", () => {
             "/club-schedules/7",
             { title: "수정된 공통 행사" }
         );
-        expect(result).toEqual(commonAdminClubSchedule);
+        expect(result).toEqual({ isSuccess: true, result: commonAdminClubSchedule });
     });
 
     test("관리자 공개 상태 변경은 admin-status 엔드포인트와 payload를 호출한다", async () => {
@@ -240,7 +250,7 @@ describe("club schedule service endpoints", () => {
             "/club-schedules/7/admin-status",
             { is_public: false }
         );
-        expect(result).toEqual({ id: 1 });
+        expect(result).toEqual({ isSuccess: true, result: { id: 1 } });
     });
 
     test("관리자 일정 삭제는 관리자 삭제 엔드포인트를 호출한다", async () => {
