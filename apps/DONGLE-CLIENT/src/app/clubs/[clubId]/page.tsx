@@ -13,6 +13,7 @@ import {
     getClubReportListService,
     getClubService,
 } from "@/lib/server/cached-services";
+import { sanitizeRichTextForViewer } from "@dongle/rich-text";
 import { RecruitmentStatusBadge } from "@dongle/ui/badges/recruitment-status-badge";
 import { Skeleton } from "@dongle/ui/skeleton";
 import { formatDateRange, normalizeSocialUrl } from "@dongle/ui/utils";
@@ -135,9 +136,15 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
     }
 
     const club = clubResponse.result;
+    const [descriptionHtml, mainActivitiesHtml] = await Promise.all([
+        club.description ? sanitizeRichTextForViewer(club.description) : "",
+        club.main_activities ? sanitizeRichTextForViewer(club.main_activities) : "",
+    ]);
+    // description/main_activities는 여기서 이미 DOMPurify로 sanitize된 HTML이라
+    // ClubIntroTabContent에서 별도 검증 없이 dangerouslySetInnerHTML로 바로 렌더한다.
     const intro = {
-        description: club.description,
-        main_activities: club.main_activities,
+        description: descriptionHtml,
+        main_activities: mainActivitiesHtml,
     };
     const instagramUrl = normalizeSocialUrl("instagram", club.sns?.instagram);
     const youtubeUrl = normalizeSocialUrl("youtube", club.sns?.youtube);

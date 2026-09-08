@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import ClubIntroTabContent from "./club-intro-tab-content";
 
 describe("ClubIntroTabContent", () => {
-    it("rich text 본문이 준비되는 동안 소개와 주요 활동 제목만 렌더링한다", () => {
+    it("이미 sanitize된 rich text 본문을 즉시 렌더링한다", () => {
         const html = renderToStaticMarkup(
             <ClubIntroTabContent
                 club={{
@@ -17,8 +17,8 @@ describe("ClubIntroTabContent", () => {
         expect(html).toContain("동아리 소개");
         expect(html).toContain("주요 활동");
         expect(html).not.toContain('data-slot="skeleton"');
-        expect(html).not.toContain("동아리 소개입니다.");
-        expect(html).not.toContain("주요 활동입니다.");
+        expect(html).toContain("동아리 소개입니다.");
+        expect(html).toContain("주요 활동입니다.");
     });
 
     it("본문이 없으면 스켈레톤 대신 empty-state 문구를 렌더링한다", () => {

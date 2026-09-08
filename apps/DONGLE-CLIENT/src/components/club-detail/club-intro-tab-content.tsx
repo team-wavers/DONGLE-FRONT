@@ -1,10 +1,10 @@
-"use client";
-
 import React from "react";
-import ClientRichTextViewer from "@/components/rich-text/client-rich-text-viewer";
+import { richTextContentClassName } from "@dongle/rich-text";
 
 type ClubIntroViewModel = {
+    /** 이미 sanitizeRichTextForViewer를 거친 안전한 HTML 문자열 */
     description: string;
+    /** 이미 sanitizeRichTextForViewer를 거친 안전한 HTML 문자열 */
     main_activities: string;
 };
 
@@ -24,9 +24,10 @@ export default function ClubIntroTabContent({ club }: ClubIntroTabContentProps) 
             <article className={styles.article}>
                 <h2 className={styles.title}>동아리 소개</h2>
                 {club.description ? (
-                    <ClientRichTextViewer
-                        html={club.description}
-                        className={styles.text}
+                    <div
+                        className={`${richTextContentClassName} ${styles.text}`}
+                        suppressHydrationWarning
+                        dangerouslySetInnerHTML={{ __html: club.description }}
                     />
                 ) : (
                     <p className={styles.text}>등록된 동아리 소개가 없습니다.</p>
@@ -36,9 +37,10 @@ export default function ClubIntroTabContent({ club }: ClubIntroTabContentProps) 
             <article className={styles.article}>
                 <h2 className={styles.title}>주요 활동</h2>
                 {club.main_activities ? (
-                    <ClientRichTextViewer
-                        html={club.main_activities}
-                        className={styles.text}
+                    <div
+                        className={`${richTextContentClassName} ${styles.text}`}
+                        suppressHydrationWarning
+                        dangerouslySetInnerHTML={{ __html: club.main_activities }}
                     />
                 ) : (
                     <p className={styles.text}>등록된 주요 활동 정보가 없습니다.</p>
