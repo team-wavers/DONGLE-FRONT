@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
-import { getPostHogInitOptions } from "@/lib/analytics";
+import { initPostHog } from "@/lib/analytics";
 import { isLocalBrowserRuntime, isSentryDisabledByEnv } from "./sentry.shared";
 
 const sentryDsn =
@@ -47,23 +47,9 @@ if (isSentryEnabled) {
 }
 
 runOnIdle(() => {
-  try {
-    const posthogToken = process.env.NEXT_PUBLIC_POSTHOG_TOKEN;
-
-    if (!posthogToken) {
-      return;
-    }
-
-    import("posthog-js")
-      .then(({ default: posthog }) => {
-        posthog.init(posthogToken, getPostHogInitOptions());
-      })
-      .catch((error) => {
-        console.error("PostHog 초기화 실패", error);
-      });
-  } catch (error) {
+  void initPostHog().catch((error) => {
     console.error("PostHog 초기화 실패", error);
-  }
+  });
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

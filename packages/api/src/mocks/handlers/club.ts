@@ -50,9 +50,9 @@ const clubHandlers = [
             updated_at: new Date().toISOString(),
             deleted_at: null,
             president: {
-                id: body.president_id,
-                name: "회장 이름",
-                phone: "010-0000-0000",
+                id: body.president_id ?? Math.floor(Math.random() * 1000) + 1,
+                name: body.newPresident?.name ?? "회장 이름",
+                phone: body.newPresident?.phone ?? "010-0000-0000",
             },
         };
 

@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { createClubService, updateClubService, uploadClubIconService } from "@dongle/service/club/club.service";
-import { createUserService, deleteUserService } from "@dongle/service/user/user.service";
 import { revalidateTag } from "next/cache";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import { submitClubRegisterAction } from "./club-register.action";
@@ -10,11 +9,6 @@ vi.mock("@dongle/service/club/club.service", () => ({
     createClubService: vi.fn(),
     updateClubService: vi.fn(),
     uploadClubIconService: vi.fn(),
-}));
-
-vi.mock("@dongle/service/user/user.service", () => ({
-    createUserService: vi.fn(),
-    deleteUserService: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({
@@ -59,11 +53,7 @@ describe("submitClubRegisterAction", () => {
         vi.clearAllMocks();
     });
 
-    test("액세스 토큰 없이도 사용자·동아리 생성을 호출하고 sessionExpired를 반환하지 않는다", async () => {
-        vi.mocked(createUserService).mockResolvedValue({
-            isSuccess: true,
-            result: { id: 7 },
-        } as Awaited<ReturnType<typeof createUserService>>);
+    test("액세스 토큰 없이도 회장 계정을 포함한 동아리 생성을 한 번의 요청으로 호출하고 sessionExpired를 반환하지 않는다", async () => {
         vi.mocked(createClubService).mockResolvedValue({
             isSuccess: true,
             result: { id: 11 },
@@ -77,18 +67,22 @@ describe("submitClubRegisterAction", () => {
             expect(result.redirectTo).not.toContain("data=");
             expect(result.redirectTo).not.toContain("tempPassword");
         }
-        expect(createUserService).toHaveBeenCalled();
-        expect(createClubService).toHaveBeenCalled();
+        expect(createClubService).toHaveBeenCalledTimes(1);
+        expect(createClubService).toHaveBeenCalledWith(
+            expect.objectContaining({
+                key: "registration-key",
+                newPresident: expect.objectContaining({
+                    name: "홍길동",
+                    phone: "010-1234-5678",
+                }),
+            })
+        );
         expect(result).not.toMatchObject({ sessionExpired: true });
     });
 
     test("동아리 생성 후 선택된 아이콘을 업로드하고 icon_url을 저장한다", async () => {
         const iconFile = new File(["icon"], "icon.png", { type: "image/png" });
 
-        vi.mocked(createUserService).mockResolvedValue({
-            isSuccess: true,
-            result: { id: 7 },
-        } as Awaited<ReturnType<typeof createUserService>>);
         vi.mocked(createClubService).mockResolvedValue({
             isSuccess: true,
             result: { id: 11 },
@@ -110,24 +104,15 @@ describe("submitClubRegisterAction", () => {
             icon_url: "https://cdn.test/icon.png",
         });
         expect(revalidateTag).toHaveBeenCalledWith("user");
-        expect(revalidateTag).toHaveBeenCalledWith("user-7");
         expect(revalidateTag).toHaveBeenCalledWith("club");
         expect(revalidateTag).toHaveBeenCalledWith("club-11");
     });
 
-    test("사용자 생성 성공 후 동아리 생성이 실패하면 회장 사용자를 삭제하고 태그를 초기화하지 않는다", async () => {
-        vi.mocked(createUserService).mockResolvedValue({
-            isSuccess: true,
-            result: { id: 7 },
-        } as Awaited<ReturnType<typeof createUserService>>);
+    test("동아리 생성이 실패하면(키 무효 등) 회장 계정도 만들어지지 않고 실패 응답만 반환한다", async () => {
         vi.mocked(createClubService).mockResolvedValue({
             isSuccess: false,
             error: { message: "club create failed" },
         } as Awaited<ReturnType<typeof createClubService>>);
-        vi.mocked(deleteUserService).mockResolvedValue({
-            isSuccess: true,
-            result: null,
-        } as Awaited<ReturnType<typeof deleteUserService>>);
 
         const result = await submitClubRegisterAction("registration-key", createValues());
 
@@ -135,7 +120,9 @@ describe("submitClubRegisterAction", () => {
             ok: false,
             formError: "club create failed",
         });
-        expect(deleteUserService).toHaveBeenCalledWith(7);
+        // User+Club 생성이 백엔드에서 하나의 트랜잭션으로 처리되므로,
+        // 실패 시 회장 계정을 별도로 정리(삭제)할 필요 자체가 없다.
+        expect(createClubService).toHaveBeenCalledTimes(1);
         expect(revalidateTag).not.toHaveBeenCalled();
     });
 });

@@ -1,18 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { AdminClubSchedule } from "@dongle/types/club/club.schedule";
-import { formatDateForRequest } from "@dongle/utils";
 import {
     getPublicScheduleCalendarDates,
     getPublicScheduleMonthKey,
     getPublicScheduleMonthQuery,
     getPublicSchedulesForDate,
+    getScheduleCalendarCells,
+    getScheduleCalendarDateKey as getSeoulDateKey,
     mapPublicCalendarScheduleToPublicSchedule,
     mapPublicScheduleToDisplayItem,
 } from "./public-schedule-calendar";
-
-function getSeoulDateKey(date: Date) {
-    return formatDateForRequest(date, { timeZone: "Asia/Seoul" });
-}
 
 const commonSchedule = {
     id: 9,
@@ -59,6 +56,20 @@ describe("public schedule calendar", () => {
         expect(dates).toHaveLength(42);
         expect(getSeoulDateKey(dates[0])).toBe("2026-05-31");
         expect(getSeoulDateKey(dates[41])).toBe("2026-07-11");
+    });
+
+    it("캘린더 셀은 서울 기준 날짜 key로 현재 월 여부와 일자를 계산한다 (UTC 서버에서도 하루 밀리지 않아야 한다)", () => {
+        const cells = getScheduleCalendarCells("2026-06");
+
+        expect(cells).toHaveLength(42);
+        expect(cells[0]).toMatchObject({ dateKey: "2026-05-31", day: 31, isCurrentMonth: false });
+        expect(cells[1]).toMatchObject({ dateKey: "2026-06-01", day: 1, isCurrentMonth: true });
+
+        const lastJuneCell = cells.find((cell) => cell.dateKey === "2026-06-30");
+        expect(lastJuneCell).toMatchObject({ day: 30, isCurrentMonth: true });
+
+        const firstJulyCell = cells.find((cell) => cell.dateKey === "2026-07-01");
+        expect(firstJulyCell).toMatchObject({ day: 1, isCurrentMonth: false });
     });
 
     it("공통 일정은 clubId null과 총동연 라벨을 유지한다", () => {

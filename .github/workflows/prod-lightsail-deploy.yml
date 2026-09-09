@@ -55,9 +55,10 @@ jobs:
           PROD_CLIENT_BASE_URL: ${{ secrets.PROD_CLIENT_BASE_URL }}
           CLIENT_NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.CLIENT_NEXT_PUBLIC_SENTRY_DSN }}
           ADMIN_NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.ADMIN_NEXT_PUBLIC_SENTRY_DSN }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           missing=""
-          for name in PROD_API_URL NEXT_SERVER_ACTIONS_ENCRYPTION_KEY LIGHTSAIL_HOST LIGHTSAIL_HOST_KEY LIGHTSAIL_SSH_KEY REVALIDATE_SECRET PROD_CLIENT_BASE_URL CLIENT_NEXT_PUBLIC_SENTRY_DSN ADMIN_NEXT_PUBLIC_SENTRY_DSN; do
+          for name in PROD_API_URL NEXT_SERVER_ACTIONS_ENCRYPTION_KEY LIGHTSAIL_HOST LIGHTSAIL_HOST_KEY LIGHTSAIL_SSH_KEY REVALIDATE_SECRET PROD_CLIENT_BASE_URL CLIENT_NEXT_PUBLIC_SENTRY_DSN ADMIN_NEXT_PUBLIC_SENTRY_DSN JWT_SECRET; do
             value="${!name:-}"
             if [ -z "$value" ]; then
               missing="$missing $name"
@@ -115,6 +116,7 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.CLIENT_SENTRY_PROJECT }}
           SENTRY_ENVIRONMENT: production
           SENTRY_RELEASE: ${{ github.sha }}
+          NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
           NEXT_TELEMETRY_DISABLED: "1"
         run: pnpm --filter dongle-client deploy:standalone:prod
 
@@ -128,6 +130,7 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.ADMIN_SENTRY_PROJECT }}
           SENTRY_ENVIRONMENT: production
           SENTRY_RELEASE: ${{ github.sha }}
+          NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
           NEXT_TELEMETRY_DISABLED: "1"
         run: pnpm --filter dongle-admin deploy:standalone:prod
 
@@ -200,6 +203,7 @@ jobs:
           ADMIN_HEALTHCHECK_URL: ${{ secrets.PROD_ADMIN_HEALTHCHECK_URL }}
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
           PROD_CLIENT_BASE_URL: ${{ secrets.PROD_CLIENT_BASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           ssh -i ~/.ssh/lightsail.pem ec2-user@"$LIGHTSAIL_HOST" <<EOF
           set -euo pipefail
@@ -332,6 +336,7 @@ jobs:
           DEPLOY_ADMIN_DIR_PROD=$CURRENT_ADMIN_DIR
           REVALIDATE_SECRET=$REVALIDATE_SECRET
           CLIENT_BASE_URL=$PROD_CLIENT_BASE_URL
+          JWT_SECRET=$JWT_SECRET
           ENVFILE
           chmod 600 "$ROOT_DIR/.env.pm2.prod"
 

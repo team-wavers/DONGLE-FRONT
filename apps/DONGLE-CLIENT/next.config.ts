@@ -10,6 +10,9 @@ function toHostname(value: string): string {
 const nextConfig: NextConfig = {
   output: "standalone",
   skipTrailingSlashRedirect: true,
+  // isomorphic-dompurify(jsdom)를 서버 웹팩 번들에 넣으면 jsdom이 내부적으로 참조하는
+  // default-stylesheet.css 경로가 깨져 ENOENT가 난다. 네이티브 require로 로드하도록 externalize.
+  serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
   async rewrites() {
     return [
       {

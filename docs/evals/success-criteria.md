@@ -626,7 +626,7 @@
 
 관련 테스트:
 - [sanitize-rich-text-html.test.ts](../../packages/rich-text/src/sanitize-rich-text-html.test.ts)
-- [rich-text-viewer.test.ts](../../packages/rich-text/src/rich-text-viewer.test.ts)
+- [sanitize-rich-text-for-viewer.test.ts](../../packages/rich-text/src/sanitize-rich-text-for-viewer.test.ts)
 
 ### Date Format
 
