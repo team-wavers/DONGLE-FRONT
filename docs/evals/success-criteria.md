@@ -30,6 +30,25 @@
 관련 테스트:
 - `apps/DONGLE-ADMIN/src/app/(대시보드)/(총동연)/admin/admin-home-data.test.ts`
 
+## Client Search Identity
+
+- 공개 사이트의 파비콘은 정사각형 ICO이며 16/32/48/256px 이미지를 포함한다.
+- `icon`과 `shortcut icon`은 `SITE_URL` 기준 절대 URL로 같은 파비콘을 지정한다.
+- Apple touch icon은 별도의 180px 정사각형 PNG를 절대 URL로 지정한다.
+- 사이트 이름은 `동글`로 유지한다. 네이버 검색 노출 이름과 파비콘 반영 시점은 검색 로봇의 수집·색인에 따라 결정된다.
+
+검증: 정적 이미지 규격과 metadata 설정을 직접 확인한다. 로직 변경이 없는 이미지·설정 변경이므로 별도의 Vitest 테스트는 추가하지 않는다.
+
+## Client SEO
+
+- 동아리 메타 설명은 HTML 태그와 주석, script/style/template/noscript 내용을 제외한 텍스트를 사용한다.
+- HTML 엔티티는 한 번만 해석하고, 문단·줄바꿈 경계와 연속 공백은 한 칸으로 정리한다. 인라인 강조는 단어를 분리하지 않는다.
+- 소개에 텍스트가 없으면 주요 활동을 사용하고, 둘 다 비어 있으면 분과·동아리명·모집 상태를 포함한 대체 설명을 사용한다.
+- 140자 설명 길이 제한은 HTML을 정리한 텍스트에 적용하며 description·Open Graph·Twitter 설명에 동일하게 반영한다.
+
+관련 테스트:
+- [club-page-metadata.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-page-metadata.test.ts)
+
 ## Client Analytics
 
 ### PostHog 이벤트 계약
@@ -523,6 +542,7 @@
 
 - 활동보고서 목록 조회가 실패해도 동아리 상세 페이지는 중단되지 않아야 하며, 활동보고서 탭에는 활동보고서 없음과 구분되는 실패 안내가 표시되어야 한다.
 - 활동보고서 상세 페이지는 목록 조회 실패와 단건 조회 서버 실패를 404로 처리하지 않고 오류로 전파해야 하며, 실제 not found 응답만 404로 처리해야 한다.
+- 활동보고서 상세는 서버에서 조회한 본문을 기존 `sanitizeRichTextForViewer`로 정리해 서버 HTML에 포함한다. script·이벤트 속성·javascript URL을 렌더링하지 않는다.
 - 사용자 동아리 상세의 활동보고서 탭은 기본 동아리 상세 조회와 분리된 Suspense 경계에서 조회되어야 한다.
 
 ## Admin Accessibility
