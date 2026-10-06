@@ -46,8 +46,9 @@ export const metadata: Metadata = {
         images: [DEFAULT_OG_IMAGE_PATH],
     },
     icons: {
-        icon: "/favicon.ico",
-        apple: "/favicon.ico",
+        icon: `${SITE_URL}/favicon.ico`,
+        shortcut: `${SITE_URL}/favicon.ico`,
+        apple: `${SITE_URL}/apple-touch-icon.png`,
     },
 };
 

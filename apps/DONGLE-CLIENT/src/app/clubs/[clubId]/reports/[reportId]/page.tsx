@@ -5,14 +5,15 @@ import {
 } from "@/lib/report-page-metadata";
 import { resolveReportThumbnailUrl } from "@/lib/report-thumbnail";
 import { formatDateByLocale } from "@dongle/ui/utils";
+import { richTextContentClassName, sanitizeRichTextForViewer } from "@dongle/rich-text";
 import { ArrowLeft, CalendarDays, PencilLine } from "lucide-react";
 import type { Metadata } from "next";
+import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ClubSummaryCard from "./_components/club-summary-card";
 import OtherReportList from "./_components/other-report-list";
 import ReportImageGallery from "./_components/report-image-gallery";
-import ClientRichTextViewer from "@/components/rich-text/client-rich-text-viewer";
 
 interface ClubReportDetailPageProps {
     params: Promise<{ clubId: string; reportId: string }>;
@@ -114,6 +115,8 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
         notFound();
     }
 
+    const contentHtml = await sanitizeRichTextForViewer(report.content);
+
     const otherReports = reportsResponse.result
         .filter((item) => item.id !== report.id)
         .map((item) => ({
@@ -165,7 +168,10 @@ export default async function ClubReportDetailPage({ params }: ClubReportDetailP
                     <ReportImageGallery report={report} />
 
                     <section className={hasReportImages ? "border-t border-zinc-200 pt-8" : undefined}>
-                        <ClientRichTextViewer html={report.content} className="max-w-[720px] text-[17px]" />
+                        <div
+                            className={`${richTextContentClassName} max-w-[720px] text-[17px]`}
+                            dangerouslySetInnerHTML={{ __html: contentHtml }}
+                        />
                     </section>
                 </main>
 
