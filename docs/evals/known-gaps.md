@@ -21,6 +21,7 @@
 - ADMIN viewport pinch zoom 차단 금지, CLIENT `loading.tsx` 라우트 파일 존재, 배너 내부=같은 탭/외부=새 탭은 테스트가 없다 (06-test-ci P2-8)
 - PR CI `pnpm build`는 `NEXT_PUBLIC_USE_MSW=1`이고 운영 standalone 빌드와 env가 다르다. 배포 job `cancel-in-progress: true`는 테스트 자산 밖 운영 공백이다 (06-test-ci P0-2, P1-7)
 - 실제 로그인 연결(쿠키 전송·실서버 라우팅)은 `loginFormAction` unit test만으로는 닫히지 않는다. 기존 auth E2E는 PR/배포 게이트에 없다
+- rich text의 실제 DOMPurify 테스트는 Node에서 소스 함수를 검증한다. Next.js 서버 번들·Vercel 배포의 의존성 및 파일 포함 여부는 검증하지 않으므로 배포에서만 본문이 비는 문제는 남는다. 이번 범위는 실제 sanitizer 테스트만이며, 로컬 테스트 통과 후에도 배포 문제가 지속되면 서버 빌드 결과 검증을 재검토한다.
 
 ## 이미 닫힌 항목 (인벤토리로 이동)
 

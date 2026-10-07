@@ -643,6 +643,9 @@
 - 일반 텍스트는 안전한 HTML로 escape한다.
 - 이미 HTML인 값은 유지한다.
 - rich text viewer는 sanitizer 로드 실패 시에도 pending 상태를 종료할 수 있는 fallback HTML을 반환해야 한다.
+- viewer sanitizer가 빈 HTML로 fallback하는 오류는 입력 HTML을 로그 인자로 전달하지 않고 오류 객체와 고정 메시지로 기록해야 한다.
+- 브라우저 전역이 없는 Node 환경에서 실제 DOMPurify를 로드해 동아리 소개·주요 활동의 정상 본문과 서식, 일반 텍스트의 줄바꿈·특수문자를 보존해야 한다.
+- 실제 viewer sanitizer는 script·이벤트 속성·javascript URL을 제거하면서 정상 본문과 안전한 이미지 URL을 보존해야 한다.
 
 관련 테스트:
 - [sanitize-rich-text-html.test.ts](../../packages/rich-text/src/sanitize-rich-text-html.test.ts)
