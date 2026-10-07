@@ -33,7 +33,8 @@ export async function sanitizeRichTextForViewer(
         return DOMPurify.sanitize(renderedHtml, {
             USE_PROFILES: { html: true },
         });
-    } catch {
+    } catch (error) {
+        console.error("[rich-text] Failed to sanitize viewer HTML", error);
         return "";
     }
 }

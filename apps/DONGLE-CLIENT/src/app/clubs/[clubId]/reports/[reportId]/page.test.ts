@@ -6,6 +6,7 @@ import {
 } from "@/lib/server/cached-services";
 import { notFound } from "next/navigation";
 import ClubReportDetailPage from "./page";
+import { renderToStaticMarkup } from "react-dom/server";
 
 vi.mock("@/lib/server/cached-services", () => ({
     getClubService: vi.fn(),
@@ -19,10 +20,44 @@ vi.mock("next/navigation", () => ({
     }),
 }));
 
+vi.mock("./_components/report-image-gallery", () => ({ default: () => null }));
+vi.mock("./_components/club-summary-card", () => ({ default: () => null }));
+vi.mock("./_components/other-report-list", () => ({ default: () => null }));
+
 const params = Promise.resolve({ clubId: "1", reportId: "2" });
 
 afterEach(() => {
     vi.clearAllMocks();
+});
+
+describe("ClubReportDetailPage 서버 본문", () => {
+    test("서버에서 받은 본문이 JavaScript 실행 없이 HTML에 포함되고 위험한 마크업은 제거된다", async () => {
+        vi.mocked(getClubService).mockResolvedValue({ isSuccess: true, result: { id: 1, name: "UCDC" } } as never);
+        vi.mocked(getClubReportListService).mockResolvedValue({ isSuccess: true, result: [] });
+        vi.mocked(getClubReportService).mockResolvedValue({
+            isSuccess: true,
+            result: {
+                id: 2,
+                club_id: 1,
+                title: "정기 공연",
+                content: '<p>공연 <strong>활동 기록</strong></p><script>alert("unsafe")</script><img src="/report.jpg" onerror="alert(1)"><a href="javascript:alert(2)">링크</a>',
+                createdAt: "2026-03-01T00:00:00.000Z",
+                updatedAt: "2026-03-01T00:00:00.000Z",
+                deletedAt: null,
+                image_urls: [],
+            },
+        });
+
+        const page = await ClubReportDetailPage({ params });
+        const html = renderToStaticMarkup(page);
+
+        expect(getClubReportService).toHaveBeenCalledWith(1, 2);
+        expect(html).toContain("공연 <strong>활동 기록</strong>");
+        expect(html).not.toContain("<script");
+        expect(html).not.toContain("onerror");
+        expect(html).not.toContain("javascript:");
+        expect(html).not.toContain('alert("unsafe")');
+    }, 30_000); // 실제 sanitizer의 첫 JSDOM 로딩 시간을 포함하는 통합 검증
 });
 
 describe("ClubReportDetailPage 오류 분기", () => {

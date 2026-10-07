@@ -1,5 +1,6 @@
 import { buildPageMetadata } from "@/lib/page-metadata";
 import { DEFAULT_OG_IMAGE_PATH } from "@/lib/site";
+import { getRichTextDescription } from "@/lib/rich-text-description";
 
 type ClubMetadataSource = {
     id: number;
@@ -12,7 +13,7 @@ type ClubMetadataSource = {
 };
 
 export function buildClubDescription(club: Pick<ClubMetadataSource, "description" | "main_activities" | "category" | "name" | "is_recruiting">) {
-    const rawDescription = club.description?.trim() || club.main_activities?.trim();
+    const rawDescription = getRichTextDescription(club.description ?? "") || getRichTextDescription(club.main_activities ?? "");
 
     if (rawDescription) {
         return rawDescription.length > 140 ? `${rawDescription.slice(0, 137)}...` : rawDescription;
