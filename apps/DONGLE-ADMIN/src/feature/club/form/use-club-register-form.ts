@@ -25,6 +25,10 @@ export function useClubRegisterForm(registrationKey: string) {
     form,
     invalidMessage: "모든 항목을 작성해주세요.",
     action: (values) => submitClubRegisterAction(registrationKey, values),
+    onFailure: () => {
+      form.setValue("password", "");
+      form.setValue("passwordConfirm", "");
+    },
     onSuccess: ({ result }) => {
       toast.success(result.message ?? "동아리 등록이 성공적으로 완료되었습니다!");
       router.replace(result.redirectTo ?? "/club-register/register-success");
