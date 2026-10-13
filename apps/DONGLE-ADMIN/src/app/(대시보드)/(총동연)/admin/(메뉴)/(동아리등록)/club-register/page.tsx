@@ -9,7 +9,7 @@ export default function ClubRegisterPage() {
             <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <div className="min-w-0">
-                    <p className="font-semibold">등록 URL은 10분 동안만 유효합니다.</p>
+                    <p className="font-semibold">등록 URL은 24시간 동안만 유효합니다.</p>
                     <p className="mt-1 text-amber-700">
                         만료되기 전에 등록을 완료하도록 안내하고, 문제가 생기면 새 URL을 다시 발급하세요.
                     </p>
