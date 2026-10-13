@@ -3,6 +3,7 @@
 import { createClubService } from "@dongle/service/club/club.service";
 import { clubTagGroups, userTagGroups } from "@dongle/service";
 import type { CreateClubRequest } from "@dongle/types/club/club.response";
+import { API_ERROR_CODE } from "@dongle/types";
 import { normalizeSocialUrl } from "@dongle/utils";
 import { RECRUITMENT_STATUS } from "@/feature/club/constants/club.constants";
 import { clubRegisterSchema, splitTags, type ClubRegisterField, type ClubRegisterFormValues } from "./club-register.schema";
@@ -71,15 +72,19 @@ export async function submitClubRegisterAction(
         const club = await createClubService(clubPayload);
 
         if (!club.isSuccess) {
-            const status = club.error?.status;
+            const code = club.error?.code;
             const message = club.error?.message;
 
-            if (status === 409 && message === "이미 사용 중인 로그인 아이디입니다.") {
-                return actionFailure({ fieldErrors: { loginId: message } });
+            if (code === API_ERROR_CODE.LOGIN_ID_DUPLICATED) {
+                return actionFailure({
+                    fieldErrors: { loginId: message?.trim() || "이미 사용 중인 로그인 아이디입니다." },
+                });
             }
 
-            if (status === 409 && message === "이미 사용 중인 전화번호입니다.") {
-                return actionFailure({ fieldErrors: { presidentContact: message } });
+            if (code === API_ERROR_CODE.PHONE_DUPLICATED) {
+                return actionFailure({
+                    fieldErrors: { presidentContact: message?.trim() || "이미 사용 중인 전화번호입니다." },
+                });
             }
 
             return actionFailure({
