@@ -295,9 +295,19 @@ Authorization: Bearer {accessToken}
     "description": "string", // 선택
     "main_activities": "string", // 선택
     "apply_url": "string", // 선택, 외부 지원 링크
-    "president_id": 1 // 선택
+    "president_id": 1, // 선택: 기존 회장 사용자 ID
+    "newPresident": { // 선택: 신규 회장 계정 생성 정보
+        "name": "string",
+        "login_id": "string",
+        "password": "string",
+        "phone": "string"
+    }
 }
 ```
+
+`president_id` 또는 `newPresident` 중 하나는 필수입니다. 둘 다 지정할 수 없습니다.
+
+`newPresident.login_id`는 `^[a-z0-9]{4,20}$` 형식이어야 합니다. `newPresident.password`는 8~72자이며 영문과 숫자를 각각 하나 이상 포함해야 합니다.
 
 **응답**: 생성된 동아리 객체
 
@@ -406,9 +416,12 @@ Authorization: Bearer {accessToken}
 
 ```json
 {
-    "url": "string"
+    "isSuccess": true,
+    "result": "https://example.com/club-register/registration-key?key=registration-key"
 }
 ```
+
+`result`는 `?key=`가 포함된 등록 URL 문자열입니다.
 
 ---
 
@@ -434,7 +447,7 @@ Authorization: Bearer {accessToken}
 동아리 아이콘 이미지 업로드
 
 **인증**: 필요 (JWT)
-**권한**: PRESIDENT
+**권한**: PRESIDENT 또는 ADMIN
 
 **Content-Type**: `multipart/form-data`
 

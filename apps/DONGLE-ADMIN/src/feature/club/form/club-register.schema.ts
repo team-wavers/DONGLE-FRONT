@@ -22,15 +22,31 @@ export const clubRegisterSchema = z
             .refine(isValidPhoneNumber, {
                 message: "올바른 휴대폰 번호 형식이 아닙니다 (예: 010-1234-5678)",
             }),
+        loginId: z
+            .string()
+            .transform(trimToEmpty)
+            .pipe(z.string().regex(/^[a-z0-9]{4,20}$/, "아이디는 영문 소문자와 숫자 4~20자로 입력해주세요")),
+        password: z
+            .string()
+            .min(8, "비밀번호는 8~72자로 입력해주세요")
+            .max(72, "비밀번호는 8~72자로 입력해주세요")
+            .regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, "비밀번호에 영문과 숫자를 모두 포함해주세요"),
+        passwordConfirm: z.string(),
         recruitmentStartDate: z.string().transform(trimToEmpty),
         recruitmentEndDate: z.string().transform(trimToEmpty),
         instagram: z.string().transform(trimToEmpty),
         youtube: z.string().transform(trimToEmpty),
         tags: z.string().transform(trimToEmpty),
-        iconUrls: z.array(z.string()),
-        iconFile: z.custom<File | null>().nullable(),
     })
     .superRefine((values, ctx) => {
+        if (values.password !== values.passwordConfirm) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["passwordConfirm"],
+                message: "비밀번호가 일치하지 않습니다",
+            });
+        }
+
         const isRecruiting = values.recruitmentStatus === RECRUITMENT_STATUS.RECRUITING;
 
         if (isRecruiting && !values.recruitmentStartDate) {
@@ -74,13 +90,14 @@ export const CLUB_REGISTER_DEFAULT_VALUES: ClubRegisterFormValues = {
     main_activities: "",
     presidentName: "",
     presidentContact: "",
+    loginId: "",
+    password: "",
+    passwordConfirm: "",
     recruitmentStartDate: "",
     recruitmentEndDate: "",
     instagram: "",
     youtube: "",
     tags: "",
-    iconUrls: [],
-    iconFile: null,
 };
 
 export type ClubRegisterField = keyof ClubRegisterFormValues;

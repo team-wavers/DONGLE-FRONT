@@ -95,7 +95,7 @@ const clubHandlers = [
     }),
 
     http.post(apiPath(`/clubs/registration-urls`), () => {
-        const body: Response<string> = success("http://localhost:3000/club-register/1");
+        const body: Response<string> = success("http://localhost:3000/club-register/mock-key?key=mock-key");
         return HttpResponse.json(body);
     }),
 ];
