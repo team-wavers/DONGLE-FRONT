@@ -6,6 +6,21 @@
 -   **인증 방식**: JWT Bearer Token
 -   **Content-Type**: `application/json`
 
+### 에러 응답 형식
+
+실패 응답은 `isSuccess: false`와 `error` 객체를 반환합니다. `error.code`는 제공되지 않을 수 있으며, 클라이언트에서 오류 종류를 구분할 때 사용합니다.
+
+```json
+{
+    "isSuccess": false,
+    "error": {
+        "message": "string",
+        "detail": "string",
+        "code": "string"
+    }
+}
+```
+
 ---
 
 ## 1. 루트 엔드포인트
@@ -310,6 +325,11 @@ Authorization: Bearer {accessToken}
 `newPresident.login_id`는 `^[a-z0-9]{4,20}$` 형식이어야 합니다. `newPresident.password`는 8~72자이며 영문과 숫자를 각각 하나 이상 포함해야 합니다.
 
 **응답**: 생성된 동아리 객체
+
+**중복 오류 코드** (`409 Conflict`):
+
+-   `LOGIN_ID_DUPLICATED`: 회장 계정의 로그인 아이디가 이미 사용 중입니다.
+-   `PHONE_DUPLICATED`: 회장 계정의 전화번호가 이미 사용 중입니다.
 
 ---
 

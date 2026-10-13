@@ -107,12 +107,12 @@ describe("submitClubRegisterAction", () => {
     });
 
     test.each([
-        ["이미 사용 중인 로그인 아이디입니다.", "loginId"],
-        ["이미 사용 중인 전화번호입니다.", "presidentContact"],
-    ])("409 %s 응답을 %s 필드 에러로 매핑한다", async (message, field) => {
+        ["LOGIN_ID_DUPLICATED", "login id already exists", "loginId"],
+        ["PHONE_DUPLICATED", "phone already exists", "presidentContact"],
+    ])("409 %s 코드를 %s 필드 에러로 매핑한다", async (code, message, field) => {
         vi.mocked(createClubService).mockResolvedValue({
             isSuccess: false,
-            error: { status: 409, message },
+            error: { status: 409, code, message },
         } as Awaited<ReturnType<typeof createClubService>>);
 
         const result = await submitClubRegisterAction("registration-key", createValues());
@@ -120,6 +120,48 @@ describe("submitClubRegisterAction", () => {
         expect(result).toMatchObject({ ok: false, fieldErrors: { [field]: message } });
         expect(result.ok).toBe(false);
         if (!result.ok) expect(result.formError).toBeUndefined();
+    });
+
+    test("메시지 문구가 달라도 중복 아이디 코드를 기준으로 필드 에러에 매핑한다", async () => {
+        vi.mocked(createClubService).mockResolvedValue({
+            isSuccess: false,
+            error: { status: 409, code: "LOGIN_ID_DUPLICATED", message: "login id already exists" },
+        } as Awaited<ReturnType<typeof createClubService>>);
+
+        const result = await submitClubRegisterAction("registration-key", createValues());
+
+        expect(result).toMatchObject({
+            ok: false,
+            fieldErrors: { loginId: "login id already exists" },
+        });
+    });
+
+    test("중복 오류 메시지가 비어 있으면 필드별 기본 문구를 사용한다", async () => {
+        vi.mocked(createClubService).mockResolvedValue({
+            isSuccess: false,
+            error: { status: 409, code: "PHONE_DUPLICATED", message: "" },
+        } as Awaited<ReturnType<typeof createClubService>>);
+
+        const result = await submitClubRegisterAction("registration-key", createValues());
+
+        expect(result).toMatchObject({
+            ok: false,
+            fieldErrors: { presidentContact: "이미 사용 중인 전화번호입니다." },
+        });
+    });
+
+    test.each([
+        undefined,
+        "UNKNOWN_DUPLICATE",
+    ])("code가 없거나 알 수 없는 409는 formError로 처리한다 (code=%s)", async (code) => {
+        vi.mocked(createClubService).mockResolvedValue({
+            isSuccess: false,
+            error: { status: 409, ...(code && { code }), message: "중복 응답" },
+        } as Awaited<ReturnType<typeof createClubService>>);
+
+        const result = await submitClubRegisterAction("registration-key", createValues());
+
+        expect(result).toEqual({ ok: false, formError: "중복 응답" });
     });
 
     test("예외 메시지를 사용자 formError로 노출하지 않는다", async () => {
