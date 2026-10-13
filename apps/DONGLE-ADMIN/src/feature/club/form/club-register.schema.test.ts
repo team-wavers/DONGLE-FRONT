@@ -12,18 +12,42 @@ function createValues(overrides: Partial<Record<string, string>> = {}) {
         main_activities: "<p>주요 활동</p>",
         presidentName: "홍길동",
         presidentContact: "010-1234-5678",
+        loginId: "hong1234",
+        password: "password1",
+        passwordConfirm: "password1",
         recruitmentStartDate: "",
         recruitmentEndDate: "",
         instagram: "",
         youtube: "",
         tags: "",
-        iconUrls: [],
-        iconFile: null,
         ...overrides,
     };
 }
 
 describe("clubRegisterSchema", () => {
+    test.each([
+        ["짧은 아이디", { loginId: "abc" }],
+        ["대문자가 포함된 아이디", { loginId: "Hong1234" }],
+        ["특수문자가 포함된 아이디", { loginId: "hong_1234" }],
+        ["짧은 비밀번호", { password: "pass1" }],
+        ["영문이 없는 비밀번호", { password: "12345678" }],
+        ["숫자가 없는 비밀번호", { password: "password" }],
+        ["긴 비밀번호", { password: "a1".repeat(37) }],
+        ["비밀번호 확인 불일치", { passwordConfirm: "different1" }],
+    ])("%s는 거부한다", (_label, overrides) => {
+        const result = clubRegisterSchema.safeParse(createValues(overrides));
+
+        expect(result.success).toBe(false);
+    });
+
+    test("유효한 아이디와 비밀번호 및 일치하는 확인값을 허용한다", () => {
+        const result = clubRegisterSchema.safeParse(
+            createValues({ loginId: "hong1234", password: "password1", passwordConfirm: "password1" })
+        );
+
+        expect(result.success).toBe(true);
+    });
+
     test("모집중이면 모집 기간을 필수로 검증한다", () => {
         const result = clubRegisterSchema.safeParse(
             createValues({

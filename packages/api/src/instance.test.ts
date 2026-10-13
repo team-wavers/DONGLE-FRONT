@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import FetchInstance from "./instance";
 
 type SuccessBody<T> = { isSuccess: true; result: T };
-type ErrorBody = { isSuccess: false; error: { message: string; detail: string; status?: number } };
+type ErrorBody = { isSuccess: false; error: { message: string; detail: string; code?: string; status?: number } };
 
 function createJsonResponse(body: unknown, init: ResponseInit) {
     return new Response(JSON.stringify(body), {
@@ -64,6 +64,27 @@ describe("FetchInstance (instance.ts)", () => {
                 status: 404,
             },
         });
+    });
+
+    test("실패 응답의 error.code를 보존한다", async () => {
+        vi.stubEnv("API_URL", "https://api.example.com");
+        const body: ErrorBody = {
+            isSuccess: false,
+            error: {
+                message: "login id already exists",
+                detail: "login_id is already in use",
+                code: "LOGIN_ID_DUPLICATED",
+            },
+        };
+        vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+            createJsonResponse(body, { status: 409, statusText: "Conflict" })
+        );
+
+        const instance = FetchInstance.getInstance();
+        const res = await instance.post<ErrorBody>("/clubs", {});
+
+        expect(res.isSuccess).toBe(false);
+        if (!res.isSuccess) expect(res.error.code).toBe("LOGIN_ID_DUPLICATED");
     });
 
     test("GET 502 + JSON 파싱 불가(HTML body 등) → throw 없이 synthetic {isSuccess:false,error:{message,detail}} 반환", async () => {

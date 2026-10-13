@@ -6,7 +6,6 @@ import type { ClubRegisterFormValues } from "@/feature/club/form/club-register.s
 import { LoadingButton } from "@/shared/ui/feedback/button/loading-button/loading-button";
 import { FormRoot } from "@/shared/form/form-root";
 import { RHFDatePicker } from "@/shared/form/rhf-date-picker";
-import { RHFFileUpload } from "@/shared/form/rhf-file-upload";
 import { RHFRichTextEditor } from "@/shared/form/rhf-rich-text-editor";
 import { RHFSelectField } from "@/shared/form/rhf-select-field";
 import { RHFTextField } from "@/shared/form/rhf-text-field";
@@ -85,18 +84,9 @@ export default function ClubRegisterForm({ registrationKey }: ClubRegisterFormPr
                         required
                     />
 
-                    {/* 동아리 아이콘 */}
-                    <RHFFileUpload<ClubRegisterFormValues>
-                        id="iconFile"
-                        name="iconUrls"
-                        fileName="iconFile"
-                        label="동아리 아이콘"
-                        description="동아리 대표 아이콘 이미지를 업로드해주세요"
-                        fileType="image"
-                        maxSize={5}
-                        maxFiles={1}
-                        presentation="club-icon"
-                    />
+                    <p className="text-sm text-muted-foreground">
+                        동아리 아이콘은 등록 후 로그인하여 수정 페이지에서 올릴 수 있습니다.
+                    </p>
                 </CardContent>
             </Card>
 
@@ -151,6 +141,39 @@ export default function ClubRegisterForm({ registrationKey }: ClubRegisterFormPr
                     <CardDescription>동아리 회원과 관련된 설정을 관리합니다</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    {/* 회장 로그인 아이디 */}
+                    <RHFTextField<ClubRegisterFormValues>
+                        id="loginId"
+                        name="loginId"
+                        label="로그인 아이디"
+                        type="text"
+                        autoComplete="username"
+                        placeholder="영문 소문자와 숫자 4~20자"
+                        required
+                    />
+
+                    {/* 회장 로그인 비밀번호 */}
+                    <RHFTextField<ClubRegisterFormValues>
+                        id="password"
+                        name="password"
+                        label="비밀번호"
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="8~72자, 영문과 숫자 포함"
+                        required
+                    />
+
+                    {/* 회장 로그인 비밀번호 확인 */}
+                    <RHFTextField<ClubRegisterFormValues>
+                        id="passwordConfirm"
+                        name="passwordConfirm"
+                        label="비밀번호 확인"
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="비밀번호를 다시 입력하세요"
+                        required
+                    />
+
                     {/* 회장 이름 */}
                     <RHFTextField<ClubRegisterFormValues>
                         id="presidentName"

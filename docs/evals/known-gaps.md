@@ -16,7 +16,6 @@
 
 ## 우선순위 높은 공백
 
-- 동아리 등록이 회장 사용자 생성 이후 동아리 생성 실패를 롤백하지 않는다. 보상 삭제/트랜잭션이 없어 고아 계정이 남을 수 있다 (`club-register.action.ts`, 01-domain P1-3)
 - 회장 수정 action은 스키마 테스트만 있고, 서비스 실패 시 `revalidateTags` 미호출이 검증되지 않는다 (`club-president.action.ts`, 06-test-ci P1-5)
 - ADMIN viewport pinch zoom 차단 금지, CLIENT `loading.tsx` 라우트 파일 존재, 배너 내부=같은 탭/외부=새 탭은 테스트가 없다 (06-test-ci P2-8)
 - PR CI `pnpm build`는 `NEXT_PUBLIC_USE_MSW=1`이고 운영 standalone 빌드와 env가 다르다. 배포 job `cancel-in-progress: true`는 테스트 자산 밖 운영 공백이다 (06-test-ci P0-2, P1-7)

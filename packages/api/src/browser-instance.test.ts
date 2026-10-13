@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import BrowserInstance from "./browser-instance";
 
 type SuccessBody<T> = { isSuccess: true; result: T };
-type ErrorBody = { isSuccess: false; error: { message: string; detail: string; status?: number } };
+type ErrorBody = { isSuccess: false; error: { message: string; detail: string; code?: string; status?: number } };
 
 function createJsonResponse(body: unknown, init: ResponseInit) {
     return new Response(JSON.stringify(body), {
@@ -68,6 +68,26 @@ describe("BrowserInstance (browser-instance.ts)", () => {
                 status: 401,
             },
         });
+    });
+
+    test("실패 응답의 error.code를 보존한다", async () => {
+        const body: ErrorBody = {
+            isSuccess: false,
+            error: {
+                message: "phone already exists",
+                detail: "phone is already in use",
+                code: "PHONE_DUPLICATED",
+            },
+        };
+        vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+            createJsonResponse(body, { status: 409, statusText: "Conflict" })
+        );
+
+        const instance = BrowserInstance.getInstance();
+        const res = await instance.post<ErrorBody>("/api/clubs");
+
+        expect(res.isSuccess).toBe(false);
+        if (!res.isSuccess) expect(res.error.code).toBe("PHONE_DUPLICATED");
     });
 
     test("JSON 파싱 불가(HTML body 등) 응답은 throw 없이 synthetic 실패로 정규화한다", async () => {

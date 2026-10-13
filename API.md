@@ -6,6 +6,21 @@
 -   **인증 방식**: JWT Bearer Token
 -   **Content-Type**: `application/json`
 
+### 에러 응답 형식
+
+실패 응답은 `isSuccess: false`와 `error` 객체를 반환합니다. `error.code`는 제공되지 않을 수 있으며, 클라이언트에서 오류 종류를 구분할 때 사용합니다.
+
+```json
+{
+    "isSuccess": false,
+    "error": {
+        "message": "string",
+        "detail": "string",
+        "code": "string"
+    }
+}
+```
+
 ---
 
 ## 1. 루트 엔드포인트
@@ -295,11 +310,26 @@ Authorization: Bearer {accessToken}
     "description": "string", // 선택
     "main_activities": "string", // 선택
     "apply_url": "string", // 선택, 외부 지원 링크
-    "president_id": 1 // 선택
+    "president_id": 1, // 선택: 기존 회장 사용자 ID
+    "newPresident": { // 선택: 신규 회장 계정 생성 정보
+        "name": "string",
+        "login_id": "string",
+        "password": "string",
+        "phone": "string"
+    }
 }
 ```
 
+`president_id` 또는 `newPresident` 중 하나는 필수입니다. 둘 다 지정할 수 없습니다.
+
+`newPresident.login_id`는 `^[a-z0-9]{4,20}$` 형식이어야 합니다. `newPresident.password`는 8~72자이며 영문과 숫자를 각각 하나 이상 포함해야 합니다.
+
 **응답**: 생성된 동아리 객체
+
+**중복 오류 코드** (`409 Conflict`):
+
+-   `LOGIN_ID_DUPLICATED`: 회장 계정의 로그인 아이디가 이미 사용 중입니다.
+-   `PHONE_DUPLICATED`: 회장 계정의 전화번호가 이미 사용 중입니다.
 
 ---
 
@@ -406,9 +436,12 @@ Authorization: Bearer {accessToken}
 
 ```json
 {
-    "url": "string"
+    "isSuccess": true,
+    "result": "https://example.com/club-register/registration-key?key=registration-key"
 }
 ```
+
+`result`는 `?key=`가 포함된 등록 URL 문자열입니다.
 
 ---
 
@@ -434,7 +467,7 @@ Authorization: Bearer {accessToken}
 동아리 아이콘 이미지 업로드
 
 **인증**: 필요 (JWT)
-**권한**: PRESIDENT
+**권한**: PRESIDENT 또는 ADMIN
 
 **Content-Type**: `multipart/form-data`
 

@@ -1,4 +1,6 @@
 export type { Response, SuccessResponse, ErrorResponse } from "./response";
+export { API_ERROR_CODE } from "./error-code";
+export type { ApiErrorCode } from "./error-code";
 
 export type * from "./auth/auth";
 export type * from "./auth/auth.response";
