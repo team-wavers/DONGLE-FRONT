@@ -5,8 +5,10 @@ import { Button } from "@dongle/ui/button";
 import { Skeleton } from "@dongle/ui/skeleton";
 import AdminClubDetailTabs from "@/feature/club/components/club-detail-tabs/club-detail-tabs";
 import { getClubService } from "@/lib/server/cached-services";
+import { requireAdminPageAccess } from "@/shared/action/server-page-auth";
 
 async function AdminClubDetailHeader({ clubId }: { clubId: string }) {
+    await requireAdminPageAccess({ clubId });
     const { result, isSuccess } = await getClubService(Number(clubId));
     const clubName = isSuccess && result ? result.name : `동아리 #${clubId}`;
 

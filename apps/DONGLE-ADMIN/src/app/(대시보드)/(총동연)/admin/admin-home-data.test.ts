@@ -6,6 +6,10 @@ vi.mock("@/lib/server/cached-services", () => ({
     getAdminDashboardService: vi.fn(),
 }));
 
+vi.mock("@/shared/action/server-page-auth", () => ({
+    requireAdminPageAccess: vi.fn().mockResolvedValue({ accessToken: "admin-token", claims: { role: "admin" } }),
+}));
+
 describe("getAdminHomeData", () => {
     afterEach(() => {
         vi.clearAllMocks();
