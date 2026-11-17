@@ -71,8 +71,8 @@
 | admin | [auth.spec.ts](../../e2e/admin/auth.spec.ts) | 관리자 로그인 연결 검증 | 유지 |
 | admin | [report-management.spec.ts](../../e2e/admin/report-management.spec.ts) | 동아리 상세 탭 이동 | 유지 |
 | club | [auth.spec.ts](../../e2e/club/auth.spec.ts) | 회장 로그인 연결 검증 | 유지 |
-| club | [club-form.spec.ts](../../e2e/club/club-form.spec.ts) | 동아리 정보 수정 1건 | 유지 |
-| club | [report.spec.ts](../../e2e/club/report.spec.ts) | 활동보고서 작성/삭제 1건 | 유지 |
+| club | [club-form.spec.ts](../../e2e/club/club-form.spec.ts) | 동아리 정보 수정 후 기존 Instagram 값 복원 확인 | 유지 |
+| club | [report.spec.ts](../../e2e/club/report.spec.ts) | 활동보고서 작성/삭제 및 중간 실패 시 작성한 보고서만 정리 | 유지 |
 | client | [smoke.spec.ts](../../e2e/client/smoke.spec.ts) | 메인 진입 | 유지 |
 | client | [search.spec.ts](../../e2e/client/search.spec.ts) | 검색어·필터 URL 동기화 검증 | 유지 |
 

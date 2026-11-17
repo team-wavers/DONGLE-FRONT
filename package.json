@@ -25,13 +25,14 @@
         "deploy:scp:dev": "pnpm run deploy:standalone:dev && pnpm run scp:client && pnpm run scp:admin",
         "deploy:scp:prod": "pnpm run deploy:standalone:prod && pnpm run scp:client && pnpm run scp:admin",
         "lint": "turbo lint",
-        "type": "turbo type",
+        "type": "tsc --noEmit --incremental false && turbo type",
         "verify:fast": "pnpm verify:docs && pnpm verify:vitest-alias && pnpm type && pnpm test",
         "storybook": "pnpm --filter @dongle/ui storybook",
         "storybook:build": "pnpm --filter @dongle/ui storybook:build"
     },
     "devDependencies": {
         "@playwright/test": "^1.58.2",
+        "@types/node": "^20",
         "env-cmd": "^11.0.0",
         "turbo": "^2.0.0",
         "typescript": "^5",

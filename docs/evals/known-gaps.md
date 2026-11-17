@@ -16,16 +16,17 @@
 
 ## 우선순위 높은 공백
 
-- 회장 수정 action은 스키마 테스트만 있고, 서비스 실패 시 `revalidateTags` 미호출이 검증되지 않는다 (`club-president.action.ts`, 06-test-ci P1-5)
 - ADMIN viewport pinch zoom 차단 금지, CLIENT `loading.tsx` 라우트 파일 존재, 배너 내부=같은 탭/외부=새 탭은 테스트가 없다 (06-test-ci P2-8)
-- PR CI `pnpm build`는 `NEXT_PUBLIC_USE_MSW=1`이고 운영 standalone 빌드와 env가 다르다. 배포 job `cancel-in-progress: true`는 테스트 자산 밖 운영 공백이다 (06-test-ci P0-2, P1-7)
-- 실제 로그인 연결(쿠키 전송·실서버 라우팅)은 `loginFormAction` unit test만으로는 닫히지 않는다. 기존 auth E2E는 PR/배포 게이트에 없다
+- `main` 대상 PR CI는 일반 빌드 후 MSW를 켠 CLIENT를 별도로 빌드해 스모크를 실행한다. 배포된 ADMIN의 로그인·세션 쿠키·실제 API 연결은 [개발 E2E 로드맵](roadmap.md#개발-배포-후-e2e)에서 다룬다.
+- 브라우저나 러너가 강제 종료되면 E2E의 `afterEach`가 실행되지 않을 수 있다. 공유 dev 환경에서 쓰기 테스트를 자동화하려면 실행 중단 이후의 데이터 정리가 필요하다.
 - rich text의 실제 DOMPurify 테스트는 Node에서 소스 함수를 검증한다. Next.js 서버 번들·Vercel 배포의 의존성 및 파일 포함 여부는 검증하지 않으므로 배포에서만 본문이 비는 문제는 남는다. 이번 범위는 실제 sanitizer 테스트만이며, 로컬 테스트 통과 후에도 배포 문제가 지속되면 서버 빌드 결과 검증을 재검토한다.
 
 ## 이미 닫힌 항목 (인벤토리로 이동)
 
 - admin auth 입력 검증과 로그인 후 redirect 판단 (`login-form-policy.test.ts`, `resolve-post-login-path.test.ts`)
 - `loginFormAction`의 서비스 실패/JWT decode 실패/쿠키 설정 (`login-form.action.test.ts`)
+- 동아리 공개 등록은 백엔드 트랜잭션으로 키 소모·회장 계정·동아리 생성을 묶는다. 프런트는 등록 실패 응답과 캐시 미갱신을 검증한다 (`club-register.action.test.ts`).
+- 회장 수정 서비스 실패 시 캐시 미갱신 (`club-president.action.test.ts`)
 - client 메인 empty-state 분기 (`club-search-empty-state.test.ts`, `club-list-section.test.tsx`)
 - form/action 문자열 정규화와 payload mapping (club/user/report/schedule 스키마·payload 테스트)
 - 배너 timezone-less 게시 기간과 `/\` 오픈리다이렉트 (`get-display-banner-image-urls.test.ts`, `page.test.ts`)
@@ -46,7 +47,6 @@
 
 ## 지금 하지 않는 것
 
-- E2E를 늘리기 위한 하네스 확장
 - stateful mock 인프라 확대
 - `isolated` 모드 추가
 - `@dongle/content` / `@dongle/types` Vitest project 등록 (해당 패키지에 테스트 파일이 생기기 전까지 실해가 없다)
