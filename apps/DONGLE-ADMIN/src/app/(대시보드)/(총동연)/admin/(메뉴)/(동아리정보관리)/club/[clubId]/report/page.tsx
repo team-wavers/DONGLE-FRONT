@@ -2,8 +2,10 @@ import ReportCard from "@/feature/report/components/report-card/report-card";
 import { getClubReportListService } from "@/lib/server/cached-services";
 import { ClubReport } from "@dongle/types/club/club.report.d";
 import { AdminFormShell } from "@/shared/layout/form-page/admin-form-layout";
+import { requireAdminPageAccess } from "@/shared/action/server-page-auth";
 
 async function AdminClubReportList({ clubId }: { clubId: string }) {
+    await requireAdminPageAccess({ clubId });
     const { result, isSuccess } = await getClubReportListService(Number(clubId));
 
     if (!isSuccess || !result) {

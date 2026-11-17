@@ -1,8 +1,10 @@
 import { getClubReportService } from "@/lib/server/cached-services";
 import ReportView from "@/feature/report/components/report-view/report-view";
 import { notFound } from "next/navigation";
+import { requireAdminPageAccess } from "@/shared/action/server-page-auth";
 
 async function AdminClubReportDetailContent({ clubId, reportId }: { clubId: string; reportId: string }) {
+    await requireAdminPageAccess({ clubId });
     const reportResponse = await getClubReportService(Number(clubId), Number(reportId));
     const { result, isSuccess, error } = reportResponse;
 

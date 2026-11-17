@@ -169,6 +169,8 @@ Sentry sourcemap 업로드용 secret (client/admin 각각 org/project/token 세�
 
 - `API_URL`
   - PM2로 실행되는 client/admin 서버가 호출할 백엔드 API base URL
+- `JWT_SECRET`
+  - 백엔드와 같은 값이어야 하는 ADMIN 런타임 전용 JWT 서명 검증 키. `ecosystem.config.js`는 client PM2 env에 빈 문자열을 명시해 설정 파일 또는 이전 PM2 프로세스에서 상속된 값이 reload 후에도 노출되지 않게 한다.
 - `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`
   - standalone 서버에서 Server Action payload를 복호화할 때 쓰는 키
 - `SENTRY_ENVIRONMENT`
@@ -189,6 +191,8 @@ Sentry sourcemap 업로드용 secret (client/admin 각각 org/project/token 세�
   - ADMIN이 cross-app 캐시 무효화 요청을 보낼 CLIENT origin (`PROD_CLIENT_BASE_URL` secret 값을 그대로 씀)
 
 client/admin 모두 같은 Git SHA를 배포하므로 앱별 `*_SENTRY_ENVIRONMENT`, `*_SENTRY_RELEASE`는 별도로 만들지 않는다.
+
+`ecosystem.config.js --update-env`로 reload하면 client의 빈 `JWT_SECRET` 덮어쓰기도 새 프로세스에 적용된다. ADMIN과 CLIENT가 같은 Unix 계정과 PM2 설정 파일을 사용하므로, 프로세스 env 격리는 운영체제 계정 수준의 파일·프로세스 접근 격리를 대체하지 않는다.
 
 ### 수동 SCP 배포용 `.env.deploy`
 

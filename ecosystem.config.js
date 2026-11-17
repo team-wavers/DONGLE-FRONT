@@ -78,6 +78,9 @@ module.exports = {
             max_memory_restart: "700M",
             env: {
                 ...pm2Env,
+                // Client는 JWT 검증을 하지 않는다. 이전 PM2 env가 merge되어 남지 않도록
+                // 빈 값으로 덮어써 재시작/롤링 reload 양쪽에서 시크릿을 제거한다.
+                JWT_SECRET: "",
                 NODE_ENV: "production",
                 HOSTNAME: "0.0.0.0",
                 PORT: 3000,

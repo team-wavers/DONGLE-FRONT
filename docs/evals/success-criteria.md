@@ -30,6 +30,21 @@
 관련 테스트:
 - `apps/DONGLE-ADMIN/src/app/(대시보드)/(총동연)/admin/admin-home-data.test.ts`
 
+## Admin Server Data Access
+
+- ADMIN 페이지의 서버 데이터 로더는 레이아웃이나 미들웨어 검증에만 의존하지 않고, 요청마다 access token 서명과 `admin` role을 확인한 뒤 데이터를 조회해야 한다.
+- 토큰이 없거나 유효하지 않으면 로그인 흐름으로, 회장 role이면 자신의 동아리 폼 경로로 이동해야 한다. 미들웨어는 기존 access token refresh 흐름을 유지한다.
+- 관리자 토큰은 모든 `clubId`의 상세/보고서 데이터를 읽을 수 있어야 한다.
+- 회장 페이지의 동아리·보고서·일정 데이터 조회는 검증된 `president` 토큰의 `club_id`와 요청 동아리가 일치해야 하며 관리자는 모든 동아리를 조회할 수 있다. 권한 거부는 조회 실패 정규화에서 삼키지 않는다.
+- 사용자 응답 타입과 mock에는 `password` 또는 `refresh_token`을 포함하지 않는다. 사용자 생성·수정 요청은 필요한 `password`를 유지하며 `refresh_token`은 허용하지 않는다.
+- 사용자 목록과 동아리 수정 폼은 구버전 API 응답에서도 필요한 사용자·회장 필드만 브라우저에 전달한다.
+
+관련 테스트:
+- [server-page-auth.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/server-page-auth.test.ts)
+- `apps/DONGLE-ADMIN/src/app/(대시보드)/(총동연)/admin/(메뉴)/(사용자관리)/user/user-list-view-model.test.ts`
+- [pm2-client-env.test.ts](../../apps/DONGLE-ADMIN/src/lib/server/pm2-client-env.test.ts)
+- `packages/api/src/mocks/fixtures.test.ts` (응답 mock의 `User` 타입 계약)
+
 ## Client Search Identity
 
 - 공개 사이트의 파비콘은 정사각형 ICO이며 16/32/48/256px 이미지를 포함한다.

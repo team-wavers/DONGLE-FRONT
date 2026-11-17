@@ -1,4 +1,5 @@
 import { getAdminDashboardService } from "@/lib/server/cached-services";
+import { requireAdminPageAccess } from "@/shared/action/server-page-auth";
 import type { DashboardData } from "@dongle/types/dashboard/dashboard";
 
 const EMPTY_DASHBOARD_DATA: DashboardData = {
@@ -9,6 +10,7 @@ const EMPTY_DASHBOARD_DATA: DashboardData = {
 };
 
 export async function getAdminHomeData(): Promise<{ isError: boolean } & DashboardData> {
+    await requireAdminPageAccess();
     try {
         const response = await getAdminDashboardService();
 
