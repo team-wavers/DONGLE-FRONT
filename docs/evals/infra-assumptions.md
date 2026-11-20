@@ -30,6 +30,7 @@
 
 ## E2E 관련 현재 가정
 
+- PR CI의 Playwright Chromium 설치와 스모크는 `ubuntu-24.04`에서 실행한다. Playwright 1.58.2가 지원하는 OS를 유지하도록 러너의 Ubuntu 버전을 명시한다.
 - E2E는 기본 경로가 아니다.
 - Playwright는 현재 `reuseExistingServer`를 우선 사용한다.
 - project별로 필요한 서버만 기동하도록 분리되어 있다.
