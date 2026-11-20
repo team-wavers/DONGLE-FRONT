@@ -445,6 +445,37 @@ Authorization: Bearer {accessToken}
 
 ---
 
+### GET /v1/clubs/reports/recent
+
+홈에서 여러 동아리의 최근 활동을 보여주는 공개 카드 목록입니다.
+
+**인증**: 불필요
+**쿼리 파라미터**: 없음 (최대 4건 고정)
+
+삭제되지 않은 동아리와 보고서만 대상으로 동아리마다 최신 한 건을 선택한 뒤, 전체 등록일 내림차순으로 최대 네 건을 반환합니다. 등록일이 같으면 보고서 ID 내림차순입니다. `thumbnail_url`은 첨부 첫 유효 이미지를 우선하고, 없으면 본문 첫 이미지, 둘 다 없으면 `null`입니다. nullable 제목은 빈 문자열로 반환합니다.
+
+**응답**:
+
+```json
+{
+    "isSuccess": true,
+    "result": [
+        {
+            "id": 178,
+            "title": "10월 활동보고서",
+            "createdAt": "2026-11-10T01:48:25.697Z",
+            "club_id": 2,
+            "club_name": "스파이크",
+            "thumbnail_url": "https://s3.ap-northeast-2.amazonaws.com/dongle.bucket/club-reports/example"
+        }
+    ]
+}
+```
+
+보고서가 없으면 `result: []`입니다. 본문, 첨부 배열, 동아리 관계 객체와 사용자 정보는 포함하지 않습니다. 프런트는 이 API를 한 번 조회하며 120초 캐시합니다. 서버에 새 엔드포인트를 배포한 뒤 프런트를 배포해야 합니다.
+
+---
+
 ### GET /v1/clubs/reports
 
 모든 동아리 리포트 조회

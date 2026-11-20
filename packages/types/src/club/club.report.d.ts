@@ -31,3 +31,14 @@ export type ClubReportCreateResponse = Response<ClubReport>;
 export type ClubReportDeleteResponse = Response<null>;
 export type ClubReportImageResponse = Response<string>;
 export type ClubReportUpdateResponse = Response<ClubReport>;
+
+export interface RecentClubReport {
+  id: number;
+  title: string;
+  createdAt: string;
+  club_id: number;
+  club_name: string;
+  thumbnail_url: string | null;
+}
+
+export type RecentClubReportListResponse = Response<RecentClubReport[]>;

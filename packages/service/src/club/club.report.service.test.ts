@@ -13,9 +13,18 @@ vi.mock("@dongle/api/instance", () => ({
     },
 }));
 
-import { getClubReportListService, getClubReportService } from "./club.report.service";
+import { getClubReportListService, getClubReportService, getRecentClubReportsService } from "./club.report.service";
 
 describe("club report service endpoints", () => {
+    test("홈 최근 활동은 공개 통합 엔드포인트를 보고서·동아리 태그로 120초 캐시한다", async () => {
+        fetchInstanceMock.get.mockResolvedValueOnce({ isSuccess: true, result: [] });
+        await expect(getRecentClubReportsService()).resolves.toEqual({ isSuccess: true, result: [] });
+        expect(fetchInstanceMock.get).toHaveBeenCalledWith("/clubs/reports/recent", {
+            cache: "force-cache",
+            next: { tags: ["report", "club"], revalidate: 120 },
+        });
+        expect(fetchInstanceMock.get).toHaveBeenCalledTimes(1);
+    });
     beforeEach(() => {
         vi.clearAllMocks();
         fetchInstanceMock.get.mockResolvedValue({

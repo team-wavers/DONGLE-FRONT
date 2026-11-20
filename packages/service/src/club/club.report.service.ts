@@ -8,9 +8,10 @@ import type {
     ClubReportUpdateResponse,
     CreateClubReportRequest,
     UpdateClubReportRequest,
+    RecentClubReportListResponse,
 } from "@dongle/types/club/club.report";
 import type { Response } from "@dongle/types/response";
-import { CLUB_REPORT_REVALIDATE_SECONDS, reportTagGroups } from "../cache-tags";
+import { CLUB_REPORT_REVALIDATE_SECONDS, clubTagGroups, reportTagGroups } from "../cache-tags";
 
 const instance = FetchInstance.getInstance();
 
@@ -55,6 +56,16 @@ export async function getClubReportListService(
     policy: ReportFetchPolicy = "public"
 ): Promise<ClubReportListResponse> {
     return instance.get<ClubReportListResponse>(getClubReportsPath(clubId), getReportListFetchOptions(clubId, policy));
+}
+
+export async function getRecentClubReportsService(): Promise<RecentClubReportListResponse> {
+    return instance.get<RecentClubReportListResponse>(`${CLUBS_PATH}/reports/recent`, {
+        cache: "force-cache",
+        next: {
+            tags: [...reportTagGroups.list(), ...clubTagGroups.list()],
+            revalidate: CLUB_REPORT_REVALIDATE_SECONDS,
+        },
+    });
 }
 
 export async function getClubReportService(clubId: number, reportId: number): Promise<ClubReportResponse> {
