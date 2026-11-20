@@ -12,6 +12,7 @@
         "test:watch": "vitest",
         "test:e2e": "playwright test",
         "test:e2e:smoke": "NEXT_PUBLIC_USE_MSW=1 playwright test --project=client --grep @smoke",
+        "test:e2e:dev": "playwright test --config=playwright.dev.config.ts",
         "test:e2e:admin": "playwright test --project=admin",
         "test:e2e:client": "playwright test --project=client",
         "test:e2e:ui": "playwright test --ui",

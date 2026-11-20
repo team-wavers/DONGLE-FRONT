@@ -45,6 +45,13 @@
 - [pm2-client-env.test.ts](../../apps/DONGLE-ADMIN/src/lib/server/pm2-client-env.test.ts)
 - `packages/api/src/mocks/fixtures.test.ts` (응답 mock의 `User` 타입 계약)
 
+## 개발 배포 인증 E2E
+
+- 관리자는 실제 로그인 후 시드 회장을 사용자 목록에서 조회할 수 있어야 한다.
+- 회장은 본인 동아리 관리 화면과 API를 조회할 수 있으며 다른 동아리 관리 화면·일정 API와 사용자 전체 목록 접근은 거부된다.
+- 로그인은 HTTPS httpOnly 토큰 쿠키를 설정하고 사용자 응답은 `password`, `refresh_token`을 포함하지 않는다.
+- 검사 시작 시 dev 서버 환경과 요청된 배포 SHA를 확인하며, 역할별 로그인은 한 번씩 실행한다.
+
 ## Client Search Identity
 
 - 공개 사이트의 파비콘은 정사각형 ICO이며 16/32/48/256px 이미지를 포함한다.

@@ -67,6 +67,9 @@
 
 ## 잔존 E2E
 
+- `e2e/dev/auth.spec.ts`는 배포된 dev ADMIN의 관리자·회장 로그인, HTTPS httpOnly 세션 쿠키, 사용자 목록·본인 조회, 타 동아리 관리 접근 거부, API 응답의 인증 비밀 제외를 검증한다.
+- [dev-environment.test.ts](../../e2e/fixtures/dev-environment.test.ts)는 dev 접속 설정과 운영 호스트·잘못된 URL·누락 자격 증명의 거부를 검증한다.
+
 | 프로젝트 | 파일 | 현재 목적 | 상태 |
 | --- | --- | --- | --- |
 | admin | [auth.spec.ts](../../e2e/admin/auth.spec.ts) | 관리자 로그인 연결 검증 | 유지 |

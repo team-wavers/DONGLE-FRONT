@@ -37,6 +37,20 @@
 - project별로 필요한 서버만 기동하도록 분리되어 있다.
 - 로컬에서는 이미 켜진 dev 서버가 있으면 재사용한다.
 
+## 개발 배포 E2E 설정
+
+- `pnpm test:e2e:dev`는 별도 Playwright 설정으로 배포된 dev ADMIN과 API를 사용한다. 로컬 서버와 MSW 스모크 설정은 기존 명령에서 사용한다.
+- 프런트 저장소 수준 변수 `E2E_ADMIN_URL`을 `https://admin.dev.dongle.wavers.kr`, `E2E_API_URL`을 `https://api.dev.dongle.wavers.kr/v1`로 설정한다. `E2E_VERCEL_PROJECT_ID`는 ADMIN 프로젝트 ID로 설정한다. 프로젝트 필터는 job 실행 전에 평가되므로 Environment 변수에만 두면 안 된다.
+- development Environment 또는 저장소 시크릿 `E2E_ADMIN_PASSWORD`와 `E2E_CLUB_PASSWORD`를 서버 시드와 같은 비밀번호로 등록한다. 계정 아이디는 `dongle_e2e_admin`, `dongle_e2e_president`다.
+- Vercel 배포 보호가 켜져 있으면 `VERCEL_AUTOMATION_BYPASS_SECRET`을 등록한다. 브라우저는 ADMIN origin에만 해당 헤더를 전달한다.
+- ADMIN의 Vercel dev 환경에 `API_URL`, dev API 액세스 서명 키와 동일한 `JWT_SECRET`, `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`를 설정한다. 기존 ADMIN 헬스체크는 API와 Server Actions 설정을 확인한다.
+- 워크플로 정의는 GitHub 기본 브랜치에도 등록돼야 한다. dev PR만 반영한 상태에서는 repository_dispatch 자동 실행이 활성화되지 않는다. 프런트 워크플로를 기본 브랜치까지 반영한 뒤 수동으로 dev ref에서 실행한다.
+- 서버 development Environment에는 프런트 Actions write 권한의 `FRONT_E2E_DISPATCH_TOKEN`이 필요하다. 서버 dev 배포 성공 후에만 프런트 워크플로를 호출한다. 서버 PR CI에서는 호출하지 않는다.
+- Vercel 이벤트는 프로젝트 ID와 dev 브랜치를 필터링한다. 검사 대상은 설정된 고정 dev ADMIN URL이며, 이벤트의 프런트 SHA 및 서버 dispatch의 서버 SHA와 헬스 응답을 비교한다.
+- Vercel에서 dev 브랜치를 프로젝트의 Production Branch로 설정해도 프로젝트 ID와 Git dev ref로 판별한다. Vercel의 environment 이름만으로 개발 환경을 제외하지 않는다.
+- 공유 dev API 배포가 검사 도중 갱신되면 환경 불일치로 재실행해야 한다. 고정 URL의 배포 버전 불일치는 성공으로 처리하지 않는다.
+- 인증 데이터가 포함되는 trace·영상·스크린샷과 세션 파일은 업로드하지 않는다. Actions step과 검사 제목으로 실패 위치를 확인하고 요약에 기대 배포 SHA를 기록한다.
+
 ## 기본 경로와 E2E의 경계
 
 - 기본 경로는 코드/로직 검증이다.

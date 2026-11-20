@@ -227,7 +227,7 @@ client/admin 모두 같은 Git SHA를 배포하므로 앱별 `*_SENTRY_ENVIRONME
 
 ## e2e 게이트
 
-개발 배포 후에는 Vercel ADMIN과 서버 `develop` API를 대상으로 E2E를 실행하는 방안을 [개발 E2E 로드맵](evals/roadmap.md#개발-배포-후-e2e)에 정리한다. 현재 dev 배포에 자동 연결된 E2E는 없다.
+개발 배포 후에는 `dev-e2e.yml`로 Vercel ADMIN과 서버 `develop` API의 실제 로그인·조회·권한을 확인한다. 워크플로가 기본 브랜치에 등록되고 dev 자격 증명이 설정된 뒤 Vercel의 ADMIN dev 배포 성공 또는 서버 dev 배포의 후속 job이 검사를 시작한다. 설정과 순서는 [개발 E2E 로드맵](evals/roadmap.md#개발-배포-후-e2e)과 [환경 가정](evals/infra-assumptions.md#개발-배포-e2e-설정)에 정리한다.
 
 운영 배포 workflow의 `e2e-full` job은 비활성화되어 있다(`prod-lightsail-deploy.yml` 상단 TODO 참고). 외부 E2E API 가용성/시드 데이터에 배포가 종속되는 문제 때문이며, 재활성화 전 build 중복 제거와 외부 API 의존 분리가 필요하다. `.env.github-secrets.prod.example`의 `E2E_*` 항목은 이 job이 다시 켜질 때를 대비한 값이고, 지금은 운영 배포에 필수가 아니다.
 

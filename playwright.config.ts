@@ -76,6 +76,7 @@ const adminTimeout = isCI ? 300_000 : 120_000;
 
 export default defineConfig({
     testDir: "./e2e",
+    testIgnore: ["**/dev/**", "**/*.test.ts"],
     fullyParallel: false,
     forbidOnly: isCI,
     retries: isCI ? 2 : 0,
