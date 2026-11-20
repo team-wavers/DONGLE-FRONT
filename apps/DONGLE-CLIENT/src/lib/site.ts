@@ -1,6 +1,6 @@
 export const SITE_URL = "https://dongle.wavers.kr";
 export const SITE_TITLE = "동글";
-/** 브라우저 탭이 아닌 OG·Twitter 등 공유/검색용 긴 제목 */
+/** 홈 페이지와 소셜 공유에 사용하는 검색용 제목 */
 export const SITE_HOME_TITLE = "동글 | 순천대 동아리 활동 정보";
 export const SITE_DESCRIPTION =
     "순천대학교 동아리 모집 현황, 활동보고서, 공개 일정을 한곳에서 확인하는 동아리 정보 플랫폼입니다.";

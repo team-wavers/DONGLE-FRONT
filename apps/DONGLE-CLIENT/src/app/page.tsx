@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import ClubMainClient from "@/components/main/club-main-client";
 import ClubMainHeroBannerCarousel from "@/components/main/club-main-hero-banner-carousel";
+import { SITE_HOME_TITLE } from "@/lib/site";
 import { Skeleton } from "@dongle/ui/skeleton";
 import { Suspense } from "react";
 import { loadHomePageBanners, loadHomePageClubs } from "./home-page-data";
+
+export const metadata: Metadata = {
+    title: { absolute: SITE_HOME_TITLE },
+};
 
 async function HomeBannerSection() {
     const banners = await loadHomePageBanners();
