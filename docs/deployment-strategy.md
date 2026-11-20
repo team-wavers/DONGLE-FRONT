@@ -1,16 +1,17 @@
 # Deployment Strategy
 
-이 문서는 운영 배포 경로와 롤백 전략을 정리한다.
+이 문서는 개발·운영 배포 경로와 운영 롤백 전략을 정리한다.
 
 ## 개요
 
+- 개발 프런트는 Vercel의 `dev` 브랜치 배포를 사용한다.
 - 운영 배포 대상은 `dongle-client`, `dongle-admin` 두 Next.js standalone 앱이다.
 - GitHub Actions가 `main` 반영 후 Lightsail 서버로 standalone 산출물을 전송한다.
 - 프로세스 관리는 PM2가 담당한다.
 
 ## 배포 흐름
 
-1. `Main PR CI`가 PR에서 `pnpm verify:fast`, `pnpm build`를 검증한다.
+1. `Main PR CI`가 `main` 대상 PR에서 `pnpm verify:fast`, `pnpm build`, MSW 기반 CLIENT 스모크를 실행한다.
 2. `main`에 merge되면 `prod-lightsail-deploy.yml`이 실행된다.
 3. 배포 workflow는 다시 `pnpm verify:fast`를 실행한다.
 4. client/admin standalone 산출물을 각각 `releases/<git-sha>/client`, `releases/<git-sha>/admin`에 업로드한다.
@@ -197,7 +198,7 @@ client/admin 모두 같은 Git SHA를 배포하므로 앱별 `*_SENTRY_ENVIRONME
 ### 수동 SCP 배포용 `.env.deploy`
 
 로컬에서 수동 SCP 스크립트를 쓸 때는 루트의 `.env.deploy`를 사용한다.
-현재 기본 배포 경로는 dev는 Render, prod는 GitHub Actions이므로 `.env.deploy`는 필수 운영 설정이 아니라 수동 fallback 용도다.
+개발은 Vercel, 운영은 GitHub Actions로 배포한다. `.env.deploy`는 수동 SCP 스크립트에서 사용한다.
 
 `pnpm scp:client` / `pnpm scp:admin`은 GitHub Actions 배포와 동일하게 release 디렉터리에 새로 업로드한 뒤 symlink만 전환한다(`rsync --delete`로 운영 디렉터리를 직접 덮어쓰지 않는다). `DEPLOY_*_CURRENT`에는 운영 `current.client`/`current.admin`과 별개의 symlink 경로를 지정해, GitHub 릴리스 전략과 수동 배포가 같은 symlink를 다투지 않게 한다.
 
@@ -225,6 +226,8 @@ client/admin 모두 같은 Git SHA를 배포하므로 앱별 `*_SENTRY_ENVIRONME
 `ecosystem.config.js`는 앱당 `instances: 1`, `exec_mode: "fork"`이고 `wait_ready` 신호를 쓰지 않는다. `pm2 reload`는 새 프로세스가 `listen_timeout`(10초) 안에 포트를 열 때까지 짧은 다운타임이 있을 수 있다. 배포 workflow의 healthcheck 재시도(`--retry 10 --retry-delay 2`)가 이 구간을 흡수하지만, reload 순간에 들어온 요청은 끊길 수 있다. 무중단이 필요해지면 `wait_ready` + `process.send("ready")` 신호를 앱에 추가하는 것을 검토한다.
 
 ## e2e 게이트
+
+개발 배포 후에는 `dev-e2e.yml`로 Vercel ADMIN과 서버 `develop` API의 실제 로그인·조회·권한을 확인한다. 워크플로가 기본 브랜치에 등록되고 dev 자격 증명이 설정된 뒤 Vercel의 ADMIN dev 배포 성공 또는 서버 dev 배포의 후속 job이 검사를 시작한다. 설정과 순서는 [개발 E2E 로드맵](evals/roadmap.md#개발-배포-후-e2e)과 [환경 가정](evals/infra-assumptions.md#개발-배포-e2e-설정)에 정리한다.
 
 운영 배포 workflow의 `e2e-full` job은 비활성화되어 있다(`prod-lightsail-deploy.yml` 상단 TODO 참고). 외부 E2E API 가용성/시드 데이터에 배포가 종속되는 문제 때문이며, 재활성화 전 build 중복 제거와 외부 API 의존 분리가 필요하다. `.env.github-secrets.prod.example`의 `E2E_*` 항목은 이 job이 다시 켜질 때를 대비한 값이고, 지금은 운영 배포에 필수가 아니다.
 

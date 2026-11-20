@@ -67,13 +67,16 @@
 
 ## 잔존 E2E
 
+- `e2e/dev/auth.spec.ts`는 배포된 dev ADMIN의 관리자·회장 로그인, HTTPS httpOnly 세션 쿠키, 사용자 목록·본인 조회, 타 동아리 관리 접근 거부, API 응답의 인증 비밀 제외를 검증한다.
+- [dev-environment.test.ts](../../e2e/fixtures/dev-environment.test.ts)는 dev 접속 설정과 운영 호스트·잘못된 URL·누락 자격 증명의 거부를 검증한다.
+
 | 프로젝트 | 파일 | 현재 목적 | 상태 |
 | --- | --- | --- | --- |
 | admin | [auth.spec.ts](../../e2e/admin/auth.spec.ts) | 관리자 로그인 연결 검증 | 유지 |
 | admin | [report-management.spec.ts](../../e2e/admin/report-management.spec.ts) | 동아리 상세 탭 이동 | 유지 |
 | club | [auth.spec.ts](../../e2e/club/auth.spec.ts) | 회장 로그인 연결 검증 | 유지 |
-| club | [club-form.spec.ts](../../e2e/club/club-form.spec.ts) | 동아리 정보 수정 1건 | 유지 |
-| club | [report.spec.ts](../../e2e/club/report.spec.ts) | 활동보고서 작성/삭제 1건 | 유지 |
+| club | [club-form.spec.ts](../../e2e/club/club-form.spec.ts) | 동아리 정보 수정 후 기존 Instagram 값 복원 확인 | 유지 |
+| club | [report.spec.ts](../../e2e/club/report.spec.ts) | 활동보고서 작성/삭제 및 중간 실패 시 작성한 보고서만 정리 | 유지 |
 | client | [smoke.spec.ts](../../e2e/client/smoke.spec.ts) | 메인 진입 | 유지 |
 | client | [search.spec.ts](../../e2e/client/search.spec.ts) | 검색어·필터 URL 동기화 검증 | 유지 |
 

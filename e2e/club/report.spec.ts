@@ -1,44 +1,48 @@
+import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { getLoggedInClubId, gotoClubReportList } from "../fixtures/club.fixture";
 
 test.describe("club report", () => {
-    /** 테스트 중간에 assertion이 실패해도 생성된 보고서가 E2E 환경에 남지 않도록 best-effort로 정리한다 */
-    let pendingCleanupTitle: string | undefined;
+    let pendingCleanup: { listUrl: string; title: string } | undefined;
 
-    test.afterEach(async ({ page }) => {
-        if (!pendingCleanupTitle) {
+    test.afterEach(async ({ context }) => {
+        if (!pendingCleanup) {
             return;
         }
 
-        const titleToClean = pendingCleanupTitle;
-        pendingCleanupTitle = undefined;
+        const { listUrl, title } = pendingCleanup;
+        pendingCleanup = undefined;
+        const cleanupPage = await context.newPage();
+        await cleanupPage.goto(listUrl, { waitUntil: "domcontentloaded" });
+        await expect(cleanupPage.getByText(/개의 활동보고서/)).toBeVisible();
 
-        try {
-            const clubId = await getLoggedInClubId(page);
-            await page.goto(`/${clubId}/report`, { waitUntil: "domcontentloaded" });
-
-            const leftoverReport = page.getByRole("link", { name: new RegExp(titleToClean) }).first();
-            if ((await leftoverReport.count()) === 0) {
-                return;
-            }
-
-            await leftoverReport.click();
-            await page.getByRole("button", { name: "삭제하기" }).click();
-            await page.getByRole("button", { name: "삭제하기" }).last().click();
-        } catch {
-            // 정리 실패는 테스트 결과에 영향을 주지 않는다. 다음 실행에서도 재시도된다.
+        const leftoverReport = cleanupPage
+            .getByRole("link")
+            .filter({ has: cleanupPage.getByText(title, { exact: true }) });
+        if ((await leftoverReport.count()) === 0) {
+            return;
         }
+
+        await leftoverReport.click();
+        await cleanupPage.getByRole("button", { name: "삭제하기" }).click();
+        await cleanupPage
+            .getByRole("dialog", { name: "보고서 삭제" })
+            .getByRole("button", { name: "삭제하기" })
+            .click();
+        await expect(cleanupPage).toHaveURL(listUrl);
+        await expect(cleanupPage.getByText(/개의 활동보고서/)).toBeVisible();
+        await expect(leftoverReport).toHaveCount(0);
     });
 
     test("활동보고서를 작성한 뒤 삭제할 수 있다", async ({ page }) => {
         await gotoClubReportList(page);
 
+        const listUrl = page.url();
         const clubId = await getLoggedInClubId(page);
-        const reportTitle = `E2E 보고서 ${Date.now()}`;
+        const reportTitle = `E2E 보고서 ${randomUUID()}`;
         const reportContent = "E2E 활동보고서 본문입니다. 작성과 삭제 흐름을 검증합니다.";
-        pendingCleanupTitle = reportTitle;
 
-        await page.getByRole("button", { name: "작성하기" }).click();
+        await page.getByRole("link", { name: "작성하기" }).click();
 
         await expect(page).toHaveURL(new RegExp(`/${clubId}/create$`));
         await page.getByLabel("보고서 제목").fill(reportTitle);
@@ -47,22 +51,24 @@ test.describe("club report", () => {
         await editor.click();
         await editor.pressSequentially(reportContent);
 
+        pendingCleanup = { listUrl, title: reportTitle };
         await page.getByRole("button", { name: "등록" }).click();
 
         await expect(page).toHaveURL(new RegExp(`/${clubId}/report$`));
 
-        const createdReportCard = page.getByRole("link", { name: new RegExp(reportTitle) });
+        const createdReportCard = page.getByRole("link").filter({ has: page.getByText(reportTitle, { exact: true }) });
         await expect(createdReportCard).toBeVisible();
         await createdReportCard.click();
 
         await expect(page).toHaveURL(new RegExp(`/${clubId}/report/\\d+$`));
         await expect(page.getByText(reportTitle)).toBeVisible();
         await page.getByRole("button", { name: "삭제하기" }).click();
-        await page.getByRole("button", { name: "삭제하기" }).last().click();
+        await page.getByRole("dialog", { name: "보고서 삭제" }).getByRole("button", { name: "삭제하기" }).click();
 
-        await expect(page).toHaveURL(new RegExp(`/${clubId}/report$`));
-        await expect(page.getByRole("link", { name: new RegExp(reportTitle) })).toHaveCount(0);
+        await expect(page).toHaveURL(listUrl);
+        await expect(page.getByText(/개의 활동보고서/)).toBeVisible();
+        await expect(createdReportCard).toHaveCount(0);
 
-        pendingCleanupTitle = undefined;
+        pendingCleanup = undefined;
     });
 });
