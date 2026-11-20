@@ -17,7 +17,7 @@
     "msw": "^2.12.9"
   },
   "peerDependencies": {
-    "next": "15.5.9",
+    "next": "15.5.29",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

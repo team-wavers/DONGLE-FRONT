@@ -30,12 +30,35 @@
 관련 테스트:
 - `apps/DONGLE-ADMIN/src/app/(대시보드)/(총동연)/admin/admin-home-data.test.ts`
 
+## Admin Server Data Access
+
+- ADMIN 페이지의 서버 데이터 로더는 레이아웃이나 미들웨어 검증에만 의존하지 않고, 요청마다 access token 서명과 `admin` role을 확인한 뒤 데이터를 조회해야 한다.
+- 토큰이 없거나 유효하지 않으면 로그인 흐름으로, 회장 role이면 자신의 동아리 폼 경로로 이동해야 한다. 미들웨어는 기존 access token refresh 흐름을 유지한다.
+- 관리자 토큰은 모든 `clubId`의 상세/보고서 데이터를 읽을 수 있어야 한다.
+- 회장 페이지의 동아리·보고서·일정 데이터 조회는 검증된 `president` 토큰의 `club_id`와 요청 동아리가 일치해야 하며 관리자는 모든 동아리를 조회할 수 있다. 권한 거부는 조회 실패 정규화에서 삼키지 않는다.
+- 사용자 응답 타입과 mock에는 `password` 또는 `refresh_token`을 포함하지 않는다. 사용자 생성·수정 요청은 필요한 `password`를 유지하며 `refresh_token`은 허용하지 않는다.
+- 사용자 목록과 동아리 수정 폼은 구버전 API 응답에서도 필요한 사용자·회장 필드만 브라우저에 전달한다.
+
+관련 테스트:
+- [server-page-auth.test.ts](../../apps/DONGLE-ADMIN/src/shared/action/server-page-auth.test.ts)
+- `apps/DONGLE-ADMIN/src/app/(대시보드)/(총동연)/admin/(메뉴)/(사용자관리)/user/user-list-view-model.test.ts`
+- [pm2-client-env.test.ts](../../apps/DONGLE-ADMIN/src/lib/server/pm2-client-env.test.ts)
+- `packages/api/src/mocks/fixtures.test.ts` (응답 mock의 `User` 타입 계약)
+
+## 개발 배포 인증 E2E
+
+- 관리자는 실제 로그인 후 시드 회장을 사용자 목록에서 조회할 수 있어야 한다.
+- 회장은 본인 동아리 관리 화면과 API를 조회할 수 있으며 다른 동아리 관리 화면·일정 API와 사용자 전체 목록 접근은 거부된다.
+- 로그인은 HTTPS httpOnly 토큰 쿠키를 설정하고 사용자 응답은 `password`, `refresh_token`을 포함하지 않는다.
+- 검사 시작 시 dev 서버 환경과 요청된 배포 SHA를 확인하며, 역할별 로그인은 한 번씩 실행한다.
+
 ## Client Search Identity
 
 - 공개 사이트의 파비콘은 정사각형 ICO이며 16/32/48/256px 이미지를 포함한다.
 - `icon`과 `shortcut icon`은 `SITE_URL` 기준 절대 URL로 같은 파비콘을 지정한다.
 - Apple touch icon은 별도의 180px 정사각형 PNG를 절대 URL로 지정한다.
 - 사이트 이름은 `동글`로 유지한다. 네이버 검색 노출 이름과 파비콘 반영 시점은 검색 로봇의 수집·색인에 따라 결정된다.
+- 홈페이지의 HTML 제목은 `동글 | 순천대 동아리 활동 정보`로 표시한다. 내부 페이지는 각 페이지 제목과 사이트 이름을 조합한다.
 
 검증: 정적 이미지 규격과 metadata 설정을 직접 확인한다. 로직 변경이 없는 이미지·설정 변경이므로 별도의 Vitest 테스트는 추가하지 않는다.
 
@@ -71,6 +94,7 @@
 - 회장 계정은 입력한 이름·아이디·비밀번호·전화번호를 `newPresident`로 동아리 생성 요청에 함께 전달해야 한다.
 - 등록 폼은 아이콘 파일을 받지 않으며, 아이콘은 로그인 후 수정 페이지에서 올릴 수 있다고 안내해야 한다.
 - 공개 동아리 등록은 로그인 세션 없이 등록 키만으로 사용자·동아리 생성을 호출해야 하며 `sessionExpired`로 매핑하지 않는다.
+- 공개 등록은 서버 트랜잭션에서 등록 키 소모, 회장 계정 생성, 동아리 생성을 함께 처리한다. 동아리 생성에 실패하면 서버가 트랜잭션을 롤백하고 프런트는 등록 실패를 반환하며 캐시를 갱신하지 않는다.
 - 로그인 아이디 또는 전화번호 중복 응답은 `error.code`의 `LOGIN_ID_DUPLICATED` / `PHONE_DUPLICATED` 값에 따라 해당 폼 필드 오류로 표시해야 한다. 서버 메시지가 비어 있으면 필드별 기본 문구를 사용하고, code가 없거나 모르는 값이면 formError로 처리해야 한다.
 - 비어 있는 SNS 필드는 요청에서 생략해야 한다.
 - 성공 시 `user`와 동아리 목록 cache tag를 무효화하고, 등록 성공 URL만 반환해야 한다. 자격 증명을 쿠키나 URL로 전달하지 않는다.

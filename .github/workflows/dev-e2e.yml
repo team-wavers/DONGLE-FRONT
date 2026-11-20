@@ -1,0 +1,61 @@
+name: Dev Deployment E2E
+
+on:
+  repository_dispatch:
+    types: [vercel.deployment.success]
+  workflow_dispatch:
+    inputs:
+      server_sha:
+        description: 검증할 서버 배포 SHA
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dev-deployment-e2e
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.client_payload.project.id == vars.E2E_VERCEL_PROJECT_ID &&
+       github.event.client_payload.git.ref == 'dev')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: development
+    env:
+      E2E_ADMIN_URL: ${{ vars.E2E_ADMIN_URL }}
+      E2E_API_URL: ${{ vars.E2E_API_URL }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+      E2E_CLUB_PASSWORD: ${{ secrets.E2E_CLUB_PASSWORD }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      EXPECTED_FRONT_SHA: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.git.sha || '' }}
+      EXPECTED_SERVER_SHA: ${{ inputs.server_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.git.sha || 'dev' }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Run deployed dev authentication E2E
+        run: pnpm test:e2e:dev
+      - name: Record tested deployment
+        if: always()
+        run: |
+          TEST_SOURCE=$(git rev-parse HEAD)
+          {
+            echo "### 개발 배포 E2E"
+            printf '테스트 소스 %s\n' "$TEST_SOURCE"
+            printf '프런트 기대 SHA %s\n' "$EXPECTED_FRONT_SHA"
+            printf '서버 기대 SHA %s\n' "$EXPECTED_SERVER_SHA"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -5,8 +5,10 @@ import { Button } from "@dongle/ui/button";
 import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireClubPageAccess } from "@/shared/action/server-page-auth";
 
 async function ClubReportDetailContent({ clubId, reportId }: { clubId: string; reportId: string }) {
+    await requireClubPageAccess({ clubId });
     const reportResponse = await getClubReportService(Number(clubId), Number(reportId));
     const { result, isSuccess, error } = reportResponse;
 

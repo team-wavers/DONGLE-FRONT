@@ -1,8 +1,10 @@
 import { getClubService } from "@/lib/server/cached-services";
 import ClubForm from "@/feature/club/components/club-form/club-form";
 import { notFound } from "next/navigation";
+import { requireAdminPageAccess } from "@/shared/action/server-page-auth";
 
 async function ClubDetailContent({ clubId }: { clubId: string }) {
+    await requireAdminPageAccess({ clubId });
     const { result, isSuccess, error } = await getClubService(Number(clubId));
 
     if (!isSuccess) {
@@ -22,10 +24,16 @@ async function ClubDetailContent({ clubId }: { clubId: string }) {
     }
 
     const presidentId = result.president?.id;
+    const clubForForm = {
+        ...result,
+        president: result.president
+            ? { id: result.president.id, name: result.president.name, phone: result.president.phone }
+            : result.president,
+    };
 
     return (
         <div className="flex flex-col w-full gap-4">
-            <ClubForm club={result} clubId={clubId} presidentId={presidentId} />
+            <ClubForm club={clubForForm} clubId={clubId} presidentId={presidentId} />
         </div>
     );
 }

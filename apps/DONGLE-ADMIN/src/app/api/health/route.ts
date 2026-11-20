@@ -11,6 +11,7 @@ export async function GET() {
             app: "dongle-admin",
             environment: process.env.NODE_ENV ?? "unknown",
             release: process.env.SENTRY_RELEASE ?? "unknown",
+            deploymentSha: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.SENTRY_RELEASE ?? "unknown",
             apiConfigured,
         },
         { headers: { "Cache-Control": "no-store" } },

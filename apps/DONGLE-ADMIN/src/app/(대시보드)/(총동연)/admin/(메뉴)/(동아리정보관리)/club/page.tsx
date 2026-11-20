@@ -2,8 +2,10 @@ import { Suspense } from "react";
 import FilterableClubList from "@/feature/club/components/filterable-club-list/filterable-club-list";
 import { getClubListService } from "@/lib/server/cached-services";
 import AdminPageHeader from "@/shared/layout/page-header/admin-page-header";
+import { requireAdminPageAccess } from "@/shared/action/server-page-auth";
 
 async function loadClubListViewModel() {
+    await requireAdminPageAccess();
     try {
         const { result, isSuccess } = await getClubListService();
 

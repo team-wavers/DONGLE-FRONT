@@ -1,12 +1,14 @@
 import { getAdminMainBannerService } from "@/lib/server/cached-services";
 import MainBannerEditSection from "@/feature/main-banner/components/main-banner-edit-section";
 import { notFound } from "next/navigation";
+import { requireAdminPageAccess } from "@/shared/action/server-page-auth";
 
 interface EditMainBannerPageProps {
     params: Promise<{ id: string }>;
 }
 
 export default async function EditMainBannerPage({ params }: EditMainBannerPageProps) {
+    await requireAdminPageAccess();
     const { id } = await params;
     const bannerId = Number(id);
 

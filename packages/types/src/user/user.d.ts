@@ -14,10 +14,8 @@ export interface User {
   id: number;
   name: string;
   login_id: string;
-  password: string; // 해시된 비밀번호
   role: UserRole;
   phone: string;
-  refresh_token: string;
   created_at: string; // ISO 8601 날짜 문자열
   updated_at: string; // ISO 8601 날짜 문자열
   deleted_at: string | null;
@@ -31,7 +29,6 @@ export interface CreateUserRequest {
   password: string;
   role: UserRole;
   phone: string;
-  refresh_token?: string;
 }
 export type UpdateUserRequest = Partial<CreateUserRequest>;
 export type UpdateUserResponse = Response<User>;

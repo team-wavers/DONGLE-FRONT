@@ -57,5 +57,5 @@ export async function gotoClubReportList(page: Page) {
     const clubId = await gotoAuthenticatedClubHome(page);
     await page.goto(`/${clubId}/report`, { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("button", { name: "작성하기" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "작성하기" })).toBeVisible();
 }

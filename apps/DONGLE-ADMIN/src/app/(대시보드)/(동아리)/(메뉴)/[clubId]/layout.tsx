@@ -5,8 +5,10 @@ import { getClubService } from "@/lib/server/cached-services";
 import { Skeleton } from "@dongle/ui/skeleton";
 import { SidebarInset } from "@dongle/ui/sidebar";
 import NotFound from "./not-found";
+import { requireClubPageAccess } from "@/shared/action/server-page-auth";
 
 async function ClubSidebarAsync({ clubId }: { clubId: string }) {
+    await requireClubPageAccess({ clubId });
     const { result } = await getClubService(Number(clubId));
 
     return <ClubSidebar clubId={clubId} clubName={result?.name} />;
