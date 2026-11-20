@@ -9,16 +9,48 @@ import type {
     ClubReportUpdateResponse,
     CreateClubReportRequest,
     UpdateClubReportRequest,
+    RecentClubReportListResponse,
 } from "@dongle/types/club/club.report";
 import type { SuccessResponse } from "@dongle/types/response";
 import { apiPath } from "../api-path";
-import { mockReportsForClub } from "../fixtures";
+import { mockClubs, mockReportsForClub } from "../fixtures";
 
 function success<T>(result: T): SuccessResponse<T> {
     return { isSuccess: true, result };
 }
 
 const clubReportHandlers = [
+    http.get(apiPath(`/clubs/reports/recent`), () => {
+        const recent = mockClubs
+            .filter((club) => !club.deleted_at)
+            .flatMap((club) => {
+                const report = mockReportsForClub(club.id)
+                    .filter((item) => !item.deletedAt)
+                    .sort(
+                        (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt) || right.id - left.id
+                    )[0];
+                if (!report) return [];
+
+                return [
+                    {
+                        id: report.id,
+                        title: report.title,
+                        createdAt: report.createdAt,
+                        club_id: club.id,
+                        club_name: club.name,
+                        thumbnail_url:
+                            report.image_urls.find((url) => url.trim().length > 0) ??
+                            report.content.match(/<img[^>]*\ssrc=["']([^"']+)["'][^>]*>/i)?.[1] ??
+                            null,
+                    },
+                ];
+            })
+            .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt) || right.id - left.id)
+            .slice(0, 4);
+        const body: RecentClubReportListResponse = success(recent);
+        return HttpResponse.json(body);
+    }),
+
     http.get(apiPath(`/clubs/:clubId/reports`), ({ params }) => {
         const body: ClubReportListResponse = success(mockReportsForClub(Number(params.clubId)));
         return HttpResponse.json(body);
@@ -70,8 +102,7 @@ const clubReportHandlers = [
         const clubId = Number(params.clubId);
         const reportId = Number(params.reportId);
         const current =
-            mockReportsForClub(clubId).find((report) => report.id === reportId) ??
-            mockReportsForClub(clubId)[0];
+            mockReportsForClub(clubId).find((report) => report.id === reportId) ?? mockReportsForClub(clubId)[0];
 
         const updatedReport: ClubReport = {
             ...current,
