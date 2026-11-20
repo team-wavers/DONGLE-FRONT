@@ -538,6 +538,26 @@
 - [club-search-empty-state.test.ts](../../apps/DONGLE-CLIENT/src/lib/club-search-empty-state.test.ts)
 - [club-list-section.test.tsx](../../apps/DONGLE-CLIENT/src/components/main/club-list-section.test.tsx)
 
+## Client Home Activity
+
+- 홈 최근 활동은 동아리별 공개 보고서 목록에서 동아리당 최신 한 건을 선택하고, 전체 등록 시각 내림차순으로 최대 네 건을 표시해야 한다. 같은 시각에는 보고서 ID 내림차순을 적용하며 입력 배열을 변경하지 않는다.
+- 삭제된 보고서와 유효하지 않은 등록일은 선택에서 제외해야 한다. 최신 글이 삭제되었으면 해당 동아리의 남은 최신 글을 선택해야 한다.
+- 카드의 동아리 ID와 이름은 보고서를 조회한 부모 동아리 목록을 기준으로 결정해야 한다. 보고서 응답의 `club_id`에 의존하지 않는다.
+- 썸네일은 기존 `resolveReportThumbnailUrl` 계약대로 첨부 이미지를 우선하고 본문 첫 이미지로 보완해야 한다. 이미지가 없으면 `null`을 유지하며 보고서 본문은 클라이언트 카드 모델에 포함하지 않는다.
+- 로더는 기존 공개 보고서 조회 서비스와 캐시 정책을 사용하며, 동시에 처리하는 보고서 요청은 최대 여섯 건이어야 한다. 관리자 전용 통합 보고서 API를 사용하지 않는다.
+- 일부 보고서 조회가 실패 응답 또는 예외로 끝나도 성공한 소식을 표시해야 한다. 동아리 목록 조회 실패, 전체 보고서 조회 실패 또는 빈 목록은 빈 소식으로 정규화해야 한다.
+- 활동 섹션은 배너 다음, 모집 마감 임박과 검색·목록 앞에 배치하며, 별도 `Suspense`에서 조회하여 기존 홈 콘텐츠 렌더링을 막지 않아야 한다.
+- 카드는 동아리명, 원문 제목, Seoul 기준 등록일, 썸네일 또는 이미지 없음 표시와 `/clubs/:clubId/reports/:reportId` 상세 링크를 제공해야 한다. 빈 활동 목록은 섹션 자체를 표시하지 않는다.
+- 데스크톱은 최대 네 카드 한 줄, 모바일은 다음 카드 일부가 보이는 가로 스크롤을 제공해야 한다. 썸네일은 동아리별 하드코딩 없이 공통 `object-contain` 규칙으로 표시한다.
+- 활동 카드 클릭은 기존 `report_click` 이벤트와 허용 속성을 사용해야 한다.
+
+관련 테스트:
+- [home-activity-reports.test.ts](../../apps/DONGLE-CLIENT/src/lib/home-activity-reports.test.ts)
+- [home-activity-data.test.ts](../../apps/DONGLE-CLIENT/src/app/home-activity-data.test.ts)
+- [home-activity-section.test.tsx](../../apps/DONGLE-CLIENT/src/components/main/home-activity-section.test.tsx)
+
+반응형 배치와 독립 로딩 경계는 코드 및 브라우저로 확인한다. UI 존재 여부만 확인하는 E2E는 추가하지 않는다.
+
 ## Client Club Schedule
 
 ### 동아리 상세 일정
