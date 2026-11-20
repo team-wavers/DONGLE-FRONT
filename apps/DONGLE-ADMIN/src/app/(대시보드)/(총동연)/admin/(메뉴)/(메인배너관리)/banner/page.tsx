@@ -3,6 +3,7 @@ import { getAdminMainBannerListService } from "@/lib/server/cached-services";
 import Link from "next/link";
 import { Button } from "@dongle/ui/button";
 import type { MainBanner } from "@dongle/types/main-banner/main-banner";
+import { requireAdminPageAccess } from "@/shared/action/server-page-auth";
 
 const MOCK_MAIN_BANNERS: MainBanner[] = [
     {
@@ -35,6 +36,7 @@ function BannerPageActions() {
 }
 
 async function loadBannerListViewModel() {
+    await requireAdminPageAccess();
     try {
         const { result, isSuccess } = await getAdminMainBannerListService();
 

@@ -2,6 +2,10 @@ import { afterEach, expect, test, vi } from "vitest";
 import { getAdminMainBannerService } from "@/lib/server/cached-services";
 import EditMainBannerPage from "./page";
 
+vi.mock("@/shared/action/server-page-auth", () => ({
+    requireAdminPageAccess: vi.fn().mockResolvedValue({ accessToken: "token", claims: { role: "admin" } }),
+}));
+
 vi.mock("@/lib/server/cached-services", () => ({
     getAdminMainBannerService: vi.fn(),
 }));
